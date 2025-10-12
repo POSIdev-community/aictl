@@ -23,16 +23,8 @@ func NewGetScanCmd(
 		Short: "Get scan",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
-			if projectIdFlag != "" {
-				err = cfg.SetProjectId(projectIdFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = cfg.Validate(true, false)
-				if err != nil {
-					return err
-				}
+			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
+				return err
 			}
 
 			args = _utils.ReadArgsFromStdin(args)

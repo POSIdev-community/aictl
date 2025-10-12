@@ -6,7 +6,6 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -16,9 +15,7 @@ func NewUpdateSourcesCommand(
 	depsContainer *application.DependenciesContainer) *cobra.Command {
 
 	var (
-		path      string
-		projectId uuid.UUID
-		branchId  uuid.UUID
+		path string
 	)
 
 	cmd := &cobra.Command{
@@ -26,6 +23,17 @@ func NewUpdateSourcesCommand(
 		Short: "Update sources",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+
+			var err error
+
+			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
+				return err
+			}
+
+			if err = cfg.UpdateBranchId(branchIdFlag); err != nil {
+				return err
+			}
+
 			path = strings.TrimSpace(args[0])
 			if path == "" {
 				return errs.NewValidationError("empty sources path")
@@ -33,18 +41,6 @@ func NewUpdateSourcesCommand(
 
 			if !fshelper.PathExists(path) {
 				return errs.NewValidationError("path does not exist")
-			}
-
-			var err error
-
-			projectId, err = uuid.Parse(projectIdFlag)
-			if err != nil {
-				return errs.NewValidationFieldError(projectIdFlag, "invalid uuid")
-			}
-
-			branchId, err = uuid.Parse(branchIdFlag)
-			if err != nil {
-				return errs.NewValidationFieldError(projectIdFlag, "invalid uuid")
 			}
 
 			return nil
@@ -57,7 +53,7 @@ func NewUpdateSourcesCommand(
 				return fmt.Errorf("update sources useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, projectId, branchId, path); err != nil {
+			if err := useCase.Execute(ctx, cfg, path); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)

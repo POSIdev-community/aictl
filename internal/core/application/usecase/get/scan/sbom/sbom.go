@@ -27,5 +27,5 @@ func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context) error {
-	return nil
+	panic("not implemented")
 }

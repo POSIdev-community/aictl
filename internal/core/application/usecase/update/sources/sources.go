@@ -2,9 +2,9 @@ package sources
 
 import (
 	"context"
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
 	"os"
 )
 
@@ -27,8 +27,8 @@ func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, projectId uuid.UUID, branchId uuid.UUID, sourcePath string) error {
-	err := u.aiAdapter.UpdateSources(ctx, projectId, branchId, sourcePath)
+func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, sourcePath string) error {
+	err := u.aiAdapter.UpdateSources(ctx, cfg.ProjectId(), cfg.BranchId(), sourcePath)
 	if err != nil {
 		return err
 	}

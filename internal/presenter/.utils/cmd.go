@@ -47,7 +47,7 @@ func UpdateConfig(cfg *config.Config) func(cmd *cobra.Command, args []string) er
 			return fmt.Errorf("could not update context: %w", err)
 		}
 
-		if err := cfg.Validate(false, false); err != nil {
+		if err := cfg.Validate(); err != nil {
 			return fmt.Errorf("validate cfg error: %w", err)
 		}
 

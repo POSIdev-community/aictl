@@ -18,22 +18,14 @@ func NewScanStartBranchCommand(
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
+
 			var branchIdFlag string
 			if len(args) > 0 {
 				branchIdFlag = args[0]
 			}
 
-			var err error
-			if branchIdFlag != "" {
-				err = cfg.SetProjectId(branchIdFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = cfg.Validate(false, true)
-				if err != nil {
-					return err
-				}
+			if err := cfg.UpdateBranchId(branchIdFlag); err != nil {
+				return err
 			}
 
 			return nil

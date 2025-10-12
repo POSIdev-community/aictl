@@ -3,9 +3,9 @@ package branch
 import (
 	"context"
 	"fmt"
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
 )
 
 type UseCase struct {
@@ -25,8 +25,8 @@ func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string) error {
-	branchId, err := u.aiAdapter.CreateBranch(ctx, projectId, branchName, scanTarget)
+func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string) error {
+	branchId, err := u.aiAdapter.CreateBranch(ctx, cfg.ProjectId(), branchName, scanTarget)
 	if err != nil {
 		return fmt.Errorf("usecase create branch: %w", err)
 	}

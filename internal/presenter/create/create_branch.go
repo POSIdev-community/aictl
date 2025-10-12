@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,6 @@ func NewCreateBranchCommand(
 	)
 
 	var (
-		projectId  uuid.UUID
 		branchName string
 		scanTarget string
 	)
@@ -29,11 +28,9 @@ func NewCreateBranchCommand(
 		Short: "Create branch",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			var err error
 
-			projectId, err = uuid.Parse(projectIdFlag)
-			if err != nil {
-				return errs.NewValidationFieldError(projectIdFlag, "invalid uuid")
+			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
+				return err
 			}
 
 			if scanTarget != "" {
@@ -42,6 +39,7 @@ func NewCreateBranchCommand(
 				}
 			}
 
+			args = _utils.ReadArgsFromStdin(args)
 			branchName = args[0]
 
 			return nil
@@ -54,7 +52,7 @@ func NewCreateBranchCommand(
 				return fmt.Errorf("get projects useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, projectId, branchName, scanTarget); err != nil {
+			if err := useCase.Execute(ctx, cfg, branchName, scanTarget); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)

@@ -23,17 +23,8 @@ func NewScanStartProjectCommand(
 				projectIdFlag = args[0]
 			}
 
-			var err error
-			if projectIdFlag != "" {
-				err = cfg.SetProjectId(projectIdFlag)
-				if err != nil {
-					return err
-				}
-			} else {
-				err = cfg.Validate(true, false)
-				if err != nil {
-					return err
-				}
+			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
+				return err
 			}
 
 			return nil

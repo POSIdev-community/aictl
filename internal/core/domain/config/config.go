@@ -24,55 +24,55 @@ func NewConfig(uri Uri, token string, tlsSkip bool, projectId, branchId uuid.UUI
 	}
 }
 
-func (c *Config) Token() string {
-	return c.token
+func (cfg *Config) Token() string {
+	return cfg.token
 }
 
-func (c *Config) SetToken(token string) error {
+func (cfg *Config) SetToken(token string) error {
 	if token == "" {
 		return errs.NewValidationRequiredError("token")
 	}
 
-	c.token = token
+	cfg.token = token
 
 	return nil
 }
 
-func (c *Config) Uri() Uri {
-	return c.uri
+func (cfg *Config) Uri() Uri {
+	return cfg.uri
 }
 
-func (c *Config) UriString() string {
-	return c.uri.value
+func (cfg *Config) UriString() string {
+	return cfg.uri.value
 }
 
-func (c *Config) SetURI(rawUri string) error {
+func (cfg *Config) SetURI(rawUri string) error {
 
 	uri, err := NewUri(rawUri)
 	if err != nil {
-		c.uri = Uri{}
+		cfg.uri = Uri{}
 
 		return fmt.Errorf("set Uri error: %w", err)
 	}
 
-	c.uri = uri
+	cfg.uri = uri
 
 	return nil
 }
 
-func (c *Config) TLSSkip() bool {
-	return c.tlsSkip
+func (cfg *Config) TLSSkip() bool {
+	return cfg.tlsSkip
 }
 
-func (c *Config) SetTLSSkip(tlsSkip bool) {
-	c.tlsSkip = tlsSkip
+func (cfg *Config) SetTLSSkip(tlsSkip bool) {
+	cfg.tlsSkip = tlsSkip
 }
 
-func (c *Config) ProjectId() uuid.UUID {
-	return c.projectId
+func (cfg *Config) ProjectId() uuid.UUID {
+	return cfg.projectId
 }
 
-func (c *Config) SetProjectId(projectIdFlag string) error {
+func (cfg *Config) SetProjectId(projectIdFlag string) error {
 	if projectIdFlag == "" {
 		return errs.NewValidationRequiredError("project-id")
 	}
@@ -82,49 +82,87 @@ func (c *Config) SetProjectId(projectIdFlag string) error {
 		return errs.NewValidationFieldError("project-id", fmt.Sprintf("'%s' invalud uuid", projectIdFlag))
 	}
 
-	c.projectId = projectId
+	cfg.projectId = projectId
 
 	return nil
 }
 
-func (c *Config) BranchId() uuid.UUID {
-	return c.branchId
+func (cfg *Config) UpdateProjectId(projectIdFlag string) error {
+	var err error
+	if projectIdFlag != "" {
+		err = cfg.SetProjectId(projectIdFlag)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = cfg.ValidateProjectId()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (c *Config) SetBranchId(branchIdFlag string) error {
+func (cfg *Config) BranchId() uuid.UUID {
+	return cfg.branchId
+}
+
+func (cfg *Config) SetBranchId(branchIdFlag string) error {
 	if branchIdFlag == "" {
 		return errs.NewValidationRequiredError("branch-id")
 	}
 
 	branchId, err := uuid.Parse(branchIdFlag)
 	if err != nil {
-		return errs.NewValidationFieldError("branch-id", fmt.Sprintf("'%s' invalud uuid", branchIdFlag))
+		return errs.NewValidationFieldError("branch-id", fmt.Sprintf("'%s' invalud uuid", branchId))
 	}
 
-	c.branchId = branchId
+	cfg.branchId = branchId
 
 	return nil
 }
 
-func (c *Config) Validate(projectIdRequired, branchIdRequired bool) error {
-	if err := c.uri.validate(); err != nil {
+func (cfg *Config) UpdateBranchId(branchIdFlag string) error {
+	var err error
+	if branchIdFlag != "" {
+		err = cfg.SetBranchId(branchIdFlag)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = cfg.ValidateBranchId()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (cfg *Config) Validate() error {
+	if err := cfg.uri.validate(); err != nil {
 		return errs.NewValidationRequiredError("uri")
 	}
 
-	if c.token == "" {
+	if cfg.token == "" {
 		return errs.NewValidationRequiredError("token")
 	}
 
-	if projectIdRequired {
-		if c.ProjectId() == uuid.Nil {
-			return errs.NewValidationRequiredError("projectId")
-		}
+	return nil
+}
+
+func (cfg *Config) ValidateProjectId() error {
+	if cfg.ProjectId() == uuid.Nil {
+		return errs.NewValidationRequiredError("projectId")
 	}
 
-	if branchIdRequired {
-		if c.BranchId() == uuid.Nil {
-			return errs.NewValidationRequiredError("branchId")
-		}
+	return nil
+}
+
+func (cfg *Config) ValidateBranchId() error {
+	if cfg.BranchId() == uuid.Nil {
+		return errs.NewValidationRequiredError("branchId")
 	}
 
 	return nil
