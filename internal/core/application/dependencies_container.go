@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+
 	"github.com/POSIdev-community/aictl/internal/adapter/ai"
 	"github.com/POSIdev-community/aictl/internal/adapter/cli"
 	"github.com/POSIdev-community/aictl/internal/adapter/config"
@@ -29,7 +30,7 @@ import (
 	scanStartBranch "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/branch"
 	scanStartProject "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/project"
 	scanStop "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/stop"
-	setSettings "github.com/POSIdev-community/aictl/internal/core/application/usecase/set/settings"
+	setProjectSettings "github.com/POSIdev-community/aictl/internal/core/application/usecase/set/project/settings"
 	updateSources "github.com/POSIdev-community/aictl/internal/core/application/usecase/update/sources"
 	updateSourcesGit "github.com/POSIdev-community/aictl/internal/core/application/usecase/update/sources/git"
 	domainConfig "github.com/POSIdev-community/aictl/internal/core/domain/config"
@@ -139,8 +140,15 @@ func (c *DependenciesContainer) ScanStopUseCase(ctx context.Context, cfg *domain
 	return getUseCase[scanStop.UseCase](ctx, cfg, scanStop.NewUseCase)
 }
 
-func (c *DependenciesContainer) SetSettingsUseCase(ctx context.Context, cfg *domainConfig.Config) (*setSettings.UseCase, error) {
-	return getUseCase[setSettings.UseCase](ctx, cfg, setSettings.NewUseCase)
+func (c *DependenciesContainer) SetProjectSettingsUseCase(ctx context.Context, cfg *domainConfig.Config) (*setProjectSettings.UseCase, error) {
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cliAdapter := cli.NewCli()
+
+	return setProjectSettings.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) UpdateSourcesUseCase(ctx context.Context, cfg *domainConfig.Config) (*updateSources.UseCase, error) {

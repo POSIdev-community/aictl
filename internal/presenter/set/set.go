@@ -1,10 +1,11 @@
 package set
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/spf13/cobra"
 )
 
 func NewSetCmd(
@@ -16,7 +17,7 @@ func NewSetCmd(
 		PersistentPreRunE: _utils.UpdateConfig(cfg),
 	}
 
-	cmd.AddCommand(NewSetSettingsCmd(cfg, depsContainer))
+	cmd.AddCommand(NewSetProjectSettingsCmd(cfg, depsContainer))
 
 	_utils.AddConnectionPersistentFlags(cmd)
 

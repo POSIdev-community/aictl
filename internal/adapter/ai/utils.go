@@ -212,3 +212,15 @@ func createStubScanTarget() (string, error) {
 
 	return tempDir, nil
 }
+
+func getOrDefault[T any](value *T, defaultValue T) T {
+	if value == nil {
+		return defaultValue
+	}
+
+	return *value
+}
+
+func reference[T any](value T) *T {
+	return &value
+}

@@ -1,0 +1,17 @@
+all: false
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: "{{.InterfaceName}}"
+pkgname: "mocks"
+recursive: true
+require-template-schema-exists: true
+template: testify
+template-schema: "{{.Template}}.schema.json"
+filename: "{{.InterfaceName |lower}}.go"
+dir: "{{.InterfaceDir}}/mocks/"
+packages:
+  github.com/POSIdev-community/aictl/internal/core/application/usecase:
+    config:
+      all: true
+      recursive: true

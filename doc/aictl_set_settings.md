@@ -1,15 +1,15 @@
-## aictl get scans
+## aictl set settings
 
-Get scans
+Set project settings
 
 ```
-aictl get scans [flags]
+aictl set settings [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for scans
+  -h, --help   help for settings
 ```
 
 ### Options inherited from parent commands
@@ -24,5 +24,5 @@ aictl get scans [flags]
 
 ### SEE ALSO
 
-* [aictl get](aictl_get.md)	 - Get resources
+* [aictl set](aictl_set.md)	 - Set
 

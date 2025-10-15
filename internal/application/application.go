@@ -3,14 +3,16 @@ package application
 import (
 	"context"
 	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
+
 	"github.com/POSIdev-community/aictl/internal/adapter/config"
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/presenter"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
-	"github.com/spf13/cobra"
-	"github.com/spf13/cobra/doc"
-	"os"
 )
 
 type Application struct {
@@ -24,6 +26,7 @@ func NewApplication() *Application {
 	dependencyContainer := application.NewDependenciesContainer(cfgAdapter)
 
 	cmd := presenter.NewRootCmd(cfg, dependencyContainer)
+	cmd.DisableAutoGenTag = true
 
 	return &Application{cmd}
 }
