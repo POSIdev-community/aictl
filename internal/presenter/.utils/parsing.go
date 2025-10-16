@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"os"
 
-	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
+
+	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
 func ParseUUIDs(args []string) ([]uuid.UUID, error) {

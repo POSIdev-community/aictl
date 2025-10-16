@@ -1,0 +1,69 @@
+package plain_test
+
+import (
+	"bytes"
+	"io"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
+	. "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/plain"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/plain/mocks"
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/port"
+)
+
+func TestUseCase_Execute(t *testing.T) {
+	t.Parallel()
+
+	t.Run("stdout write", func(t *testing.T) {
+		t.Parallel()
+
+		projectID := uuid.New()
+		scanID := uuid.New()
+		templateID := uuid.New()
+		report := "foo: BAR"
+		reportReader := io.NopCloser(bytes.NewBufferString(report))
+
+		aiAdapter := mocks.NewAI(t)
+		aiAdapter.On("GetTemplateId", t.Context(), port.PlainReportType).Return(templateID, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID).Return(reportReader, nil).Once()
+
+		cliAdapter := mocks.NewCLI(t)
+		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
+
+		uc, err := NewUseCase(aiAdapter, cliAdapter)
+		require.NoError(t, err)
+
+		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, ""))
+	})
+
+	t.Run("write to file", func(t *testing.T) {
+		t.Parallel()
+
+		projectID := uuid.New()
+		scanID := uuid.New()
+		templateID := uuid.New()
+		report := "foo: BAR"
+		reportReader := io.NopCloser(bytes.NewBufferString(report))
+		filePath := filepath.Join(t.TempDir(), "test.txt")
+
+		aiAdapter := mocks.NewAI(t)
+		aiAdapter.On("GetTemplateId", t.Context(), port.PlainReportType).Return(templateID, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID).Return(reportReader, nil).Once()
+
+		cliAdapter := mocks.NewCLI(t)
+
+		uc, err := NewUseCase(aiAdapter, cliAdapter)
+		require.NoError(t, err)
+
+		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, filePath))
+
+		data, err := os.ReadFile(filePath)
+		require.NoError(t, err)
+		require.Equal(t, report, string(data))
+	})
+}

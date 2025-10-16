@@ -15,7 +15,8 @@ aictl get scan report plain [flags]
 ### Options inherited from parent commands
 
 ```
-  -d, --dest-path string    Destination path (default ".")
+  -d, --dest-path string    Destination path for the report file (default ".")
+  -f, --file-name string    Name of report file to be saved, instead of stdout output
   -l, --log-path string     log file path
   -p, --project-id string   project id
       --tls-skip            Skip certificate verification

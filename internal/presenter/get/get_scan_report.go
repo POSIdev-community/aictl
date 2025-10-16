@@ -2,12 +2,17 @@ package get
 
 import (
 	"fmt"
+
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/spf13/cobra"
 )
 
-var destPath string
+var (
+	destPath string
+	fileName string
+)
 
 func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -29,7 +34,8 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 	cmd.AddCommand(NewGetScanReportPlainCmd(cfg, depsContainer))
 	cmd.AddCommand(NewGetScanReportSarifCmd(cfg, depsContainer))
 
-	cmd.PersistentFlags().StringVarP(&destPath, "dest-path", "d", ".", "Destination path")
+	cmd.PersistentFlags().StringVarP(&destPath, "dest-path", "d", ".", "Destination path for the report file")
+	cmd.PersistentFlags().StringVarP(&fileName, "file-name", "f", "", "Name of report file to be saved, instead of stdout output")
 
 	return cmd
 }

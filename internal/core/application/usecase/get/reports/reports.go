@@ -3,10 +3,13 @@ package reports
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+
+	"github.com/google/uuid"
+
 	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
 )
 
 type UseCase struct {
@@ -62,7 +65,7 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 			return fmt.Errorf("get reports usecase get report: %w", err)
 		}
 
-		err = utils.CopyFileToPath(file, destPath, project.Name+".sarif")
+		err = utils.CopyFileToPath(file, filepath.Join(destPath, project.Name+".sarif"))
 		if err != nil {
 			return fmt.Errorf("get reports usecase: %w", err)
 		}

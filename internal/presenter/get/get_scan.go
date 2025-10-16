@@ -2,12 +2,14 @@ package get
 
 import (
 	"fmt"
+
+	"github.com/google/uuid"
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -28,7 +30,12 @@ func NewGetScanCmd(
 			}
 
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 {
+				return errs.NewValidationError("missing scan id")
+			}
+
 			scanIdFlag := args[0]
+			fmt.Println(scanIdFlag)
 
 			scanId, err = uuid.Parse(scanIdFlag)
 			if err != nil {

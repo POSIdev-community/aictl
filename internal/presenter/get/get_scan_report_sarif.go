@@ -2,9 +2,12 @@ package get
 
 import (
 	"fmt"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/spf13/cobra"
 )
 
 func NewGetScanReportSarifCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
@@ -19,7 +22,12 @@ func NewGetScanReportSarifCmd(cfg *config.Config, depsContainer *application.Dep
 				return fmt.Errorf("presenter get scan repot sarif useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, cfg, scanId, destPath); err != nil {
+			reportFilePath := fileName
+			if reportFilePath != "" {
+				reportFilePath = filepath.Join(destPath, reportFilePath)
+			}
+
+			if err := useCase.Execute(ctx, cfg, scanId, reportFilePath); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("presenter get scan repot sarif: %w", err)

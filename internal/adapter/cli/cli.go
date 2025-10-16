@@ -2,10 +2,13 @@ package cli
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"strings"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/port"
-	"strings"
 )
 
 var _ port.Cli = &Cli{}
@@ -47,6 +50,15 @@ func (cli *Cli) ShowProjectsQuite(projects []project.Project) {
 
 func (cli *Cli) ShowText(text string) {
 	fmt.Println(text)
+}
+
+// ShowReader copy provided reader to stdout.
+func (cli *Cli) ShowReader(r io.Reader) error {
+	if _, err := io.Copy(os.Stdout, r); err != nil {
+		return fmt.Errorf("failed to write to stdout: %w", err)
+	}
+
+	return nil
 }
 
 func (cli *Cli) ShowScans(scans []scan.Scan) {
