@@ -12,7 +12,6 @@ import (
 )
 
 type AI interface {
-	GetScanAiproj(ctx context.Context, projectId, scanId uuid.UUID) (string, error)
 	GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error)
 	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error
 }
@@ -40,17 +39,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, projectID, scanID uuid.UUID) error {
-	aiprojString, err := u.aiAdapter.GetScanAiproj(ctx, projectID, scanID)
-	if err != nil {
-		return fmt.Errorf("get scan aiproj: %w", err)
-	}
-
-	aiProj, err := aiproj.FromString(aiprojString)
-	if err != nil {
-		return fmt.Errorf("parse aiproj: %w", err)
-	}
-
+func (u *UseCase) Execute(ctx context.Context, projectID uuid.UUID, aiProj *aiproj.AIProj) error {
 	scanSettings, err := u.aiAdapter.GetDefaultSettings(ctx)
 	if err != nil {
 		return fmt.Errorf("get default settings: %w", err)

@@ -6,7 +6,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
 )
 
-func (s *ScanSettings) UpdateFromAIProj(aiproj aiproj.AIProj) *ScanSettings {
+func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
 	if aiproj.ProjectName != "" {
 		s.ProjectName = aiproj.ProjectName
 	}
