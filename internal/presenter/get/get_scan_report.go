@@ -11,7 +11,6 @@ import (
 
 var (
 	destPath string
-	fileName string
 )
 
 func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
@@ -21,7 +20,7 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if destPath == "" {
-				return fmt.Errorf("must specify --dest-path")
+				return fmt.Errorf("must specify -o")
 			}
 
 			return nil
@@ -34,8 +33,7 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 	cmd.AddCommand(NewGetScanReportPlainCmd(cfg, depsContainer))
 	cmd.AddCommand(NewGetScanReportSarifCmd(cfg, depsContainer))
 
-	cmd.PersistentFlags().StringVarP(&destPath, "dest-path", "d", ".", "Destination path for the report file")
-	cmd.PersistentFlags().StringVarP(&fileName, "file-name", "f", "", "Name of report file to be saved, instead of stdout output")
+	cmd.PersistentFlags().StringVarP(&destPath, "output", "o", "", "Destination path for the report file")
 
 	return cmd
 }
