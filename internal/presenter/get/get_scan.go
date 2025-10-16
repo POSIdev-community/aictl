@@ -35,7 +35,6 @@ func NewGetScanCmd(
 			}
 
 			scanIdFlag := args[0]
-			fmt.Println(scanIdFlag)
 
 			scanId, err = uuid.Parse(scanIdFlag)
 			if err != nil {
