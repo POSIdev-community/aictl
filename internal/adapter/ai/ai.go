@@ -41,93 +41,95 @@ type Adapter struct {
 }
 
 func (a *Adapter) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
-	defaultSettings, err := a.aiClient.GetApiProjectsDefaultSettingsWithResponse(ctx)
+	res, err := a.aiClient.GetApiProjectsDefaultSettingsWithResponse(ctx, a.aiClient.AddJwtToHeader)
 	if err != nil {
 		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
 	}
 
-	if defaultSettings == nil || defaultSettings.JSON200 == nil {
-		return settings.ScanSettings{}, fmt.Errorf("empty projects default settings")
+	statusCode := res.StatusCode()
+	responseBody := string(res.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
 	}
 
-	result := *defaultSettings.JSON200
+	defaultSettings := *res.JSON200
 
 	return settings.ScanSettings{
-		ProjectName: getOrDefault(result.Name, ""),
+		ProjectName: getOrDefault(defaultSettings.Name, ""),
 		Languages: func() []string {
-			if result.Languages == nil {
+			if defaultSettings.Languages == nil {
 				return nil
 			}
 
-			res := make([]string, len(*result.Languages))
-			for i := range *result.Languages {
-				res[i] = string((*result.Languages)[i])
+			res := make([]string, len(*defaultSettings.Languages))
+			for i := range *defaultSettings.Languages {
+				res[i] = string((*defaultSettings.Languages)[i])
 			}
 
 			return res
 		}(),
 		WhiteBoxSettings: settings.WhiteBoxSettings{
-			StaticCodeAnalysisEnabled:            getOrDefault(result.WhiteBox.StaticCodeAnalysisEnabled, false),
-			PatternMatchingEnabled:               getOrDefault(result.WhiteBox.PatternMatchingEnabled, false),
-			SearchForVulnerableComponentsEnabled: getOrDefault(result.WhiteBox.SearchForVulnerableComponentsEnabled, false),
-			SearchForConfigurationFlawsEnabled:   getOrDefault(result.WhiteBox.SearchForConfigurationFlawsEnabled, false),
-			SearchWithScaEnabled:                 getOrDefault(result.WhiteBox.SearchWithScaEnabled, false),
+			StaticCodeAnalysisEnabled:            getOrDefault(defaultSettings.WhiteBox.StaticCodeAnalysisEnabled, false),
+			PatternMatchingEnabled:               getOrDefault(defaultSettings.WhiteBox.PatternMatchingEnabled, false),
+			SearchForVulnerableComponentsEnabled: getOrDefault(defaultSettings.WhiteBox.SearchForVulnerableComponentsEnabled, false),
+			SearchForConfigurationFlawsEnabled:   getOrDefault(defaultSettings.WhiteBox.SearchForConfigurationFlawsEnabled, false),
+			SearchWithScaEnabled:                 getOrDefault(defaultSettings.WhiteBox.SearchWithScaEnabled, false),
 		},
 		DotNetSettings: settings.DotNetSettings{
-			ProjectType:                           string(getOrDefault(result.DotNetSettings.ProjectType, "")),
-			SolutionFile:                          getOrDefault(result.DotNetSettings.SolutionFile, ""),
-			WebSiteFolder:                         getOrDefault(result.DotNetSettings.WebSiteFolder, ""),
-			LaunchParameters:                      getOrDefault(result.DotNetSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.DotNetSettings.UseAvailablePublicAndProtectedMethods, false),
-			DownloadDependencies:                  getOrDefault(result.DotNetSettings.DownloadDependencies, false),
+			ProjectType:                           string(getOrDefault(defaultSettings.DotNetSettings.ProjectType, "")),
+			SolutionFile:                          getOrDefault(defaultSettings.DotNetSettings.SolutionFile, ""),
+			WebSiteFolder:                         getOrDefault(defaultSettings.DotNetSettings.WebSiteFolder, ""),
+			LaunchParameters:                      getOrDefault(defaultSettings.DotNetSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.DotNetSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.DotNetSettings.DownloadDependencies, false),
 		},
 		GoSettings: settings.GoSettings{
-			LaunchParameters:                      getOrDefault(result.GoSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.GoSettings.UseAvailablePublicAndProtectedMethods, false),
+			LaunchParameters:                      getOrDefault(defaultSettings.GoSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.GoSettings.UseAvailablePublicAndProtectedMethods, false),
 		},
 		JavaScriptSettings: settings.JavaScriptSettings{
-			LaunchParameters:                      getOrDefault(result.JavaScriptSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.JavaScriptSettings.UseAvailablePublicAndProtectedMethods, false),
-			DownloadDependencies:                  getOrDefault(result.JavaScriptSettings.DownloadDependencies, false),
-			UseTaintAnalysis:                      getOrDefault(result.JavaScriptSettings.UseTaintAnalysis, false),
-			UseJsaAnalysis:                        getOrDefault(result.JavaScriptSettings.UseJsaAnalysis, false),
+			LaunchParameters:                      getOrDefault(defaultSettings.JavaScriptSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.JavaScriptSettings.DownloadDependencies, false),
+			UseTaintAnalysis:                      getOrDefault(defaultSettings.JavaScriptSettings.UseTaintAnalysis, false),
+			UseJsaAnalysis:                        getOrDefault(defaultSettings.JavaScriptSettings.UseJsaAnalysis, false),
 		},
 		JavaSettings: settings.JavaSettings{
-			Parameters:                            getOrDefault(result.JavaSettings.Parameters, ""),
-			UnpackUserPackages:                    getOrDefault(result.JavaSettings.UnpackUserPackages, false),
-			UserPackagePrefixes:                   getOrDefault(result.JavaSettings.UserPackagePrefixes, ""),
-			Version:                               string(getOrDefault(result.JavaSettings.Version, "")),
-			LaunchParameters:                      getOrDefault(result.JavaSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.JavaSettings.UseAvailablePublicAndProtectedMethods, false),
-			DownloadDependencies:                  getOrDefault(result.JavaSettings.DownloadDependencies, false),
-			DependenciesPath:                      getOrDefault(result.JavaSettings.DependenciesPath, ""),
+			Parameters:                            getOrDefault(defaultSettings.JavaSettings.Parameters, ""),
+			UnpackUserPackages:                    getOrDefault(defaultSettings.JavaSettings.UnpackUserPackages, false),
+			UserPackagePrefixes:                   getOrDefault(defaultSettings.JavaSettings.UserPackagePrefixes, ""),
+			Version:                               string(getOrDefault(defaultSettings.JavaSettings.Version, "")),
+			LaunchParameters:                      getOrDefault(defaultSettings.JavaSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.JavaSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.JavaSettings.DownloadDependencies, false),
+			DependenciesPath:                      getOrDefault(defaultSettings.JavaSettings.DependenciesPath, ""),
 		},
 		PhpSettings: settings.PhpSettings{
-			LaunchParameters:                      getOrDefault(result.PhpSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.PhpSettings.UseAvailablePublicAndProtectedMethods, false),
-			DownloadDependencies:                  getOrDefault(result.PhpSettings.DownloadDependencies, false),
+			LaunchParameters:                      getOrDefault(defaultSettings.PhpSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PhpSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.PhpSettings.DownloadDependencies, false),
 		},
 		PmTaintSettings: settings.PmTaintSettings{
-			LaunchParameters:                      getOrDefault(result.PmTaintSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.PmTaintSettings.UseAvailablePublicAndProtectedMethods, false),
+			LaunchParameters:                      getOrDefault(defaultSettings.PmTaintSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PmTaintSettings.UseAvailablePublicAndProtectedMethods, false),
 		},
 		PythonSettings: settings.PythonSettings{
-			LaunchParameters:                      getOrDefault(result.PythonSettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.PythonSettings.UseAvailablePublicAndProtectedMethods, false),
-			DownloadDependencies:                  getOrDefault(result.PythonSettings.DownloadDependencies, false),
-			DependenciesPath:                      getOrDefault(result.PythonSettings.DependenciesPath, ""),
+			LaunchParameters:                      getOrDefault(defaultSettings.PythonSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PythonSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.PythonSettings.DownloadDependencies, false),
+			DependenciesPath:                      getOrDefault(defaultSettings.PythonSettings.DependenciesPath, ""),
 		},
 		RubySettings: settings.RubySettings{
-			LaunchParameters:                      getOrDefault(result.RubySettings.LaunchParameters, ""),
-			UseAvailablePublicAndProtectedMethods: getOrDefault(result.RubySettings.UseAvailablePublicAndProtectedMethods, false),
+			LaunchParameters:                      getOrDefault(defaultSettings.RubySettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.RubySettings.UseAvailablePublicAndProtectedMethods, false),
 		},
 		PygrepSettings: settings.PygrepSettings{
-			RulesDirPath:     getOrDefault(result.PygrepSettings.RulesDirPath, ""),
-			LaunchParameters: getOrDefault(result.PygrepSettings.LaunchParameters, ""),
+			RulesDirPath:     getOrDefault(defaultSettings.PygrepSettings.RulesDirPath, ""),
+			LaunchParameters: getOrDefault(defaultSettings.PygrepSettings.LaunchParameters, ""),
 		},
 		ScaSettings: settings.ScaSettings{
-			LaunchParameters:       getOrDefault(result.ScaSettings.LaunchParameters, ""),
-			BuildDependenciesGraph: getOrDefault(result.ScaSettings.BuildDependenciesGraph, false),
+			LaunchParameters:       getOrDefault(defaultSettings.ScaSettings.LaunchParameters, ""),
+			BuildDependenciesGraph: getOrDefault(defaultSettings.ScaSettings.BuildDependenciesGraph, false),
 		},
 	}, err
 }
