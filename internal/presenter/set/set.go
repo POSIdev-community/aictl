@@ -17,7 +17,7 @@ func NewSetCmd(
 		PersistentPreRunE: _utils.UpdateConfig(cfg),
 	}
 
-	cmd.AddCommand(NewSetProjectSettingsCmd(cfg, depsContainer))
+	cmd.AddCommand(NewSetProjectCmd(cfg, depsContainer))
 
 	_utils.AddConnectionPersistentFlags(cmd)
 
