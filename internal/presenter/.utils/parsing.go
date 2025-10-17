@@ -2,9 +2,10 @@ package _utils
 
 import (
 	"bufio"
+	"os"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
-	"os"
 )
 
 func ParseUUIDs(args []string) ([]uuid.UUID, error) {

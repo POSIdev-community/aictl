@@ -1,11 +1,11 @@
-## aictl update
+## aictl set
 
-Update resources
+Set
 
 ### Options
 
 ```
-  -h, --help           help for update
+  -h, --help           help for set
       --tls-skip       Skip certificate verification
   -t, --token string   AI server access token
   -u, --uri string     AI server uri
@@ -21,5 +21,5 @@ Update resources
 ### SEE ALSO
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
-* [aictl update sources](aictl_update_sources.md)	 - Update sources
+* [aictl set settings](aictl_set_settings.md)	 - Set project settings
 

@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	. "github.com/dave/jennifer/jen"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/POSIdev-community/aictl/pkg/fshelper"
+	. "github.com/dave/jennifer/jen"
 )
 
 const innerPresenterPath = "internal/presenter"
@@ -15,7 +16,7 @@ const innerUseCasePath = "internal/core/application/usecase"
 
 // Generate presenter and usecase boilerplate code
 func main() {
-	newCmdPath := []string{"set", "settings"}
+	newCmdPath := []string{"set", "project", "settings"}
 
 	currentDir, err := os.Getwd()
 	if err != nil {

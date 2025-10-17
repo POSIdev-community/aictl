@@ -4,20 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"sort"
+	"strings"
+
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	. "github.com/POSIdev-community/aictl/pkg/clientai"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
-	"github.com/google/uuid"
-	"io"
-	"os"
-	"sort"
-	"strings"
 )
 
 var _ port.Ai = &Adapter{}
@@ -35,6 +38,197 @@ func NewAdapter(ctx context.Context, cfg *config.Config) (*Adapter, error) {
 
 type Adapter struct {
 	aiClient *AiClient
+}
+
+func (a *Adapter) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
+	res, err := a.aiClient.GetApiProjectsDefaultSettingsWithResponse(ctx, a.aiClient.AddJwtToHeader)
+	if err != nil {
+		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
+	}
+
+	statusCode := res.StatusCode()
+	responseBody := string(res.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
+	}
+
+	defaultSettings := *res.JSON200
+
+	return settings.ScanSettings{
+		ProjectName: getOrDefault(defaultSettings.Name, ""),
+		Languages: func() []string {
+			if defaultSettings.Languages == nil {
+				return nil
+			}
+
+			res := make([]string, len(*defaultSettings.Languages))
+			for i := range *defaultSettings.Languages {
+				res[i] = string((*defaultSettings.Languages)[i])
+			}
+
+			return res
+		}(),
+		WhiteBoxSettings: settings.WhiteBoxSettings{
+			StaticCodeAnalysisEnabled:            getOrDefault(defaultSettings.WhiteBox.StaticCodeAnalysisEnabled, false),
+			PatternMatchingEnabled:               getOrDefault(defaultSettings.WhiteBox.PatternMatchingEnabled, false),
+			SearchForVulnerableComponentsEnabled: getOrDefault(defaultSettings.WhiteBox.SearchForVulnerableComponentsEnabled, false),
+			SearchForConfigurationFlawsEnabled:   getOrDefault(defaultSettings.WhiteBox.SearchForConfigurationFlawsEnabled, false),
+			SearchWithScaEnabled:                 getOrDefault(defaultSettings.WhiteBox.SearchWithScaEnabled, false),
+		},
+		DotNetSettings: settings.DotNetSettings{
+			ProjectType:                           string(getOrDefault(defaultSettings.DotNetSettings.ProjectType, "")),
+			SolutionFile:                          getOrDefault(defaultSettings.DotNetSettings.SolutionFile, ""),
+			WebSiteFolder:                         getOrDefault(defaultSettings.DotNetSettings.WebSiteFolder, ""),
+			LaunchParameters:                      getOrDefault(defaultSettings.DotNetSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.DotNetSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.DotNetSettings.DownloadDependencies, false),
+		},
+		GoSettings: settings.GoSettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.GoSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.GoSettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		JavaScriptSettings: settings.JavaScriptSettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.JavaScriptSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.JavaScriptSettings.DownloadDependencies, false),
+			UseTaintAnalysis:                      getOrDefault(defaultSettings.JavaScriptSettings.UseTaintAnalysis, false),
+			UseJsaAnalysis:                        getOrDefault(defaultSettings.JavaScriptSettings.UseJsaAnalysis, false),
+		},
+		JavaSettings: settings.JavaSettings{
+			Parameters:                            getOrDefault(defaultSettings.JavaSettings.Parameters, ""),
+			UnpackUserPackages:                    getOrDefault(defaultSettings.JavaSettings.UnpackUserPackages, false),
+			UserPackagePrefixes:                   getOrDefault(defaultSettings.JavaSettings.UserPackagePrefixes, ""),
+			Version:                               string(getOrDefault(defaultSettings.JavaSettings.Version, "")),
+			LaunchParameters:                      getOrDefault(defaultSettings.JavaSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.JavaSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.JavaSettings.DownloadDependencies, false),
+			DependenciesPath:                      getOrDefault(defaultSettings.JavaSettings.DependenciesPath, ""),
+		},
+		PhpSettings: settings.PhpSettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.PhpSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PhpSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.PhpSettings.DownloadDependencies, false),
+		},
+		PmTaintSettings: settings.PmTaintSettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.PmTaintSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PmTaintSettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		PythonSettings: settings.PythonSettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.PythonSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.PythonSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  getOrDefault(defaultSettings.PythonSettings.DownloadDependencies, false),
+			DependenciesPath:                      getOrDefault(defaultSettings.PythonSettings.DependenciesPath, ""),
+		},
+		RubySettings: settings.RubySettings{
+			LaunchParameters:                      getOrDefault(defaultSettings.RubySettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: getOrDefault(defaultSettings.RubySettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		PygrepSettings: settings.PygrepSettings{
+			RulesDirPath:     getOrDefault(defaultSettings.PygrepSettings.RulesDirPath, ""),
+			LaunchParameters: getOrDefault(defaultSettings.PygrepSettings.LaunchParameters, ""),
+		},
+		ScaSettings: settings.ScaSettings{
+			LaunchParameters:       getOrDefault(defaultSettings.ScaSettings.LaunchParameters, ""),
+			BuildDependenciesGraph: getOrDefault(defaultSettings.ScaSettings.BuildDependenciesGraph, false),
+		},
+	}, err
+}
+
+func (a *Adapter) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error {
+	if settings == nil {
+		return nil
+	}
+
+	projectSettings := PutApiProjectsProjectIdSettingsJSONRequestBody{
+		ProjectName: &settings.ProjectName,
+		Languages: func() *[]LegacyProgrammingLanguageGroup {
+			if settings.Languages == nil {
+				return nil
+			}
+			res := make([]LegacyProgrammingLanguageGroup, len(settings.Languages))
+			for i := range settings.Languages {
+				res[i] = LegacyProgrammingLanguageGroup(settings.Languages[i])
+			}
+			return &res
+		}(),
+		WhiteBoxSettings: &WhiteBoxSettingsModel{
+			StaticCodeAnalysisEnabled:            &settings.WhiteBoxSettings.StaticCodeAnalysisEnabled,
+			PatternMatchingEnabled:               &settings.WhiteBoxSettings.PatternMatchingEnabled,
+			SearchForVulnerableComponentsEnabled: &settings.WhiteBoxSettings.SearchForVulnerableComponentsEnabled,
+			SearchForConfigurationFlawsEnabled:   &settings.WhiteBoxSettings.SearchForConfigurationFlawsEnabled,
+			SearchWithScaEnabled:                 &settings.WhiteBoxSettings.SearchWithScaEnabled,
+		},
+		DotNetSettings: &DotNetSettingsModel{
+			ProjectType:                           reference(DotNetProjectType(settings.DotNetSettings.ProjectType)),
+			SolutionFile:                          &settings.DotNetSettings.SolutionFile,
+			WebSiteFolder:                         &settings.DotNetSettings.WebSiteFolder,
+			LaunchParameters:                      &settings.DotNetSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.DotNetSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.DotNetSettings.DownloadDependencies,
+		},
+		GoSettings: &GoSettingsModel{
+			LaunchParameters:                      &settings.GoSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.GoSettings.UseAvailablePublicAndProtectedMethods,
+		},
+		JavaScriptSettings: &JavaScriptSettingsModel{
+			LaunchParameters:                      &settings.JavaScriptSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.JavaScriptSettings.DownloadDependencies,
+			UseTaintAnalysis:                      &settings.JavaScriptSettings.UseTaintAnalysis,
+			UseJsaAnalysis:                        &settings.JavaScriptSettings.UseJsaAnalysis,
+		},
+		JavaSettings: &JavaSettingsModel{
+			Parameters:                            &settings.JavaSettings.Parameters,
+			UnpackUserPackages:                    &settings.JavaSettings.UnpackUserPackages,
+			UserPackagePrefixes:                   &settings.JavaSettings.UserPackagePrefixes,
+			Version:                               reference(JavaVersions(settings.JavaSettings.Version)),
+			LaunchParameters:                      &settings.JavaSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.JavaSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.JavaSettings.DownloadDependencies,
+			DependenciesPath:                      &settings.JavaSettings.DependenciesPath,
+		},
+		PhpSettings: &PhpSettingsModel{
+			LaunchParameters:                      &settings.PhpSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PhpSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.PhpSettings.DownloadDependencies,
+		},
+		PmTaintSettings: &PmTaintBaseSettingsModel{
+			LaunchParameters:                      &settings.PmTaintSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PmTaintSettings.UseAvailablePublicAndProtectedMethods,
+		},
+		PythonSettings: &PythonSettingsModel{
+			LaunchParameters:                      &settings.PythonSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PythonSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.PythonSettings.DownloadDependencies,
+			DependenciesPath:                      &settings.PythonSettings.DependenciesPath,
+		},
+		RubySettings: &RubySettingsModel{
+			LaunchParameters:                      &settings.RubySettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.RubySettings.UseAvailablePublicAndProtectedMethods,
+		},
+		PygrepSettings: &PygrepSettingsModel{
+			RulesDirPath:     &settings.PygrepSettings.RulesDirPath,
+			LaunchParameters: &settings.PygrepSettings.LaunchParameters,
+		},
+		ScaSettings: &ScaSettingsModel{
+			LaunchParameters:       &settings.ScaSettings.LaunchParameters,
+			BuildDependenciesGraph: &settings.ScaSettings.BuildDependenciesGraph,
+		},
+	}
+
+	res, err := a.aiClient.PutApiProjectsProjectIdSettingsWithResponse(ctx, projectId, projectSettings, a.aiClient.AddJwtToHeader)
+	if err != nil {
+		return fmt.Errorf("put project settings: %w", err)
+	}
+
+	statusCode := res.StatusCode()
+	responseBody := string(res.Body)
+	errorModel := res.JSON400
+	if err = CheckResponseByModel(statusCode, responseBody, errorModel); err != nil {
+		return fmt.Errorf("put project settings: %w", err)
+	}
+
+	return nil
 }
 
 func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string) (*uuid.UUID, error) {
