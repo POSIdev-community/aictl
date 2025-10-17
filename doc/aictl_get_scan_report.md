@@ -9,9 +9,8 @@ aictl get scan report [flags]
 ### Options
 
 ```
-  -d, --dest-path string   Destination path for the report file (default ".")
-  -f, --file-name string   Name of report file to be saved, instead of stdout output
-  -h, --help               help for report
+  -h, --help            help for report
+  -o, --output string   Destination path for the report file
 ```
 
 ### Options inherited from parent commands
