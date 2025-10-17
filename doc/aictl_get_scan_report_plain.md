@@ -15,8 +15,8 @@ aictl get scan report plain [flags]
 ### Options inherited from parent commands
 
 ```
-  -d, --dest-path string    Destination path (default ".")
   -l, --log-path string     log file path
+  -o, --output string       Destination path for the report file
   -p, --project-id string   project id
       --tls-skip            Skip certificate verification
   -t, --token string        AI server access token

@@ -2,9 +2,10 @@ package get
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/spf13/cobra"
 )
 
 func NewGetScanReportPlainCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {

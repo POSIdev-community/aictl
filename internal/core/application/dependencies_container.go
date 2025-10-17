@@ -101,11 +101,25 @@ func (c *DependenciesContainer) GetScanReportUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) GetScanReportPlainUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportPlain.UseCase, error) {
-	return getUseCase[getScanReportPlain.UseCase](ctx, cfg, getScanReportPlain.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cliAdapter := cli.NewCli()
+
+	return getScanReportPlain.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) GetScanReportSarifUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportSarif.UseCase, error) {
-	return getUseCase[getScanReportSarif.UseCase](ctx, cfg, getScanReportSarif.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cliAdapter := cli.NewCli()
+
+	return getScanReportSarif.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) GetScanResultUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanResult.UseCase, error) {

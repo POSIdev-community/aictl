@@ -3,19 +3,31 @@ package sarif
 import (
 	"context"
 	"fmt"
+	"io"
+
+	"github.com/google/uuid"
+
 	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type CLI interface {
+	ShowReader(r io.Reader) error
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type AI interface {
+	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID) (io.ReadCloser, error)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -30,22 +42,31 @@ func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, destPath string) error {
-	project, err := u.aiAdapter.GetProject(ctx, cfg.ProjectId())
-	if err != nil {
-		return err
-	}
-
+func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, fullDestPath string) error {
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, port.SarifReportType)
 	if err != nil {
 		return err
 	}
 
 	report, err := u.aiAdapter.GetReport(ctx, cfg.ProjectId(), scanId, templateId)
-
-	err = utils.CopyFileToPath(report, destPath, project.Name+".sarif")
 	if err != nil {
-		return fmt.Errorf("get scan report sarif usecase: %w", err)
+		return fmt.Errorf("get scan report: %w", err)
+	}
+
+	defer func() {
+		_ = report.Close()
+	}()
+
+	if fullDestPath != "" {
+		if err := utils.CopyFileToPath(report, fullDestPath); err != nil {
+			return fmt.Errorf("copy report to path %s: %w", fullDestPath, err)
+		}
+
+		return nil
+	}
+
+	if err := u.cliAdapter.ShowReader(report); err != nil {
+		return fmt.Errorf("print report: %w", err)
 	}
 
 	return nil

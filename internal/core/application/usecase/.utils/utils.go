@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 )
 
-func CopyFileToPath(srcFile io.ReadCloser, destPath string, filename string) error {
-	fullDestPath := filepath.Join(destPath, filename)
-
+func CopyFileToPath(srcFile io.ReadCloser, fullDestPath string) error {
 	destFile, err := os.Create(fullDestPath)
 	if err != nil {
 		return fmt.Errorf("не удалось создать файл назначения: %v", err)
