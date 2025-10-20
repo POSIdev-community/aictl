@@ -41,7 +41,7 @@ type Adapter struct {
 }
 
 func (a *Adapter) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
-	res, err := a.aiClient.GetApiProjectsDefaultSettingsWithResponse(ctx, a.aiClient.AddJwtToHeader)
+	res, err := a.aiClient.GetApiProjectsDefaultSettingsWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
 	}
@@ -216,7 +216,7 @@ func (a *Adapter) SetProjectSettings(ctx context.Context, projectId uuid.UUID, s
 		},
 	}
 
-	res, err := a.aiClient.PutApiProjectsProjectIdSettingsWithResponse(ctx, projectId, projectSettings, a.aiClient.AddJwtToHeader)
+	res, err := a.aiClient.PutApiProjectsProjectIdSettingsWithResponse(ctx, projectId, projectSettings, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("put project settings: %w", err)
 	}
@@ -252,7 +252,7 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 
 	readCloser := io.NopCloser(body)
 
-	response, err := a.aiClient.PostApiStoreProjectProjectIdBranchesArchiveWithBodyWithResponse(ctx, projectId, contentType, readCloser, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiStoreProjectProjectIdBranchesArchiveWithBodyWithResponse(ctx, projectId, contentType, readCloser, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("create upload session response error: %w", err)
 	}
@@ -298,7 +298,7 @@ func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.
 		},
 	}
 
-	createProjectResponse, err := a.aiClient.PostApiProjectsBaseWithResponse(ctx, projectBaseModel, a.aiClient.AddJwtToHeader)
+	createProjectResponse, err := a.aiClient.PostApiProjectsBaseWithResponse(ctx, projectBaseModel, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("create project request error: %w", err)
 	}
@@ -319,7 +319,7 @@ func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.
 }
 
 func (a *Adapter) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
-	response, err := a.aiClient.DeleteApiProjectsProjectId(ctx, projectId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.DeleteApiProjectsProjectId(ctx, projectId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter delete project: %w", err)
 	}
@@ -336,7 +336,7 @@ func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 
 	log.Info("Send get projects request")
 
-	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get projects request: %w", err)
 	}
@@ -363,7 +363,7 @@ func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 }
 
 func (a *Adapter) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
-	response, err := a.aiClient.GetApiProjectsProjectIdWithResponse(ctx, projectId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsProjectIdWithResponse(ctx, projectId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get projects: %w", err)
 	}
@@ -395,7 +395,7 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 		aiReportType = ReportTypePlainReport
 	}
 
-	response, err := a.aiClient.GetApiReportsTemplatesType(ctx, aiReportType, &params, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiReportsTemplatesType(ctx, aiReportType, &params, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("ai adapter get template id: %w", err)
 	}
@@ -449,7 +449,7 @@ func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templa
 		SessionId:    &sessionId,
 	}
 
-	response, err := a.aiClient.PostApiReportsGenerate(ctx, model, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiReportsGenerate(ctx, model, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter generate report: %w", err)
 	}
@@ -462,7 +462,7 @@ func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templa
 }
 
 func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
-	getBranchesResponse, err := a.aiClient.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.aiClient.AddJwtToHeader)
+	getBranchesResponse, err := a.aiClient.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get branch: %w", err)
 	}
@@ -485,7 +485,7 @@ func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branc
 }
 
 func (a *Adapter) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error) {
-	response, err := a.aiClient.GetApiBranchesBranchIdScanResultsLastWithResponse(ctx, branchId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiBranchesBranchIdScanResultsLastWithResponse(ctx, branchId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, errs.NewNotFoundError("last scan result")
 	}
@@ -504,7 +504,7 @@ func (a *Adapter) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Sc
 }
 
 func (a *Adapter) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error) {
-	response, err := a.aiClient.GetApiProjectsProjectIdScanResultsScanResultIdWithResponse(ctx, projectId, scanId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsProjectIdScanResultsScanResultIdWithResponse(ctx, projectId, scanId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, errs.NewNotFoundError("get scan aiproj")
 	}
@@ -522,7 +522,7 @@ func (a *Adapter) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*sc
 }
 
 func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (string, error) {
-	response, err := a.aiClient.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiprojWithResponse(ctx, projectId, scanSettingsId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiprojWithResponse(ctx, projectId, scanSettingsId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return "", errs.NewNotFoundError("get scan aiproj")
 	}
@@ -537,7 +537,7 @@ func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId u
 }
 
 func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
-	response, err := a.aiClient.GetApiProjectsProjectIdScanResultsScanResultIdProgressWithResponse(ctx, projectId, scanId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsProjectIdScanResultsScanResultIdProgressWithResponse(ctx, projectId, scanId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return scanstage.ScanStage{}, errs.NewNotFoundError("scan result")
 	}
@@ -558,7 +558,7 @@ func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID)
 }
 
 func (a *Adapter) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
-	response, err := a.aiClient.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get branches: %w", err)
 	}
@@ -580,7 +580,7 @@ func (a *Adapter) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan
 }
 
 func (a *Adapter) GetScanQueue(ctx context.Context) ([]uuid.UUID, error) {
-	response, err := a.aiClient.GetApiScansWithResponse(ctx, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiScansWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -612,7 +612,7 @@ func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid
 		ScanType: &scanType,
 	}
 
-	response, err := a.aiClient.PostApiScansBranchesBranchIdStartWithResponse(ctx, branchId, params, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiScansBranchesBranchIdStartWithResponse(ctx, branchId, params, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -639,7 +639,7 @@ func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID) (uu
 		ScanType: &scanType,
 	}
 
-	response, err := a.aiClient.PostApiScansProjectIdStartWithResponse(ctx, projectId, params, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiScansProjectIdStartWithResponse(ctx, projectId, params, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -661,7 +661,7 @@ func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID) (uu
 }
 
 func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
-	response, err := a.aiClient.PostApiScansScanResultIdStopWithResponse(ctx, scanResultId, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiScansScanResultIdStopWithResponse(ctx, scanResultId, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return err
 	}
@@ -692,7 +692,7 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 	archived := true
 	params := PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
 
-	response, err := a.aiClient.PostApiStoreProjectIdBranchesBranchIdSourcesWithBodyWithResponse(ctx, projectId, branchId, &params, contentType, body, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.PostApiStoreProjectIdBranchesBranchIdSourcesWithBodyWithResponse(ctx, projectId, branchId, &params, contentType, body, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai update sources: %w", err)
 	}
