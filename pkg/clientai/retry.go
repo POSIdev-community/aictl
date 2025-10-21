@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type retryHandler func(context.Context) error
+type retryHandler func(context.Context, *http.Request) error
 
 func NewRetryRoundTripper(rt http.RoundTripper, onCode int, method retryHandler) *RetryRoundTripper {
 	return &RetryRoundTripper{rt: rt, onCode: onCode, method: method}
@@ -45,14 +45,14 @@ func (rrt *RetryRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 
 	_ = resp.Body.Close()
 
+	clonedReq := req.Clone(req.Context())
+	clonedReq.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+
 	if rrt.method != nil {
-		if err := rrt.method(req.Context()); err != nil {
+		if err := rrt.method(req.Context(), clonedReq); err != nil {
 			return resp, fmt.Errorf("call retry handler: %w", err)
 		}
 	}
-
-	clonedReq := req.Clone(req.Context())
-	clonedReq.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 	return rrt.rt.RoundTrip(clonedReq)
 }
