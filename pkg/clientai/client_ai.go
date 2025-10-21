@@ -52,7 +52,7 @@ func NewAiClient(ctx context.Context, cfg *config.Config) (*AiClient, error) {
 
 	httpClient.Transport = NewRetryRoundTripper(httpClient.Transport, http.StatusUnauthorized, aiClient.refreshJWT)
 
-	if err := aiClient.getJWT(ctx, cfg, jwtClient); err != nil {
+	if err := aiClient.getJWT(ctx, cfg); err != nil {
 		return nil, fmt.Errorf("update jwt: %w", err)
 	}
 
@@ -65,8 +65,8 @@ func (a *AiClient) AddJWTToHeader(_ context.Context, req *http.Request) error {
 	return nil
 }
 
-func (a *AiClient) getJWT(ctx context.Context, cfg *config.Config, client *ClientWithResponses) error {
-	response, err := client.GetApiAuthSigninWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
+func (a *AiClient) getJWT(ctx context.Context, cfg *config.Config) error {
+	response, err := a.jwtClient.GetApiAuthSigninWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
 		req.Header.Add("Access-Token", cfg.Token())
 
 		return nil
