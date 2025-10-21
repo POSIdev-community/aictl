@@ -1,15 +1,17 @@
 package config
 
 import (
+	"fmt"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"gopkg.in/yaml.v3"
 	"os"
+	"path/filepath"
 )
 
-const appDir = "/etc/aictl"
-const configPath = appDir + "/context.yaml"
+const appDir = ".config/aictl"
+const configFile = "/context.yaml"
 
 var _ port.Config = &Adapter{}
 
@@ -21,7 +23,12 @@ func NewContextAdapter() *Adapter {
 }
 
 func (a *Adapter) GetContextFromAictlFolder() *config.Config {
-	if !fshelper.PathExists(appDir) || !fshelper.PathExists(configPath) {
+	configPath, err := getConfigPath()
+	if err != nil {
+		return &config.Config{}
+	}
+
+	if !fshelper.PathExists(configPath) {
 		return &config.Config{}
 	}
 
@@ -44,7 +51,12 @@ func (a *Adapter) GetContextFromAictlFolder() *config.Config {
 }
 
 func (a *Adapter) ClearCurrentContext() error {
-	err := os.Remove(configPath)
+	configPath, err := getConfigPath()
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -64,6 +76,16 @@ func (a *Adapter) StoreContext(cfg *config.Config) error {
 		return err
 	}
 
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Join(homeDir, appDir)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create directories: %w", err)
+	}
+	configPath := filepath.Join(dir, configFile)
 	err = os.WriteFile(configPath, yamlBytes, 0644)
 	if err != nil {
 		return err
@@ -103,4 +125,14 @@ func (a *Adapter) StringYaml(cfg *config.Config) (string, error) {
 	}
 
 	return str, nil
+}
+
+func getConfigPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	configPath := filepath.Join(homeDir, appDir, configFile)
+
+	return configPath, nil
 }

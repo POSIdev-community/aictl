@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 	"time"
@@ -18,12 +17,22 @@ const (
 	Failed   = "Failed"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type AI interface {
+	GetScanStage(ctx context.Context, projectId uuid.UUID, scanId uuid.UUID) (scanstage.ScanStage, error)
+	GetScanQueue(ctx context.Context) ([]uuid.UUID, error)
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ShowText(text string)
+	ShowTextF(format string, a ...any)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -62,16 +71,16 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 				continue
 			}
 
-			place := 0
+			place := 1
 			for i, id := range queue {
 				if id == scanId {
-					place = i
+					place = i + 1
 				}
 			}
 
-			u.cliAdapter.ShowText(fmt.Sprintf("%s: %d in queue", Enqueued, place))
+			u.cliAdapter.ShowTextF("%s: %d/%d", Enqueued, place, len(queue))
 		} else {
-			u.cliAdapter.ShowText(fmt.Sprintf("%s: %d%%", stage.Stage, stage.Value))
+			u.cliAdapter.ShowTextF("%s: %d%%", stage.Stage, stage.Value)
 		}
 
 		time.Sleep(3 * time.Second)
@@ -81,7 +90,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 		return fmt.Errorf("scan stage %s in project %s", stage.Stage, cfg.ProjectId())
 	}
 
-	u.cliAdapter.ShowText(fmt.Sprintf("Scan '%s'", stage.Stage))
+	u.cliAdapter.ShowTextF("Scan '%s'", stage.Stage)
 
 	return nil
 }

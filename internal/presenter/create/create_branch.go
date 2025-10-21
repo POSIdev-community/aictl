@@ -46,13 +46,16 @@ func NewCreateBranchCommand(
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
+			//log := logger.FromContext(ctx)
+			//
+			//log.StdErr("create branch")
 
 			useCase, err := depsContainer.CreateBranchUseCase(ctx, cfg)
 			if err != nil {
 				return fmt.Errorf("get projects useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, cfg, branchName, scanTarget); err != nil {
+			if err := useCase.Execute(ctx, cfg, branchName, scanTarget, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)

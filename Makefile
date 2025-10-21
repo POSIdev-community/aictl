@@ -1,5 +1,6 @@
 LOCAL_BIN := $(shell pwd)/bin
-BUILD_OPTIONS=-ldflags="-s -w" -trimpath
+VERSION := $(shell cat VERSION)
+BUILD_OPTIONS=-ldflags="-X 'github.com/POSIdev-community/aictl/pkg/version.version=$(VERSION)' -s -w" -trimpath
 
 export GOBIN=$(LOCAL_BIN)
 export PATH:=$(LOCAL_BIN):${PATH}
@@ -31,6 +32,22 @@ build:
 	@echo -n "⇒ Building with $(BUILD_OPTIONS)... "
 	@go build $(BUILD_OPTIONS) -o bin/aictl cmd/run/main.go
 	@echo "✅"
+
+install:
+	@echo -n "⇒ Copy aictl to /usr/bin/aictl..."
+	@sudo cp bin/aictl /usr/bin/aictl
+	@echo "✅"
+
+bash:
+	@echo -n "⇒ Add bash completion..."
+	@bin/aictl completion bash > /etc/bash_completion.d/aictl
+	@echo "✅"
+
+docker:
+	@docker build -t "aictl:$(VERSION)" .
+
+docker-file:
+	@docker save -o bin/aictl_$(VERSION).tar aictl:$(VERSION)
 
 .PHONY: test
 test:

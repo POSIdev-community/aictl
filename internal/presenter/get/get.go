@@ -13,7 +13,7 @@ func NewGetCmd(
 	cmd := &cobra.Command{
 		Use:               "get",
 		Short:             "Get resources",
-		PersistentPreRunE: _utils.UpdateConfig(cfg),
+		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(NewGetProjectsCmd(cfg, depsContainer))

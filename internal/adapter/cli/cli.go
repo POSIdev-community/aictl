@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 	"io"
 	"os"
 	"strings"
@@ -13,14 +14,16 @@ import (
 
 var _ port.Cli = &Cli{}
 
-type Cli struct{}
+type Cli struct {
+	logger *logger.Logger
+}
 
-func NewCli() *Cli {
-	return &Cli{}
+func NewCli(logger *logger.Logger) *Cli {
+	return &Cli{logger}
 }
 
 func (cli *Cli) AskConfirmation(question string) (bool, error) {
-	fmt.Printf("%s [y/n]: ", question)
+	cli.logger.StdErr("%s [y/n]: ", question)
 
 	var answer string
 	_, err := fmt.Scan(&answer)
@@ -35,21 +38,25 @@ func (cli *Cli) AskConfirmation(question string) (bool, error) {
 func (cli *Cli) ShowProjects(projects []project.Project) {
 	const format = "%-36s\t%s\n"
 
-	fmt.Printf(format, "ID", "NAME")
+	cli.logger.StdErr(format, "ID", "NAME")
 
 	for _, p := range projects {
-		fmt.Printf(format, p.Id, p.Name)
+		cli.logger.StdErr(format, p.Id, p.Name)
 	}
 }
 
 func (cli *Cli) ShowProjectsQuite(projects []project.Project) {
 	for _, p := range projects {
-		fmt.Println(p.Id)
+		cli.logger.StdOut(p.Id.String())
 	}
 }
 
 func (cli *Cli) ShowText(text string) {
-	fmt.Println(text)
+	cli.logger.StdOut(text)
+}
+
+func (cli *Cli) ShowTextF(format string, a ...any) {
+	cli.logger.StdOutF(format, a...)
 }
 
 // ShowReader copy provided reader to stdout.
@@ -64,9 +71,9 @@ func (cli *Cli) ShowReader(r io.Reader) error {
 func (cli *Cli) ShowScans(scans []scan.Scan) {
 	const format = "%-36s\t%-36s\n"
 
-	fmt.Printf(format, "ID", "SETTINGS ID")
+	cli.logger.StdErr(format, "ID", "SETTINGS ID")
 
 	for _, p := range scans {
-		fmt.Printf(format, p.Id, p.SettingsId)
+		cli.logger.StdErr(format, p.Id, p.SettingsId)
 	}
 }

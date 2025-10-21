@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +28,7 @@ func NewConfigShowCommand(
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log := logger.FromContext(cmd.Context())
-			log.Info("aictl ctx show")
-
-			useCase, err := depsContainer.ConfigShowUseCase()
+			useCase, err := depsContainer.ConfigShowUseCase(cmd.Context())
 			if err != nil {
 				return err
 			}

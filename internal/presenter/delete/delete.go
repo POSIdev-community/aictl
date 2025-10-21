@@ -13,7 +13,7 @@ func NewDeleteCmd(
 	cmd := &cobra.Command{
 		Use:               "delete",
 		Short:             "Delete resources",
-		PersistentPreRunE: _utils.UpdateConfig(cfg),
+		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(NewDeleteProjectsCommand(cfg, depsContainer))

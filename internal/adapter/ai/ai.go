@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -331,10 +332,54 @@ func (a *Adapter) DeleteProject(ctx context.Context, projectId uuid.UUID) error 
 	return nil
 }
 
+func (a *Adapter) ExistsProject(ctx context.Context, projectName string) (bool, error) {
+	response, err := a.aiClient.GetApiProjectsNameExistsWithResponse(ctx, projectName, a.aiClient.AddJwtToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai adapter get project name exists: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return false, err
+	}
+
+	boolValueTrue, err := strconv.ParseBool(body)
+	if err != nil {
+		return false, err
+	}
+
+	return boolValueTrue, nil
+}
+
+func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error) {
+	response, err := a.aiClient.GetApiProjectsNameNameWithResponse(ctx, projectName, a.aiClient.AddJwtToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get project name exists: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+
+	if statusCode == 400 && errorModel != nil && *errorModel.ErrorCode == ApiErrorTypePROJECTNOTFOUND {
+		return nil, nil
+	}
+
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, err
+	}
+
+	project := *response.JSON200
+
+	return project.Id, nil
+}
+
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 	log := logger.FromContext(ctx)
 
-	log.Info("Send get projects request")
+	log.StdErr("Send get projects request")
 
 	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
@@ -478,6 +523,10 @@ func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branc
 
 	branches := make([]branch.Branch, len(branchModels))
 	for i, model := range branchModels {
+		if model.Description == nil {
+			description := ""
+			model.Description = &description
+		}
 		branches[i] = branch.NewBranch(*model.Id, *model.Name, *model.Description, *model.IsWorking)
 	}
 

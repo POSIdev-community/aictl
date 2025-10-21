@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai"
 	"github.com/POSIdev-community/aictl/internal/adapter/cli"
@@ -48,28 +49,49 @@ func NewDependenciesContainer(configAdapter *config.Adapter) *DependenciesContai
 	}
 }
 
-func (c *DependenciesContainer) ConfigClearUseCase() (*configClear.UseCase, error) {
-	return getConfigUseCase[configClear.UseCase](c.configAdapter, configClear.NewUseCase)
+func (c *DependenciesContainer) ConfigClearUseCase(ctx context.Context) (*configClear.UseCase, error) {
+	ctxAdapter := config.NewContextAdapter()
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return configClear.NewUseCase(ctxAdapter, cliAdapter)
 }
 
-func (c *DependenciesContainer) ConfigSetUseCase() (*configSet.UseCase, error) {
-	return getConfigUseCase[configSet.UseCase](c.configAdapter, configSet.NewUseCase)
+func (c *DependenciesContainer) ConfigSetUseCase(ctx context.Context) (*configSet.UseCase, error) {
+	return getConfigUseCase[configSet.UseCase](ctx, c.configAdapter, configSet.NewUseCase)
 }
 
-func (c *DependenciesContainer) ConfigShowUseCase() (*configShow.UseCase, error) {
-	return getConfigUseCase[configShow.UseCase](c.configAdapter, configShow.NewUseCase)
+func (c *DependenciesContainer) ConfigShowUseCase(ctx context.Context) (*configShow.UseCase, error) {
+	return getConfigUseCase[configShow.UseCase](ctx, c.configAdapter, configShow.NewUseCase)
 }
 
-func (c *DependenciesContainer) ConfigUnsetUseCase() (*configUnset.UseCase, error) {
-	return getConfigUseCase[configUnset.UseCase](c.configAdapter, configUnset.NewUseCase)
+func (c *DependenciesContainer) ConfigUnsetUseCase(ctx context.Context) (*configUnset.UseCase, error) {
+	return getConfigUseCase[configUnset.UseCase](ctx, c.configAdapter, configUnset.NewUseCase)
 }
 
 func (c *DependenciesContainer) CreateBranchUseCase(ctx context.Context, cfg *domainConfig.Config) (*createBranch.UseCase, error) {
-	return getUseCase[createBranch.UseCase](ctx, cfg, createBranch.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return createBranch.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) CreateProjectUseCase(ctx context.Context, cfg *domainConfig.Config) (*createProject.UseCase, error) {
-	return getUseCase[createProject.UseCase](ctx, cfg, createProject.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return createProject.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) DeleteProjectsUseCase(ctx context.Context, cfg *domainConfig.Config) (*deleteProjects.UseCase, error) {
@@ -106,7 +128,8 @@ func (c *DependenciesContainer) GetScanReportPlainUseCase(ctx context.Context, c
 		return nil, err
 	}
 
-	cliAdapter := cli.NewCli()
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
 
 	return getScanReportPlain.NewUseCase(aiAdapter, cliAdapter)
 }
@@ -117,7 +140,8 @@ func (c *DependenciesContainer) GetScanReportSarifUseCase(ctx context.Context, c
 		return nil, err
 	}
 
-	cliAdapter := cli.NewCli()
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
 
 	return getScanReportSarif.NewUseCase(aiAdapter, cliAdapter)
 }
@@ -139,7 +163,15 @@ func (c *DependenciesContainer) GetScansUseCase(ctx context.Context, cfg *domain
 }
 
 func (c *DependenciesContainer) ScanAwaitUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanAwait.UseCase, error) {
-	return getUseCase[scanAwait.UseCase](ctx, cfg, scanAwait.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return scanAwait.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) ScanStartBranchUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanStartBranch.UseCase, error) {
@@ -160,7 +192,8 @@ func (c *DependenciesContainer) SetProjectSettingsUseCase(ctx context.Context, c
 		return nil, err
 	}
 
-	cliAdapter := cli.NewCli()
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
 
 	return setProjectSettings.NewUseCase(aiAdapter, cliAdapter)
 }
@@ -174,10 +207,13 @@ func (c *DependenciesContainer) UpdateSourcesGitUseCase(ctx context.Context, cfg
 }
 
 func getConfigUseCase[T any](
+	ctx context.Context,
 	cfgAdapter port.Config,
 	constructor func(port.Config, port.Cli) (*T, error),
 ) (*T, error) {
-	cliAdapter := cli.NewCli()
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
 
 	useCase, err := constructor(cfgAdapter, cliAdapter)
 	if err != nil {
@@ -197,7 +233,8 @@ func getUseCase[T any](
 		return nil, err
 	}
 
-	cliAdapter := cli.NewCli()
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
 
 	useCase, err := constructor(aiAdapter, cliAdapter)
 	if err != nil {
