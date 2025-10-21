@@ -21,5 +21,5 @@ Set
 ### SEE ALSO
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
-* [aictl set settings](aictl_set_settings.md)	 - Set project settings
+* [aictl set project](aictl_set_project.md)	 - Project
 

@@ -1,15 +1,15 @@
-## aictl set settings
+## aictl set project
 
-Set project settings
+Project
 
-```
-aictl set settings [flags]
-```
+### Synopsis
+
+Set project parameters
 
 ### Options
 
 ```
-  -h, --help   help for settings
+  -h, --help   help for project
 ```
 
 ### Options inherited from parent commands
@@ -25,4 +25,5 @@ aictl set settings [flags]
 ### SEE ALSO
 
 * [aictl set](aictl_set.md)	 - Set
+* [aictl set project settings](aictl_set_project_settings.md)	 - Set project settings
 
