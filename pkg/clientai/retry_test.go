@@ -36,7 +36,7 @@ func TestRetryRoundTripper_RoundTrip(t *testing.T) {
 
 		retryCh := make(chan struct{})
 
-		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context) error { close(retryCh); return nil })
+		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context, req *http.Request) error { close(retryCh); return nil })
 
 		res, err := rtt.RoundTrip(httptest.NewRequest(http.MethodGet, srv.URL, nil))
 		require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestRetryRoundTripper_RoundTrip(t *testing.T) {
 
 		retryCh := make(chan struct{})
 
-		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context) error { close(retryCh); return http.ErrHandlerTimeout })
+		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context, req *http.Request) error { close(retryCh); return http.ErrHandlerTimeout })
 
 		res, err := rtt.RoundTrip(httptest.NewRequest(http.MethodGet, srv.URL, nil))
 		require.Error(t, err)
@@ -102,7 +102,7 @@ func TestRetryRoundTripper_RoundTrip(t *testing.T) {
 
 		retryCh := make(chan struct{})
 
-		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context) error { close(retryCh); return nil })
+		rtt := NewRetryRoundTripper(&http.Transport{}, http.StatusUnauthorized, func(ctx context.Context, req *http.Request) error { close(retryCh); return nil })
 
 		res, err := rtt.RoundTrip(httptest.NewRequest(http.MethodGet, srv.URL, nil))
 		require.NoError(t, err)
