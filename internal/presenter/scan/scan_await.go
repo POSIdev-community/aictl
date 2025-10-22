@@ -14,7 +14,11 @@ func NewScanAwaitCommand(
 	cfg *config.Config,
 	depsContainer *application.DependenciesContainer) *cobra.Command {
 
-	var projectIdFlag string
+	var (
+		projectIdFlag string
+		scanIdFlag    string
+		scanId        uuid.UUID
+	)
 
 	cmd := &cobra.Command{
 		Use:   "await",
@@ -27,7 +31,7 @@ func NewScanAwaitCommand(
 			}
 
 			args = _utils.ReadArgsFromStdin(args)
-			scanIdFlag := args[0]
+			scanIdFlag = args[0]
 
 			scanId, err = uuid.Parse(scanIdFlag)
 			if err != nil {
@@ -53,6 +57,8 @@ func NewScanAwaitCommand(
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 
 	return cmd
 }

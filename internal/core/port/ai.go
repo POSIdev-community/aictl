@@ -16,9 +16,6 @@ const (
 )
 
 type Ai interface {
-	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string) (*uuid.UUID, error)
-	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
-
 	DeleteProject(ctx context.Context, projectId uuid.UUID) error
 
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
@@ -32,7 +29,6 @@ type Ai interface {
 	GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (string, error)
 	GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error)
 	GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error)
-	GetScanQueue(ctx context.Context) ([]uuid.UUID, error)
 
 	StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid.UUID, error)
 	StartScanProject(ctx context.Context, projectId uuid.UUID) (uuid.UUID, error)

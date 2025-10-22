@@ -12,7 +12,9 @@ func NewCreateProjectCommand(
 	cfg *config.Config,
 	depsContainer *application.DependenciesContainer) *cobra.Command {
 
-	var projectName string
+	var (
+		projectName string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "project",
@@ -32,7 +34,7 @@ func NewCreateProjectCommand(
 				return fmt.Errorf("create project useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, projectName); err != nil {
+			if err := useCase.Execute(ctx, projectName, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("create project useCase execute: %w", err)

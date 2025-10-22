@@ -13,7 +13,7 @@ func NewScanCmd(
 	cmd := &cobra.Command{
 		Use:               "scan",
 		Short:             "Scan ",
-		PersistentPreRunE: _utils.UpdateConfig(cfg),
+		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(NewScanAwaitCommand(cfg, depsContainer))

@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var scanId uuid.UUID
-
 func NewScanStopCommand(
 	cfg *config.Config,
 	depsContainer *application.DependenciesContainer) *cobra.Command {

@@ -1,16 +1,24 @@
 package clear
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
-type UseCase struct {
-	configAdapter port.Config
-	cliAdapter    port.Cli
+type CFG interface {
+	ClearCurrentContext() error
 }
 
-func NewUseCase(configAdapter port.Config, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ShowText(text string)
+	AskConfirmation(question string) (bool, error)
+}
+
+type UseCase struct {
+	configAdapter CFG
+	cliAdapter    CLI
+}
+
+func NewUseCase(configAdapter CFG, cliAdapter CLI) (*UseCase, error) {
 	if configAdapter == nil {
 		return nil, errs.NewValidationRequiredError("configAdapter")
 	}
@@ -22,11 +30,18 @@ func NewUseCase(configAdapter port.Config, cliAdapter port.Cli) (*UseCase, error
 	return &UseCase{configAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute() error {
-	ok, err := u.cliAdapter.AskConfirmation(
-		"Are you sure you want to delete the existing configuration?")
-	if err != nil {
-		return err
+func (u *UseCase) Execute(skipConfirm bool) error {
+	var (
+		ok  = skipConfirm
+		err error
+	)
+
+	if !ok {
+		ok, err = u.cliAdapter.AskConfirmation(
+			"Are you sure you want to delete the existing configuration?")
+		if err != nil {
+			return err
+		}
 	}
 
 	if !ok {

@@ -2,30 +2,55 @@ package set
 
 import (
 	"fmt"
+	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
+	"github.com/POSIdev-community/aictl/pkg/fshelper"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 )
 
 func NewSetProjectSettingsCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
-	var aiprojData aiproj.AIProj
+	var (
+		filePath   string
+		aiprojData aiproj.AIProj
+	)
 
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Set project settings",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			args = _utils.ReadArgsFromStdin(args)
-			if len(args) == 0 {
-				return fmt.Errorf("aiproj data required")
+			var aiprojString string
+			if filePath == "" {
+				args = _utils.ReadArgsFromStdin(args)
+				if len(args) == 0 {
+					return fmt.Errorf("aiproj data required")
+				}
+
+				aiprojString = args[0]
+			} else {
+				if !fshelper.PathExists(filePath) {
+					return fmt.Errorf("file %s does not exist", filePath)
+				}
+
+				if !fshelper.IsFile(filePath) {
+					return fmt.Errorf("path %s does not a file", filePath)
+				}
+
+				content, err := os.ReadFile(filePath)
+				if err != nil {
+					return fmt.Errorf("read aiproj file error: %w", err)
+				}
+
+				aiprojString = string(content)
 			}
 
 			var err error
-			aiprojData, err = aiproj.FromString(args[0])
+			aiprojData, err = aiproj.FromString(aiprojString)
 			if err != nil {
 				return fmt.Errorf("invalid aiproj data: %w", err)
 			}
@@ -49,6 +74,8 @@ func NewSetProjectSettingsCmd(cfg *config.Config, depsContainer *application.Dep
 			return nil
 		},
 	}
+
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "path to aiproj.json")
 
 	return cmd
 }

@@ -6,8 +6,6 @@ import (
 )
 
 type Cli interface {
-	AskConfirmation(question string) (bool, error)
-
 	ShowProjects(projects []project.Project)
 	ShowProjectsQuite(projects []project.Project)
 

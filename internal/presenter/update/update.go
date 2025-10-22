@@ -18,7 +18,7 @@ func NewUpdateCmd(
 	cmd := &cobra.Command{
 		Use:               "update",
 		Short:             "Update resources",
-		PersistentPreRunE: _utils.UpdateConfig(cfg),
+		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(NewUpdateSourcesCommand(cfg, depsContainer))

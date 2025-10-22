@@ -2,20 +2,27 @@ package _utils
 
 import (
 	"fmt"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+
 	"github.com/spf13/cobra"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
 var (
-	uri     string
-	token   string
-	tlsSkip bool
+	uri         string
+	token       string
+	tlsSkip     bool
+	verboseFlag bool
+	logPath     string
 )
 
 func AddConnectionPersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&uri, "uri", "u", "", "AI server uri")
 	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token")
 	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip certificate verification")
+	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "verbose output")
+	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "log file path")
 }
 
 func UpdateConnectionConfig(cfg *config.Config) error {
@@ -53,4 +60,33 @@ func UpdateConfig(cfg *config.Config) func(cmd *cobra.Command, args []string) er
 
 		return nil
 	}
+}
+
+func ConcatFuncs(funcs ...func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, f := range funcs {
+			if err := f(cmd, args); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+}
+
+func InitializeLogger(cmd *cobra.Command, args []string) error {
+	if !verboseFlag && logPath == "" {
+		l, _ := logger.NewLogger(false)
+		ctx := logger.ContextWithLogger(cmd.Context(), l)
+		cmd.SetContext(ctx)
+
+		return nil
+	}
+
+	l, _ := logger.NewLogger(true)
+	ctx := logger.ContextWithLogger(cmd.Context(), l)
+
+	cmd.SetContext(ctx)
+
+	return nil
 }

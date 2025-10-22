@@ -12,7 +12,17 @@ func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
 	}
 
 	if aiproj.ProgrammingLanguages != nil {
-		s.Languages = aiproj.ProgrammingLanguages
+		s.Languages = make([]string, len(aiproj.ProgrammingLanguages))
+		for i, lang := range aiproj.ProgrammingLanguages {
+			switch lang {
+			case "CSharp (Windows, Linux)":
+				s.Languages[i] = "CSharp"
+			case "CSharp (Windows)":
+				s.Languages[i] = "CSharpWinOnly"
+			default:
+				s.Languages[i] = lang
+			}
+		}
 	}
 
 	s.SkipGitIgnoreFiles = aiproj.SkipGitIgnoreFiles
@@ -77,7 +87,7 @@ func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
 			s.JavaSettings.UserPackagePrefixes = *aiproj.JavaSettings.UserPackagePrefixes
 		}
 
-		s.JavaSettings.Version = aiproj.JavaSettings.Version
+		s.JavaSettings.Version = "v1_" + aiproj.JavaSettings.Version
 
 		if aiproj.JavaSettings.CustomParameters != nil {
 			s.JavaSettings.LaunchParameters = *aiproj.JavaSettings.CustomParameters
