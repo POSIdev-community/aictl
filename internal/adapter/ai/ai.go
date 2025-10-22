@@ -371,6 +371,9 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
 		return nil, err
 	}
+	if statusCode != http.StatusOK {
+		return nil, fmt.Errorf("ai adapter get project name exists: %w", err)
+	}
 
 	project := *response.JSON200
 

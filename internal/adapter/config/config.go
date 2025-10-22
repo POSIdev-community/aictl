@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	appDir     = ".config/aictl"
+	appDir     = "aictl"
 	configFile = "/context.yaml"
 )
 
@@ -80,12 +80,12 @@ func (a *Adapter) StoreContext(cfg *config.Config) error {
 		return err
 	}
 
-	homeDir, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return err
 	}
 
-	dir := filepath.Join(homeDir, appDir)
+	dir := filepath.Join(configDir, appDir)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("failed to create directories: %w", err)
 	}
@@ -132,11 +132,11 @@ func (a *Adapter) StringYaml(cfg *config.Config) (string, error) {
 }
 
 func getConfigPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	configPath := filepath.Join(homeDir, appDir, configFile)
+	configPath := filepath.Join(configDir, appDir, configFile)
 
 	return configPath, nil
 }
