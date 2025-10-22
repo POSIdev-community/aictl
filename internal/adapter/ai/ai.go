@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -333,7 +334,7 @@ func (a *Adapter) DeleteProject(ctx context.Context, projectId uuid.UUID) error 
 }
 
 func (a *Adapter) ExistsProject(ctx context.Context, projectName string) (bool, error) {
-	response, err := a.aiClient.GetApiProjectsNameExistsWithResponse(ctx, projectName, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsNameExistsWithResponse(ctx, projectName, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return false, fmt.Errorf("ai adapter get project name exists: %w", err)
 	}
@@ -354,7 +355,7 @@ func (a *Adapter) ExistsProject(ctx context.Context, projectName string) (bool, 
 }
 
 func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error) {
-	response, err := a.aiClient.GetApiProjectsNameNameWithResponse(ctx, projectName, a.aiClient.AddJwtToHeader)
+	response, err := a.aiClient.GetApiProjectsNameNameWithResponse(ctx, projectName, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get project name exists: %w", err)
 	}
@@ -363,7 +364,7 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 	body := string(response.Body)
 	errorModel := response.JSON400
 
-	if statusCode == 400 && errorModel != nil && *errorModel.ErrorCode == ApiErrorTypePROJECTNOTFOUND {
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == ApiErrorTypePROJECTNOTFOUND {
 		return nil, nil
 	}
 

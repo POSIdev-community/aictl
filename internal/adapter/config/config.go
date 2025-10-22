@@ -2,16 +2,20 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
+	"gopkg.in/yaml.v3"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
 )
 
-const appDir = ".config/aictl"
-const configFile = "/context.yaml"
+const (
+	appDir     = ".config/aictl"
+	configFile = "/context.yaml"
+)
 
 var _ port.Config = &Adapter{}
 

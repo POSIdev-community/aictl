@@ -86,8 +86,7 @@ func (a *AiClient) getJWT(ctx context.Context, cfg *config.Config) error {
 }
 
 func (a *AiClient) refreshJWT(ctx context.Context, req *http.Request) error {
-	log := logger.FromContext(ctx).Named("ai_client.refresh_jwt")
-	log.Debug("Refreshing JWT")
+	log := logger.FromContext(ctx)
 
 	response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
 		req.Header.Add("Authorization", "Bearer "+a.refreshToken)
@@ -103,7 +102,7 @@ func (a *AiClient) refreshJWT(ctx context.Context, req *http.Request) error {
 	}
 
 	if response.JSON200.AccessToken == nil {
-		log.Error("Got empty access token")
+		log.StdErr("Got empty access token")
 
 		return fmt.Errorf("no access token")
 	}
@@ -111,8 +110,6 @@ func (a *AiClient) refreshJWT(ctx context.Context, req *http.Request) error {
 	a.accessToken = *response.JSON200.AccessToken
 
 	req.Header.Set("Authorization", "Bearer "+a.accessToken)
-
-	log.Debug("JWT refreshed")
 
 	return nil
 }

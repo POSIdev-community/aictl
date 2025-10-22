@@ -2,11 +2,12 @@ package logger
 
 import (
 	"context"
-	"fmt"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"os"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
 
 type Logger struct {
@@ -91,11 +92,9 @@ func (log *Logger) StdOut(msg string) {
 }
 
 func (log *Logger) StdOutF(format string, a ...any) {
-	msg := fmt.Sprintf(format, a...)
-	log.z.Info(msg)
+	log.z.Sugar().Infof(format, a...)
 }
 
 func (log *Logger) StdErr(format string, a ...any) {
-	msg := fmt.Sprintf(format, a...)
-	log.z.Error(msg)
+	log.z.Sugar().Errorf(format, a...)
 }
