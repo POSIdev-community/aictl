@@ -102,7 +102,7 @@ func (a *AiClient) refreshJWT(ctx context.Context, req *http.Request) error {
 	}
 
 	if response.JSON200.AccessToken == nil {
-		log.StdErr("Got empty access token")
+		log.StdErrF("Got empty access token")
 
 		return fmt.Errorf("no access token")
 	}

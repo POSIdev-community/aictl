@@ -23,7 +23,7 @@ func NewCli(logger *logger.Logger) *Cli {
 }
 
 func (cli *Cli) AskConfirmation(question string) (bool, error) {
-	cli.logger.StdErr("%s [y/n]: ", question)
+	cli.logger.StdOutF("%s [y/n]: ", question)
 
 	var answer string
 	_, err := fmt.Scan(&answer)
@@ -38,10 +38,10 @@ func (cli *Cli) AskConfirmation(question string) (bool, error) {
 func (cli *Cli) ShowProjects(projects []project.Project) {
 	const format = "%-36s\t%s\n"
 
-	cli.logger.StdErr(format, "ID", "NAME")
+	cli.logger.StdOutF(format, "ID", "NAME")
 
 	for _, p := range projects {
-		cli.logger.StdErr(format, p.Id, p.Name)
+		cli.logger.StdOutF(format, p.Id, p.Name)
 	}
 }
 
@@ -71,9 +71,9 @@ func (cli *Cli) ShowReader(r io.Reader) error {
 func (cli *Cli) ShowScans(scans []scan.Scan) {
 	const format = "%-36s\t%-36s\n"
 
-	cli.logger.StdErr(format, "ID", "SETTINGS ID")
+	cli.logger.StdErrF(format, "ID", "SETTINGS ID")
 
 	for _, p := range scans {
-		cli.logger.StdErr(format, p.Id, p.SettingsId)
+		cli.logger.StdErrF(format, p.Id, p.SettingsId)
 	}
 }

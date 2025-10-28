@@ -383,7 +383,7 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 	log := logger.FromContext(ctx)
 
-	log.StdErr("Send get projects request")
+	log.StdErrF("Send get projects request")
 
 	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
