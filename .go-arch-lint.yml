@@ -1,0 +1,48 @@
+version: 3
+workdir: internal
+allow:
+  depOnAnyVendor: true
+
+components:
+  adapter: { in: adapter/** }
+  application: {in: application/** }
+  core: { in: core/application/** }
+  domain: { in: core/domain/** }
+  presenter: { in: presenter/** }
+  port: { in: core/port/**}
+  pkg: { in: ../pkg/** }
+
+deps:
+  application:
+    mayDependOn:
+      - application
+      - adapter
+      - core
+      - domain
+      - pkg
+      - presenter
+  presenter:
+    mayDependOn:
+      - core
+      - domain
+      - presenter
+      - pkg
+  core:
+    mayDependOn:
+      - adapter
+      - core
+      - domain
+      - port
+      - pkg
+  adapter:
+    mayDependOn:
+      - domain
+      - port
+      - pkg
+  port:
+    mayDependOn:
+      - domain
+  domain:
+    mayDependOn:
+      - domain
+      - pkg
