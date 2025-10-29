@@ -48,7 +48,7 @@ func NewCreateBranchCommand(
 			ctx := cmd.Context()
 			//log := logger.FromContext(ctx)
 			//
-			//log.StdErr("create branch")
+			//log.StdErrF("create branch")
 
 			useCase, err := depsContainer.CreateBranchUseCase(ctx, cfg)
 			if err != nil {

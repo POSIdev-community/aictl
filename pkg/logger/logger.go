@@ -95,6 +95,6 @@ func (log *Logger) StdOutF(format string, a ...any) {
 	log.z.Sugar().Infof(format, a...)
 }
 
-func (log *Logger) StdErr(format string, a ...any) {
+func (log *Logger) StdErrF(format string, a ...any) {
 	log.z.Sugar().Errorf(format, a...)
 }

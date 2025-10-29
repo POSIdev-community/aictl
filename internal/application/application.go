@@ -38,7 +38,7 @@ func (app *Application) Run(ctx context.Context) {
 	}
 
 	log := logger.FromContext(ctx)
-	log.StdErr(err.Error())
+	log.StdErrF(err.Error())
 
 	exitCode, errorMessage := errs.MapExitCode(err)
 
