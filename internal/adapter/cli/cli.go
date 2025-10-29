@@ -2,10 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/POSIdev-community/aictl/pkg/logger"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/POSIdev-community/aictl/pkg/logger"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
@@ -36,7 +37,7 @@ func (cli *Cli) AskConfirmation(question string) (bool, error) {
 }
 
 func (cli *Cli) ShowProjects(projects []project.Project) {
-	const format = "%-36s\t%s\n"
+	const format = "%-36s\t%s"
 
 	cli.logger.StdOutF(format, "ID", "NAME")
 
