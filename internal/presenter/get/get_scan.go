@@ -23,7 +23,7 @@ func NewGetScanCmd(
 	cmd := &cobra.Command{
 		Use:   "scan",
 		Short: "Get scan",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, func(cmd *cobra.Command, args []string) error {
 			var err error
 			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
@@ -42,7 +42,7 @@ func NewGetScanCmd(
 			}
 
 			return nil
-		},
+		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

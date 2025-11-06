@@ -88,11 +88,15 @@ func (log *Logger) LogConfig(cfg *config.Config) {
 }
 
 func (log *Logger) StdOut(msg string) {
-	log.z.Info(msg)
+	log.z.Sugar().Info(msg)
 }
 
 func (log *Logger) StdOutF(format string, a ...any) {
 	log.z.Sugar().Infof(format, a...)
+}
+
+func (log *Logger) StdErr(msg string) {
+	log.z.Sugar().Error(msg)
 }
 
 func (log *Logger) StdErrF(format string, a ...any) {

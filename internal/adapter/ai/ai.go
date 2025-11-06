@@ -475,12 +475,10 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 	return *dest.Id, nil
 }
 
-func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID) (io.ReadCloser, error) {
+func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error) {
 
 	localeId := "ru"
-	includeComments := true
-	includeDFD := true
-	includeGlossary := true
+
 	useFilters := false
 	sessionId := uuid.New()
 

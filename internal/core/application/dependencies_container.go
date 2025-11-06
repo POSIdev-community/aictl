@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+
 	"github.com/POSIdev-community/aictl/pkg/logger"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai"
@@ -103,7 +104,15 @@ func (c *DependenciesContainer) GetProjectsUseCase(ctx context.Context, cfg *dom
 }
 
 func (c *DependenciesContainer) GetReportsUseCase(ctx context.Context, cfg *domainConfig.Config) (*getReports.UseCase, error) {
-	return getUseCase[getReports.UseCase](ctx, cfg, getReports.NewUseCase)
+	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return getReports.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) GetScanUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScan.UseCase, error) {

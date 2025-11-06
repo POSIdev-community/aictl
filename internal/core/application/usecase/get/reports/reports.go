@@ -3,8 +3,12 @@ package reports
 import (
 	"context"
 	"fmt"
+	"io"
 	"path/filepath"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/google/uuid"
 
 	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
@@ -12,12 +16,24 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type CLI interface {
+	ShowReader(r io.Reader) error
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type AI interface {
+	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
+	GetProject(ctx context.Context, id uuid.UUID) (*project.Project, error)
+	GetBranches(ctx context.Context, projectId uuid.UUID) (branches []branch.Branch, err error)
+	GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -29,7 +45,7 @@ func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif bool, plain bool, destPath string) error {
+func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif bool, plain bool, destPath string, includeComments, includeDFD, includeGlossary bool) error {
 	var reportType string
 	switch {
 	case sarif:
@@ -60,7 +76,7 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 			return fmt.Errorf("get reports usecase get project scanResult: %w", err)
 		}
 
-		file, err := u.aiAdapter.GetReport(ctx, projectId, scanResult.Id, templateId)
+		file, err := u.aiAdapter.GetReport(ctx, projectId, scanResult.Id, templateId, includeComments, includeDFD, includeGlossary)
 		if err != nil {
 			return fmt.Errorf("get reports usecase get report: %w", err)
 		}
