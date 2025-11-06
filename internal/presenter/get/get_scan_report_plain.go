@@ -2,6 +2,7 @@ package get
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/POSIdev-community/aictl/internal/core/application"
@@ -20,7 +21,7 @@ func NewGetScanReportPlainCmd(cfg *config.Config, depsContainer *application.Dep
 				return fmt.Errorf("presenter get scan repot plain useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, cfg, scanId, destPath); err != nil {
+			if err := useCase.Execute(ctx, cfg, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("presenter get scan repot plain: %w", err)

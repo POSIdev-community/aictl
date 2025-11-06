@@ -2,6 +2,7 @@ package get
 
 import (
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
@@ -52,7 +53,7 @@ func NewGetReportsCmd(
 				return fmt.Errorf("presenter get reports useCase error: %w", err)
 			}
 
-			if err := useCase.Execute(ctx, projectIds, sarif, plain, destPath); err != nil {
+			if err := useCase.Execute(ctx, projectIds, sarif, plain, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("presenter get reports: %w", err)
@@ -65,6 +66,9 @@ func NewGetReportsCmd(
 	cmd.Flags().BoolVar(&sarif, "sarif", false, "Get sarif report")
 	cmd.Flags().BoolVar(&plain, "plain", false, "Get plaint report")
 	cmd.Flags().StringVarP(&destPath, "dest-path", "d", ".", "Destination path")
+	cmd.Flags().BoolVarP(&includeComments, "include-comments", "", false, "Include comments in the report file")
+	cmd.Flags().BoolVarP(&includeDFD, "include-dfd", "", false, "Include dfd in the report file")
+	cmd.Flags().BoolVarP(&includeGlossary, "include-glossary", "", false, "Include glossary report")
 
 	return cmd
 }

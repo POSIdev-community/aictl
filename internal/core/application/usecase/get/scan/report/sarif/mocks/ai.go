@@ -40,8 +40,8 @@ func (_m *AI) EXPECT() *AI_Expecter {
 }
 
 // GetReport provides a mock function for the type AI
-func (_mock *AI) GetReport(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID) (io.ReadCloser, error) {
-	ret := _mock.Called(ctx, projectId, scanResultId, templateId)
+func (_mock *AI) GetReport(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID, includeComments bool, includeDFD bool, includeGlossary bool) (io.ReadCloser, error) {
+	ret := _mock.Called(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetReport")
@@ -49,18 +49,18 @@ func (_mock *AI) GetReport(ctx context.Context, projectId uuid.UUID, scanResultI
 
 	var r0 io.ReadCloser
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (io.ReadCloser, error)); ok {
-		return returnFunc(ctx, projectId, scanResultId, templateId)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, bool, bool, bool) (io.ReadCloser, error)); ok {
+		return returnFunc(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) io.ReadCloser); ok {
-		r0 = returnFunc(ctx, projectId, scanResultId, templateId)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, bool, bool, bool) io.ReadCloser); ok {
+		r0 = returnFunc(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadCloser)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) error); ok {
-		r1 = returnFunc(ctx, projectId, scanResultId, templateId)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, bool, bool, bool) error); ok {
+		r1 = returnFunc(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -77,11 +77,14 @@ type AI_GetReport_Call struct {
 //   - projectId uuid.UUID
 //   - scanResultId uuid.UUID
 //   - templateId uuid.UUID
-func (_e *AI_Expecter) GetReport(ctx interface{}, projectId interface{}, scanResultId interface{}, templateId interface{}) *AI_GetReport_Call {
-	return &AI_GetReport_Call{Call: _e.mock.On("GetReport", ctx, projectId, scanResultId, templateId)}
+//   - includeComments bool
+//   - includeDFD bool
+//   - includeGlossary bool
+func (_e *AI_Expecter) GetReport(ctx interface{}, projectId interface{}, scanResultId interface{}, templateId interface{}, includeComments interface{}, includeDFD interface{}, includeGlossary interface{}) *AI_GetReport_Call {
+	return &AI_GetReport_Call{Call: _e.mock.On("GetReport", ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary)}
 }
 
-func (_c *AI_GetReport_Call) Run(run func(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID)) *AI_GetReport_Call {
+func (_c *AI_GetReport_Call) Run(run func(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID, includeComments bool, includeDFD bool, includeGlossary bool)) *AI_GetReport_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -99,11 +102,26 @@ func (_c *AI_GetReport_Call) Run(run func(ctx context.Context, projectId uuid.UU
 		if args[3] != nil {
 			arg3 = args[3].(uuid.UUID)
 		}
+		var arg4 bool
+		if args[4] != nil {
+			arg4 = args[4].(bool)
+		}
+		var arg5 bool
+		if args[5] != nil {
+			arg5 = args[5].(bool)
+		}
+		var arg6 bool
+		if args[6] != nil {
+			arg6 = args[6].(bool)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
+			arg5,
+			arg6,
 		)
 	})
 	return _c
@@ -114,7 +132,7 @@ func (_c *AI_GetReport_Call) Return(readCloser io.ReadCloser, err error) *AI_Get
 	return _c
 }
 
-func (_c *AI_GetReport_Call) RunAndReturn(run func(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID) (io.ReadCloser, error)) *AI_GetReport_Call {
+func (_c *AI_GetReport_Call) RunAndReturn(run func(ctx context.Context, projectId uuid.UUID, scanResultId uuid.UUID, templateId uuid.UUID, includeComments bool, includeDFD bool, includeGlossary bool) (io.ReadCloser, error)) *AI_GetReport_Call {
 	_c.Call.Return(run)
 	return _c
 }

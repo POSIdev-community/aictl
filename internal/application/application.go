@@ -36,7 +36,6 @@ func (app *Application) Run(ctx context.Context) {
 	if err == nil {
 		os.Exit(0)
 	}
-
 	log := logger.FromContext(ctx)
 	log.StdErrF(err.Error())
 

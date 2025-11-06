@@ -19,7 +19,7 @@ type CLI interface {
 
 type AI interface {
 	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
-	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID) (io.ReadCloser, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error)
 }
 
 type UseCase struct {
@@ -42,13 +42,13 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, fullDestPath string) error {
+func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error {
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, port.SarifReportType)
 	if err != nil {
 		return err
 	}
 
-	report, err := u.aiAdapter.GetReport(ctx, cfg.ProjectId(), scanId, templateId)
+	report, err := u.aiAdapter.GetReport(ctx, cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary)
 	if err != nil {
 		return fmt.Errorf("get scan report: %w", err)
 	}

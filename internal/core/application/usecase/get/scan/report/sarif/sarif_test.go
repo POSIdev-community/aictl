@@ -28,10 +28,13 @@ func TestUseCase_Execute(t *testing.T) {
 		templateID := uuid.New()
 		report := "foo: BAR"
 		reportReader := io.NopCloser(bytes.NewBufferString(report))
+		includeComments := false
+		includeDfd := false
+		includeGlossary := false
 
 		aiAdapter := mocks.NewAI(t)
 		aiAdapter.On("GetTemplateId", t.Context(), port.SarifReportType).Return(templateID, nil).Once()
-		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID).Return(reportReader, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
@@ -39,7 +42,7 @@ func TestUseCase_Execute(t *testing.T) {
 		uc, err := NewUseCase(aiAdapter, cliAdapter)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, ""))
+		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, "", includeComments, includeDfd, includeGlossary))
 	})
 
 	t.Run("write to file", func(t *testing.T) {
@@ -51,17 +54,20 @@ func TestUseCase_Execute(t *testing.T) {
 		report := "foo: BAR"
 		reportReader := io.NopCloser(bytes.NewBufferString(report))
 		filePath := filepath.Join(t.TempDir(), "test.txt")
+		includeComments := false
+		includeDfd := false
+		includeGlossary := false
 
 		aiAdapter := mocks.NewAI(t)
 		aiAdapter.On("GetTemplateId", t.Context(), port.SarifReportType).Return(templateID, nil).Once()
-		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID).Return(reportReader, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 
 		uc, err := NewUseCase(aiAdapter, cliAdapter)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, filePath))
+		require.NoError(t, uc.Execute(t.Context(), config.NewConfig(config.Uri{}, "", true, projectID, uuid.New()), scanID, filePath, includeComments, includeDfd, includeGlossary))
 
 		data, err := os.ReadFile(filePath)
 		require.NoError(t, err)

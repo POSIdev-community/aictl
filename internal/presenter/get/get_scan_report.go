@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	destPath string
+	destPath        string
+	includeComments bool
+	includeDFD      bool
+	includeGlossary bool
 )
 
 func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
@@ -34,6 +37,9 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 	cmd.AddCommand(NewGetScanReportSarifCmd(cfg, depsContainer))
 
 	cmd.PersistentFlags().StringVarP(&destPath, "output", "o", "", "Destination path for the report file")
+	cmd.PersistentFlags().BoolVarP(&includeComments, "include-comments", "", false, "Include comments in the report file")
+	cmd.PersistentFlags().BoolVarP(&includeDFD, "include-dfd", "", false, "Include dfd in the report file")
+	cmd.PersistentFlags().BoolVarP(&includeGlossary, "include-glossary", "", false, "Include glossary report")
 
 	return cmd
 }
