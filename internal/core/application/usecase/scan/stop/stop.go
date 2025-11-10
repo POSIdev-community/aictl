@@ -2,17 +2,25 @@ package stop
 
 import (
 	"context"
-	"github.com/POSIdev-community/aictl/internal/core/port"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type AI interface {
+	StopScan(ctx context.Context, scanResultId uuid.UUID) error
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ReturnText(string)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -29,6 +37,8 @@ func (u *UseCase) Execute(ctx context.Context, scanResultId uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
+	u.cliAdapter.ReturnText(scanResultId.String())
 
 	return nil
 }

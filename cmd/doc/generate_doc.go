@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/POSIdev-community/aictl/internal/application"
 	"log"
 	"os"
 	"os/signal"
+
+	"github.com/POSIdev-community/aictl/internal/application"
 )
 
 func main() {

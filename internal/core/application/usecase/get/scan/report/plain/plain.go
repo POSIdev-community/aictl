@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 
 	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
@@ -43,7 +43,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error {
-	templateId, err := u.aiAdapter.GetTemplateId(ctx, port.PlainReportType)
+	templateId, err := u.aiAdapter.GetTemplateId(ctx, report.PlainReportType)
 	if err != nil {
 		return err
 	}

@@ -2,17 +2,25 @@ package projects
 
 import (
 	"context"
-	"github.com/POSIdev-community/aictl/internal/core/port"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type AI interface {
+	DeleteProject(context context.Context, projectId uuid.UUID) error
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ReturnText(text string)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -31,7 +39,7 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID) error {
 			return err
 		}
 
-		u.cliAdapter.ShowText(projectId.String())
+		u.cliAdapter.ReturnText(projectId.String())
 	}
 
 	return nil

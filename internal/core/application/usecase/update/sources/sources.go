@@ -2,20 +2,25 @@ package sources
 
 import (
 	"context"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"os"
+	"github.com/google/uuid"
 )
 
-var tempFiles []*os.File
-
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type AI interface {
+	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, sourcePath string) error
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}

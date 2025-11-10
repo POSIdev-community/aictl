@@ -8,7 +8,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 )
 
@@ -16,8 +15,6 @@ const (
 	appDir     = "aictl"
 	configFile = "/context.yaml"
 )
-
-var _ port.Config = &Adapter{}
 
 type Adapter struct {
 }

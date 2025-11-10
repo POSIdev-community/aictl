@@ -2,17 +2,27 @@ package show
 
 import (
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
-type UseCase struct {
-	configAdapter port.Config
-	cliAdapter    port.Cli
+type CFG interface {
+	StringJson(config *config.Config) (string, error)
+	StringYaml(config *config.Config) (string, error)
+	String(config *config.Config) (string, error)
 }
 
-func NewUseCase(configAdapter port.Config, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ReturnText(text string)
+}
+
+type UseCase struct {
+	configAdapter CFG
+	cliAdapter    CLI
+}
+
+func NewUseCase(configAdapter CFG, cliAdapter CLI) (*UseCase, error) {
 	if configAdapter == nil {
 		return nil, errs.NewValidationRequiredError("configAdapter")
 	}
@@ -47,7 +57,7 @@ func (u *UseCase) Execute(config *config.Config, json bool, yaml bool) error {
 		return err
 	}
 
-	u.cliAdapter.ShowText(str)
+	u.cliAdapter.ReturnText(str)
 
 	return nil
 }

@@ -2,12 +2,13 @@ package update
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 func NewUpdateSourcesCommand(

@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
@@ -19,13 +21,10 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	. "github.com/POSIdev-community/aictl/pkg/clientai"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
-
-var _ port.Ai = &Adapter{}
 
 func NewAdapter(ctx context.Context, cfg *config.Config) (*Adapter, error) {
 	aiClient, err := NewAiClient(ctx, cfg)
@@ -438,9 +437,9 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 
 	var aiReportType ReportType
 	switch reportType {
-	case port.SarifReportType:
+	case report.SarifReportType:
 		aiReportType = ReportTypeSarif
-	case port.PlainReportType:
+	case report.PlainReportType:
 		aiReportType = ReportTypePlainReport
 	}
 
@@ -590,6 +589,10 @@ func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId u
 func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
 	response, err := a.aiClient.GetApiProjectsProjectIdScanResultsScanResultIdProgressWithResponse(ctx, projectId, scanId, a.aiClient.AddJWTToHeader)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return scanstage.ScanStage{}, err
+		}
+
 		return scanstage.ScanStage{}, errs.NewNotFoundError("scan result")
 	}
 

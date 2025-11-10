@@ -3,6 +3,7 @@ package branch
 import (
 	"context"
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
@@ -15,7 +16,7 @@ type AI interface {
 }
 
 type CLI interface {
-	ShowText(text string)
+	ReturnText(text string)
 }
 
 type UseCase struct {
@@ -45,7 +46,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 
 		for _, b := range branches {
 			if b.Name == branchName {
-				u.cliAdapter.ShowText(b.Id.String())
+				u.cliAdapter.ReturnText(b.Id.String())
 				return nil
 			}
 		}
@@ -56,7 +57,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 		return fmt.Errorf("usecase create branch: %w", err)
 	}
 
-	u.cliAdapter.ShowText(branchId.String())
+	u.cliAdapter.ReturnText(branchId.String())
 
 	return nil
 }

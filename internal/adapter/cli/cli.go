@@ -10,10 +10,7 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 )
-
-var _ port.Cli = &Cli{}
 
 type Cli struct {
 	logger *logger.Logger
@@ -53,10 +50,18 @@ func (cli *Cli) ShowProjectsQuite(projects []project.Project) {
 }
 
 func (cli *Cli) ShowText(text string) {
-	cli.logger.StdOut(text)
+	cli.logger.StdErr(text)
 }
 
 func (cli *Cli) ShowTextF(format string, a ...any) {
+	cli.logger.StdErrF(format, a...)
+}
+
+func (cli *Cli) ReturnText(text string) {
+	cli.logger.StdOut(text)
+}
+
+func (cli *Cli) ReturnTextF(format string, a ...any) {
 	cli.logger.StdOutF(format, a...)
 }
 

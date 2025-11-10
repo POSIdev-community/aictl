@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
