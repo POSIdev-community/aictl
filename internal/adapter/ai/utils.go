@@ -148,13 +148,16 @@ func prepareArchive(sourcePath string) (string, error) {
 				return nil
 			}
 
-			if info.IsDir() {
-				// Добавляем запись для директории
+			mode := info.Mode()
+			if mode.IsDir() {
 				return addDirToZip(path, info)
-			} else {
-				// Добавляем файл
+			}
+
+			if mode.IsRegular() {
 				return addFileToZip(path, info)
 			}
+
+			return nil
 		})
 
 		if err != nil {
