@@ -2,6 +2,8 @@ LOCAL_BIN := $(shell pwd)/bin
 VERSION := $(shell cat VERSION)
 BUILD_OPTIONS=-ldflags="-X 'github.com/POSIdev-community/aictl/pkg/version.version=$(VERSION)' -s -w" -trimpath
 
+PLATFORMS := linux_amd64 linux_arm64 darwin_amd64 darwin_arm64 windows_amd64
+
 export GOBIN=$(LOCAL_BIN)
 export PATH:=$(LOCAL_BIN):${PATH}
 
@@ -29,9 +31,26 @@ generate: install_tools
 
 .PHONY: build
 build:
-	@echo -n "⇒ Building with $(BUILD_OPTIONS)... "
+	@echo -n "⇒ Building for local platform with $(BUILD_OPTIONS)... "
 	@go build $(BUILD_OPTIONS) -o bin/aictl cmd/run/main.go
 	@echo "✅"
+
+# Сборка под все указанные платформы
+.PHONY: build-all
+build-all: | .ensure_bin
+	@echo "⇒ Building for all platforms: $(PLATFORMS)..."
+	@for platform in $(PLATFORMS); do \
+		goos=$$(echo $$platform | cut -d'_' -f1); \
+		goarch=$$(echo $$platform | cut -d'_' -f2); \
+		ext=""; \
+		if [ "$$goos" = "windows" ]; then ext=".exe"; fi; \
+		echo "  → $$goos/$$goarch"; \
+		GOOS=$$goos GOARCH=$$goarch go build $(BUILD_OPTIONS) -o "bin/aictl_$$goos-$$goarch$$ext" cmd/run/main.go; \
+	done
+	@echo "✅ All builds completed."
+
+.ensure_bin:
+	@mkdir -p ${LOCAL_BIN}
 
 install:
 	@echo -n "⇒ Copy aictl to /usr/bin/aictl..."
