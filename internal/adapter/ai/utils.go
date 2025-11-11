@@ -2,7 +2,6 @@ package ai
 
 import (
 	"archive/zip"
-	"bytes"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -16,44 +15,50 @@ type MultipartField struct {
 	Value string
 }
 
-func prepareMultipartBody(archivePath string, fields ...MultipartField) (*bytes.Buffer, string, error) {
+func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Reader, string, error) {
 	file, err := os.Open(archivePath)
 	if err != nil {
 		return nil, "", fmt.Errorf("error opening file: %w", err)
 	}
-	defer file.Close()
 
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
 
-	filename := filepath.Base(archivePath)
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, "", err
-	}
+	contentType := writer.FormDataContentType()
 
-	if _, err = io.Copy(part, file); err != nil {
-		return nil, "", err
-	}
+	go func() {
+		defer pw.Close()
+		defer file.Close()
 
-	for _, field := range fields {
-		ff, err := writer.CreateFormField(field.Key)
+		filename := filepath.Base(archivePath)
+		part, err := writer.CreateFormFile("file", filename)
 		if err != nil {
-			return nil, "", err
+			pw.CloseWithError(fmt.Errorf("failed to create form file: %w", err))
+			return
 		}
-		if _, err = ff.Write([]byte(field.Value)); err != nil {
-			return nil, "", err
+
+		if _, err = io.Copy(part, file); err != nil {
+			pw.CloseWithError(fmt.Errorf("failed to copy file: %w", err))
+			return
 		}
-	}
 
-	if err := writer.Close(); err != nil {
-		return nil, "", err
-	}
+		for _, field := range fields {
+			if err := writer.WriteField(field.Key, field.Value); err != nil {
+				pw.CloseWithError(fmt.Errorf("failed to write field %q: %w", field.Key, err))
+				return
+			}
+		}
 
-	return body, writer.FormDataContentType(), nil
+		if err := writer.Close(); err != nil {
+			pw.CloseWithError(fmt.Errorf("failed to close multipart writer: %w", err))
+			return
+		}
+	}()
+
+	return pr, contentType, nil
 }
 
-func prepareArchive(sourcePath string) (string, error) {
+func prepareArchive(sourcePath string) (archivePath string, err error) {
 	// Проверяем существование пути
 	info, err := os.Stat(sourcePath)
 	if err != nil {
@@ -72,7 +77,7 @@ func prepareArchive(sourcePath string) (string, error) {
 	}
 	defer tmpFile.Close()
 
-	archivePath := tmpFile.Name()
+	archivePath = tmpFile.Name()
 
 	// Создаем ZIP архив
 	zipWriter := zip.NewWriter(tmpFile)

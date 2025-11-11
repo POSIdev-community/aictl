@@ -49,9 +49,6 @@ build-all: | .ensure_bin
 	done
 	@echo "✅ All builds completed."
 
-.ensure_bin:
-	@mkdir -p ${LOCAL_BIN}
-
 install:
 	@echo -n "⇒ Copy aictl to /usr/bin/aictl..."
 	@sudo cp bin/aictl /usr/bin/aictl

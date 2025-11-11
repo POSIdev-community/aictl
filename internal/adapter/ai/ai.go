@@ -232,16 +232,19 @@ func (a *Adapter) SetProjectSettings(ctx context.Context, projectId uuid.UUID, s
 	return nil
 }
 
-func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string) (*uuid.UUID, error) {
-	if scanTarget == "" {
+func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string) (*uuid.UUID, error) {
+	if scanTargetPath == "" {
 		var err error
-		scanTarget, err = createStubScanTarget()
+		scanTargetPath, err = createStubScanTarget()
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	archivePath, err := prepareArchive(scanTarget)
+	archivePath, err := prepareArchive(scanTargetPath)
+	if archivePath != scanTargetPath {
+		defer os.Remove(archivePath)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -251,9 +254,7 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 		return nil, err
 	}
 
-	readCloser := io.NopCloser(body)
-
-	response, err := a.aiClient.PostApiStoreProjectProjectIdBranchesArchiveWithBodyWithResponse(ctx, projectId, contentType, readCloser, a.aiClient.AddJWTToHeader)
+	response, err := a.aiClient.PostApiStoreProjectProjectIdBranchesArchiveWithBodyWithResponse(ctx, projectId, contentType, body, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("create upload session response error: %w", err)
 	}
@@ -732,11 +733,13 @@ func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 
 func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string) error {
 	archivePath, err := prepareArchive(scanTargetPath)
+	if archivePath != scanTargetPath {
+		defer os.Remove(archivePath)
+	}
+
 	if err != nil {
 		return err
 	}
-
-	defer os.Remove(archivePath)
 
 	body, contentType, err := prepareMultipartBody(archivePath)
 	if err != nil {
