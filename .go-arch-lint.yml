@@ -9,7 +9,6 @@ components:
   core: { in: core/application/** }
   domain: { in: core/domain/** }
   presenter: { in: presenter/** }
-  port: { in: core/port/**}
   pkg: { in: ../pkg/** }
 
 deps:
@@ -32,16 +31,11 @@ deps:
       - adapter
       - core
       - domain
-      - port
       - pkg
   adapter:
     mayDependOn:
       - domain
-      - port
       - pkg
-  port:
-    mayDependOn:
-      - domain
   domain:
     mayDependOn:
       - domain

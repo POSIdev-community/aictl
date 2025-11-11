@@ -1,9 +1,10 @@
 package clientai
 
 import (
-	"github.com/POSIdev-community/aictl/pkg/errs"
 	"io"
 	"net/http"
+
+	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
 func CheckResponse(rsp *http.Response, resourceName string) error {

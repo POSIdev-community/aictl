@@ -2,6 +2,7 @@ package context
 
 import (
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/spf13/cobra"

@@ -2,17 +2,26 @@ package branch
 
 import (
 	"context"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
+	"github.com/google/uuid"
 )
 
-type UseCase struct {
-	aiAdapter  port.Ai
-	cliAdapter port.Cli
+type AI interface {
+	StartScanProject(ctx context.Context, projectId uuid.UUID) (uuid.UUID, error)
 }
 
-func NewUseCase(aiAdapter port.Ai, cliAdapter port.Cli) (*UseCase, error) {
+type CLI interface {
+	ReturnText(text string)
+}
+
+type UseCase struct {
+	aiAdapter  AI
+	cliAdapter CLI
+}
+
+func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -30,7 +39,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	u.cliAdapter.ShowText(scanResultId.String())
+	u.cliAdapter.ReturnText(scanResultId.String())
 
 	return nil
 }

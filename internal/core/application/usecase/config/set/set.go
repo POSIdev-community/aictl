@@ -2,25 +2,23 @@ package set
 
 import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
-type UseCase struct {
-	configAdapter port.Config
-	cliAdapter    port.Cli
+type CFG interface {
+	StoreContext(cfg *config.Config) error
 }
 
-func NewUseCase(configAdapter port.Config, cliAdapter port.Cli) (*UseCase, error) {
+type UseCase struct {
+	configAdapter CFG
+}
+
+func NewUseCase(configAdapter CFG) (*UseCase, error) {
 	if configAdapter == nil {
 		return nil, errs.NewValidationRequiredError("configAdapter")
 	}
 
-	if cliAdapter == nil {
-		return nil, errs.NewValidationRequiredError("cliAdapter")
-	}
-
-	return &UseCase{configAdapter, cliAdapter}, nil
+	return &UseCase{configAdapter}, nil
 }
 
 func (u *UseCase) Execute(cfg *config.Config) error {

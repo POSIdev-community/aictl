@@ -2,12 +2,14 @@ package await
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
-	"time"
 )
 
 const (
@@ -51,6 +53,10 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 	for failCount < 3 {
 		stage, err = u.aiAdapter.GetScanStage(ctx, cfg.ProjectId(), scanId)
 		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return err
+			}
+
 			failCount++
 			time.Sleep(3 * time.Second)
 			u.cliAdapter.ShowText("...")

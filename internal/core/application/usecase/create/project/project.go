@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"fmt"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
@@ -13,7 +14,7 @@ type AI interface {
 }
 
 type CLI interface {
-	ShowText(text string)
+	ReturnText(text string)
 }
 
 type UseCase struct {
@@ -53,7 +54,7 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 		}
 	}
 
-	u.cliAdapter.ShowText(projectId.String())
+	u.cliAdapter.ReturnText(projectId.String())
 
 	return nil
 }

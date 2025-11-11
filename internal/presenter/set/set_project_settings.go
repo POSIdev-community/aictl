@@ -2,9 +2,10 @@ package set
 
 import (
 	"fmt"
+	"os"
+
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"os"
 
 	"github.com/spf13/cobra"
 

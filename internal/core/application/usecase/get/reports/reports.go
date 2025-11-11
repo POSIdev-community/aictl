@@ -8,11 +8,11 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/google/uuid"
 
 	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
-	"github.com/POSIdev-community/aictl/internal/core/port"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
@@ -49,9 +49,9 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 	var reportType string
 	switch {
 	case sarif:
-		reportType = port.SarifReportType
+		reportType = report.SarifReportType
 	case plain:
-		reportType = port.PlainReportType
+		reportType = report.PlainReportType
 	}
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, reportType)
 	if err != nil {

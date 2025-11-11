@@ -34,7 +34,7 @@ func NewConfigUnsetCommand(
 			log := logger.FromContext(cmd.Context())
 			log.StdErrF("aictl ctx")
 
-			useCase, err := depsContainer.ConfigUnsetUseCase(cmd.Context())
+			useCase, err := depsContainer.ConfigUnsetUseCase()
 			if err != nil {
 				return err
 			}

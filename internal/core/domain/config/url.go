@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/POSIdev-community/aictl/pkg/errs"
 	"net/url"
 	"strings"
+
+	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
 type Uri struct {

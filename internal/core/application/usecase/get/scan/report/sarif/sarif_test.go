@@ -7,14 +7,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	. "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif/mocks"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/port"
-
-	. "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif"
 )
 
 func TestUseCase_Execute(t *testing.T) {
@@ -26,14 +25,14 @@ func TestUseCase_Execute(t *testing.T) {
 		projectID := uuid.New()
 		scanID := uuid.New()
 		templateID := uuid.New()
-		report := "foo: BAR"
-		reportReader := io.NopCloser(bytes.NewBufferString(report))
+		reportText := "foo: BAR"
+		reportReader := io.NopCloser(bytes.NewBufferString(reportText))
 		includeComments := false
 		includeDfd := false
 		includeGlossary := false
 
 		aiAdapter := mocks.NewAI(t)
-		aiAdapter.On("GetTemplateId", t.Context(), port.SarifReportType).Return(templateID, nil).Once()
+		aiAdapter.On("GetTemplateId", t.Context(), report.SarifReportType).Return(templateID, nil).Once()
 		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
@@ -51,15 +50,15 @@ func TestUseCase_Execute(t *testing.T) {
 		projectID := uuid.New()
 		scanID := uuid.New()
 		templateID := uuid.New()
-		report := "foo: BAR"
-		reportReader := io.NopCloser(bytes.NewBufferString(report))
+		reportText := "foo: BAR"
+		reportReader := io.NopCloser(bytes.NewBufferString(reportText))
 		filePath := filepath.Join(t.TempDir(), "test.txt")
 		includeComments := false
 		includeDfd := false
 		includeGlossary := false
 
 		aiAdapter := mocks.NewAI(t)
-		aiAdapter.On("GetTemplateId", t.Context(), port.SarifReportType).Return(templateID, nil).Once()
+		aiAdapter.On("GetTemplateId", t.Context(), report.SarifReportType).Return(templateID, nil).Once()
 		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
@@ -71,6 +70,6 @@ func TestUseCase_Execute(t *testing.T) {
 
 		data, err := os.ReadFile(filePath)
 		require.NoError(t, err)
-		require.Equal(t, report, string(data))
+		require.Equal(t, reportText, string(data))
 	})
 }
