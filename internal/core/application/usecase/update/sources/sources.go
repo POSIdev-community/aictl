@@ -34,7 +34,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, sourcePath string) error {
-	u.cliAdapter.ShowText("updating sources")
+	u.cliAdapter.ShowText("start updating sources")
 
 	err := u.aiAdapter.UpdateSources(ctx, cfg.ProjectId(), cfg.BranchId(), sourcePath)
 	if err != nil {

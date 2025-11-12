@@ -745,9 +745,6 @@ func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string) error {
 	log := logger.FromContext(ctx)
 
-	log.StdErr("before")
-	metric.PrintMemStat(log)
-
 	archivePath, err := prepareArchive(scanTargetPath)
 	if archivePath != scanTargetPath {
 		defer os.Remove(archivePath)

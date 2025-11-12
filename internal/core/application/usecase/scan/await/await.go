@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
@@ -86,9 +87,9 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 				}
 			}
 
-			u.cliAdapter.ShowTextf("%s: %d/%d", Enqueued, place, len(queue))
+			u.cliAdapter.ShowTextf("%s: %d/%d", strings.ToLower(stage.Stage), place, len(queue))
 		} else {
-			u.cliAdapter.ShowTextf("%s: %d%%", stage.Stage, stage.Value)
+			u.cliAdapter.ShowTextf("%s: %d%%", strings.ToLower(stage.Stage), stage.Value)
 		}
 
 		time.Sleep(3 * time.Second)
