@@ -17,7 +17,7 @@ func NewConfigClearCommand(
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log := logger.FromContext(cmd.Context())
-			log.StdErrF("start clearing context")
+			log.StdErrf("start clearing context")
 
 			useCase, err := depsContainer.ConfigClearUseCase(cmd.Context())
 			if err != nil {
@@ -29,7 +29,7 @@ func NewConfigClearCommand(
 				return err
 			}
 
-			log.StdErrF("context successfully cleared")
+			log.StdErrf("context successfully cleared")
 
 			return nil
 		},

@@ -15,6 +15,7 @@ type AI interface {
 
 type CLI interface {
 	ReturnText(text string)
+	ShowTextf(format string, a ...any)
 }
 
 type UseCase struct {
@@ -35,6 +36,8 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) error {
+	u.cliAdapter.ShowTextf("creating project '%v'", projectName)
+
 	var (
 		projectId *uuid.UUID
 		err       error
@@ -47,13 +50,18 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 		}
 	}
 
-	if projectId == nil {
-		projectId, err = u.aiAdapter.CreateProject(ctx, projectName)
-		if err != nil {
-			return fmt.Errorf("usecase create branch: %w", err)
-		}
+	if projectId != nil {
+		u.cliAdapter.ShowTextf("project '%v' already exixts, id '%v'", projectName, projectId.String())
+		u.cliAdapter.ReturnText(projectId.String())
+		return nil
 	}
 
+	projectId, err = u.aiAdapter.CreateProject(ctx, projectName)
+	if err != nil {
+		return fmt.Errorf("usecase create branch: %w", err)
+	}
+
+	u.cliAdapter.ShowTextf("project '%v' created, id '%v'", projectName, projectId.String())
 	u.cliAdapter.ReturnText(projectId.String())
 
 	return nil

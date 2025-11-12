@@ -11,10 +11,10 @@ func PrintMemStat(log *logger.Logger) {
 	runtime.ReadMemStats(&m)
 
 	log.StdErr("Memory Usage:")
-	log.StdErrF("  Allocated: %v MB", bToMb(m.Alloc))
-	log.StdErrF("  TotalAlloc: %v MB", bToMb(m.TotalAlloc))
-	log.StdErrF("  Sys: %v MB", bToMb(m.Sys))
-	log.StdErrF("  NumGC: %v", m.NumGC)
+	log.StdErrf("  Allocated: %v MB", bToMb(m.Alloc))
+	log.StdErrf("  TotalAlloc: %v MB", bToMb(m.TotalAlloc))
+	log.StdErrf("  Sys: %v MB", bToMb(m.Sys))
+	log.StdErrf("  NumGC: %v", m.NumGC)
 }
 
 func bToMb(b uint64) uint64 {

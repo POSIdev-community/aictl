@@ -13,13 +13,15 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
-type CLI interface {
-	ShowReader(r io.Reader) error
-}
-
 type AI interface {
 	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
 	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error)
+}
+
+type CLI interface {
+	ShowReader(r io.Reader) error
+	ShowTextf(format string, args ...any)
+	ShowText(text string)
 }
 
 type UseCase struct {
@@ -43,6 +45,8 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error {
+	u.cliAdapter.ShowTextf("getting sarif scan report, id '%v'", scanId.String())
+
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, report.SarifReportType)
 	if err != nil {
 		return err
@@ -64,6 +68,8 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 
 		return nil
 	}
+
+	u.cliAdapter.ShowText("sarif scan report got")
 
 	if err := u.cliAdapter.ShowReader(report); err != nil {
 		return fmt.Errorf("print report: %w", err)
