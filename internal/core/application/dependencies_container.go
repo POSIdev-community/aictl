@@ -100,7 +100,7 @@ func (c *DependenciesContainer) CreateBranchUseCase(ctx context.Context, cfg *do
 }
 
 func (c *DependenciesContainer) CreateProjectUseCase(ctx context.Context, cfg *domainConfig.Config) (*createProject.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (c *DependenciesContainer) CreateProjectUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) DeleteProjectsUseCase(ctx context.Context, cfg *domainConfig.Config) (*deleteProjects.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func (c *DependenciesContainer) DeleteProjectsUseCase(ctx context.Context, cfg *
 }
 
 func (c *DependenciesContainer) GetProjectsUseCase(ctx context.Context, cfg *domainConfig.Config) (*getProjects.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (c *DependenciesContainer) GetProjectsUseCase(ctx context.Context, cfg *dom
 }
 
 func (c *DependenciesContainer) GetReportsUseCase(ctx context.Context, cfg *domainConfig.Config) (*getReports.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (c *DependenciesContainer) GetReportsUseCase(ctx context.Context, cfg *doma
 }
 
 func (c *DependenciesContainer) GetScanUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScan.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (c *DependenciesContainer) GetScanUseCase(ctx context.Context, cfg *domainC
 }
 
 func (c *DependenciesContainer) GetScanAiprojUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanAiproj.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (c *DependenciesContainer) GetScanAiprojUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) GetScanLogsUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanLogs.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func (c *DependenciesContainer) GetScanLogsUseCase(ctx context.Context, cfg *dom
 }
 
 func (c *DependenciesContainer) GetScanReportUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReport.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,7 @@ func (c *DependenciesContainer) GetScanReportUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) GetScanReportPlainUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportPlain.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (c *DependenciesContainer) GetScanReportPlainUseCase(ctx context.Context, c
 }
 
 func (c *DependenciesContainer) GetScanReportSarifUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportSarif.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +220,7 @@ func (c *DependenciesContainer) GetScanReportSarifUseCase(ctx context.Context, c
 }
 
 func (c *DependenciesContainer) GetScanResultUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanResult.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (c *DependenciesContainer) GetScanResultUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) GetScanSbomUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanSbom.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (c *DependenciesContainer) GetScanSbomUseCase(ctx context.Context, cfg *dom
 }
 
 func (c *DependenciesContainer) GetScanStateUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanState.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func (c *DependenciesContainer) GetScanStateUseCase(ctx context.Context, cfg *do
 }
 
 func (c *DependenciesContainer) GetScansUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScans.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +268,7 @@ func (c *DependenciesContainer) GetScansUseCase(ctx context.Context, cfg *domain
 }
 
 func (c *DependenciesContainer) ScanAwaitUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanAwait.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func (c *DependenciesContainer) ScanAwaitUseCase(ctx context.Context, cfg *domai
 }
 
 func (c *DependenciesContainer) ScanStartBranchUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanStartBranch.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (c *DependenciesContainer) ScanStartBranchUseCase(ctx context.Context, cfg 
 }
 
 func (c *DependenciesContainer) ScanStartProjectUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanStartProject.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (c *DependenciesContainer) ScanStartProjectUseCase(ctx context.Context, cfg
 }
 
 func (c *DependenciesContainer) ScanStopUseCase(ctx context.Context, cfg *domainConfig.Config) (*scanStop.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func (c *DependenciesContainer) ScanStopUseCase(ctx context.Context, cfg *domain
 }
 
 func (c *DependenciesContainer) SetProjectSettingsUseCase(ctx context.Context, cfg *domainConfig.Config) (*setProjectSettings.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +340,7 @@ func (c *DependenciesContainer) UpdateSourcesUseCase(ctx context.Context, cfg *d
 }
 
 func (c *DependenciesContainer) UpdateSourcesGitUseCase(ctx context.Context, cfg *domainConfig.Config) (*updateSourcesGit.UseCase, error) {
-	aiAdapter, err := ai.NewAdapter(ctx, cfg)
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}

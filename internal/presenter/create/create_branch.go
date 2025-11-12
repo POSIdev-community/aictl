@@ -47,9 +47,6 @@ func NewCreateBranchCommand(
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			//log := logger.FromContext(ctx)
-			//
-			//log.StdErrF("create branch")
 
 			useCase, err := depsContainer.CreateBranchUseCase(ctx, cfg)
 			if err != nil {

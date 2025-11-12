@@ -27,7 +27,18 @@ import (
 )
 
 func NewAdapter(ctx context.Context, cfg *config.Config) (*Adapter, error) {
-	aiClient, err := NewAiClient(ctx, cfg)
+	aiClient, err := NewAiClient(ctx, cfg, false)
+	if err != nil {
+		return nil, fmt.Errorf("new adapter: %w", err)
+	}
+
+	return &Adapter{
+		aiClient,
+	}, nil
+}
+
+func NewAdapterWithJwtRetry(ctx context.Context, cfg *config.Config) (*Adapter, error) {
+	aiClient, err := NewAiClient(ctx, cfg, true)
 	if err != nil {
 		return nil, fmt.Errorf("new adapter: %w", err)
 	}
@@ -732,19 +743,28 @@ func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 }
 
 func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string) error {
+	log := logger.FromContext(ctx)
+
+	log.StdErr("before")
+	metric.PrintMemStat(log)
+
 	archivePath, err := prepareArchive(scanTargetPath)
 	if archivePath != scanTargetPath {
 		defer os.Remove(archivePath)
 	}
-
 	if err != nil {
 		return err
+	}
+
+	if fi, err := os.Stat(archivePath); err == nil {
+		log.StdErrf("archive prepared, size: %.1f MB", float64(fi.Size())/(1024*1024))
 	}
 
 	body, contentType, err := prepareMultipartBody(ctx, archivePath)
 	if err != nil {
 		return err
 	}
+	defer body.Close()
 
 	archived := true
 	params := PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}

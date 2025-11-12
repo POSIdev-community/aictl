@@ -17,7 +17,10 @@ type MultipartField struct {
 	Value string
 }
 
-func prepareMultipartBody(ctx context.Context, archivePath string, fields ...MultipartField) (io.Reader, string, error) {
+func prepareMultipartBody(
+	ctx context.Context,
+	archivePath string,
+	fields ...MultipartField) (io.ReadCloser, string, error) {
 
 	file, err := os.Open(archivePath)
 	if err != nil {
@@ -30,9 +33,11 @@ func prepareMultipartBody(ctx context.Context, archivePath string, fields ...Mul
 	contentType := writer.FormDataContentType()
 
 	go func() {
-		defer file.Close()
-		defer writer.Close()
-		defer pw.Close()
+		defer func() {
+			writer.Close()
+			pw.Close()
+			file.Close()
+		}()
 
 		// Пробросим контекст для отмены операции
 		done := make(chan struct{})
