@@ -61,6 +61,8 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 		_ = report.Close()
 	}()
 
+	u.cliAdapter.ShowText("sarif scan report got")
+
 	if fullDestPath != "" {
 		if err := utils.CopyFileToPath(report, fullDestPath); err != nil {
 			return fmt.Errorf("copy report to path %s: %w", fullDestPath, err)
@@ -68,8 +70,6 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 
 		return nil
 	}
-
-	u.cliAdapter.ShowText("sarif scan report got")
 
 	if err := u.cliAdapter.ShowReader(report); err != nil {
 		return fmt.Errorf("print report: %w", err)

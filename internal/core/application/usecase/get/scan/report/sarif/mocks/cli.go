@@ -87,3 +87,97 @@ func (_c *CLI_ShowReader_Call) RunAndReturn(run func(r io.Reader) error) *CLI_Sh
 	_c.Call.Return(run)
 	return _c
 }
+
+// ShowText provides a mock function for the type CLI
+func (_mock *CLI) ShowText(text string) {
+	_mock.Called(text)
+	return
+}
+
+// CLI_ShowText_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ShowText'
+type CLI_ShowText_Call struct {
+	*mock.Call
+}
+
+// ShowText is a helper method to define mock.On call
+//   - text string
+func (_e *CLI_Expecter) ShowText(text interface{}) *CLI_ShowText_Call {
+	return &CLI_ShowText_Call{Call: _e.mock.On("ShowText", text)}
+}
+
+func (_c *CLI_ShowText_Call) Run(run func(text string)) *CLI_ShowText_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *CLI_ShowText_Call) Return() *CLI_ShowText_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CLI_ShowText_Call) RunAndReturn(run func(text string)) *CLI_ShowText_Call {
+	_c.Run(run)
+	return _c
+}
+
+// ShowTextf provides a mock function for the type CLI
+func (_mock *CLI) ShowTextf(format string, args ...any) {
+	if len(args) > 0 {
+		_mock.Called(format, args)
+	} else {
+		_mock.Called(format)
+	}
+
+	return
+}
+
+// CLI_ShowTextf_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ShowTextf'
+type CLI_ShowTextf_Call struct {
+	*mock.Call
+}
+
+// ShowTextf is a helper method to define mock.On call
+//   - format string
+//   - args ...any
+func (_e *CLI_Expecter) ShowTextf(format interface{}, args ...interface{}) *CLI_ShowTextf_Call {
+	return &CLI_ShowTextf_Call{Call: _e.mock.On("ShowTextf",
+		append([]interface{}{format}, args...)...)}
+}
+
+func (_c *CLI_ShowTextf_Call) Run(run func(format string, args ...any)) *CLI_ShowTextf_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 []any
+		var variadicArgs []any
+		if len(args) > 1 {
+			variadicArgs = args[1].([]any)
+		}
+		arg1 = variadicArgs
+		run(
+			arg0,
+			arg1...,
+		)
+	})
+	return _c
+}
+
+func (_c *CLI_ShowTextf_Call) Return() *CLI_ShowTextf_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *CLI_ShowTextf_Call) RunAndReturn(run func(format string, args ...any)) *CLI_ShowTextf_Call {
+	_c.Run(run)
+	return _c
+}
