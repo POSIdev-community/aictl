@@ -13,9 +13,8 @@ aictl [flags]
 ### Options
 
 ```
-  -h, --help              help for aictl
-  -l, --log-path string   log file path
-  -v, --verbose           verbose output
+  -h, --help      help for aictl
+  -v, --version   show version
 ```
 
 ### SEE ALSO

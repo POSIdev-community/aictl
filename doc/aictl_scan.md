@@ -5,16 +5,11 @@ Scan
 ### Options
 
 ```
-  -h, --help           help for scan
-      --tls-skip       Skip certificate verification
-  -t, --token string   AI server access token
-  -u, --uri string     AI server uri
-```
-
-### Options inherited from parent commands
-
-```
+  -h, --help              help for scan
   -l, --log-path string   log file path
+      --tls-skip          Skip certificate verification
+  -t, --token string      AI server access token
+  -u, --uri string        AI server uri
   -v, --verbose           verbose output
 ```
 

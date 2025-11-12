@@ -9,7 +9,8 @@ Set project parameters
 ### Options
 
 ```
-  -h, --help   help for project
+  -h, --help                help for project
+  -p, --project-id string   project id
 ```
 
 ### Options inherited from parent commands

@@ -9,8 +9,11 @@ aictl get scan report [flags]
 ### Options
 
 ```
-  -h, --help            help for report
-  -o, --output string   Destination path for the report file
+  -h, --help               help for report
+      --include-comments   Include comments in the report file
+      --include-dfd        Include dfd in the report file
+      --include-glossary   Include glossary report
+  -o, --output string      Destination path for the report file
 ```
 
 ### Options inherited from parent commands
