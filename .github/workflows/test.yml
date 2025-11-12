@@ -1,0 +1,43 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  VERSION: "test-ci"
+
+jobs:
+  test:
+    name: Run Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.5'
+          cache: true
+
+      - name: Verify and download dependencies
+        run: |
+          go mod verify
+          go mod download
+
+      - name: Run tests with version injection
+        run: |
+          go test -v -race \
+            -ldflags="-X 'github.com/POSIdev-community/aictl/pkg/version.version=${VERSION}'" \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            ./...
+
+      - name: Show coverage summary
+        run: go tool cover -func=coverage.out | grep '^total:'
