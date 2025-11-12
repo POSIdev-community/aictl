@@ -2,8 +2,10 @@ package ai
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -15,7 +17,8 @@ type MultipartField struct {
 	Value string
 }
 
-func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Reader, string, error) {
+func prepareMultipartBody(ctx context.Context, archivePath string, fields ...MultipartField) (io.Reader, string, error) {
+
 	file, err := os.Open(archivePath)
 	if err != nil {
 		return nil, "", fmt.Errorf("error opening file: %w", err)
@@ -27,8 +30,20 @@ func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Read
 	contentType := writer.FormDataContentType()
 
 	go func() {
-		defer pw.Close()
 		defer file.Close()
+		defer writer.Close()
+		defer pw.Close()
+
+		// Пробросим контекст для отмены операции
+		done := make(chan struct{})
+		defer close(done)
+		go func() {
+			select {
+			case <-ctx.Done():
+				pw.CloseWithError(ctx.Err())
+			case <-done:
+			}
+		}()
 
 		filename := filepath.Base(archivePath)
 		part, err := writer.CreateFormFile("file", filename)
@@ -37,7 +52,9 @@ func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Read
 			return
 		}
 
-		if _, err = io.Copy(part, file); err != nil {
+		// io.CopyBuffer с фикс размером чтобы память не текла бесконечно
+		buf := make([]byte, 1*1024*1024) // 1 MB
+		if _, err = io.CopyBuffer(part, file, buf); err != nil {
 			pw.CloseWithError(fmt.Errorf("failed to copy file: %w", err))
 			return
 		}
@@ -47,11 +64,6 @@ func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Read
 				pw.CloseWithError(fmt.Errorf("failed to write field %q: %w", field.Key, err))
 				return
 			}
-		}
-
-		if err := writer.Close(); err != nil {
-			pw.CloseWithError(fmt.Errorf("failed to close multipart writer: %w", err))
-			return
 		}
 	}()
 
@@ -143,7 +155,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 
 	if info.IsDir() {
 		// Обрабатываем директорию рекурсивно
-		err = filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+		err = filepath.WalkDir(sourcePath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
@@ -153,12 +165,19 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 				return nil
 			}
 
-			mode := info.Mode()
-			if mode.IsDir() {
+			if d.IsDir() {
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
 				return addDirToZip(path, info)
 			}
 
-			if mode.IsRegular() {
+			if d.Type().IsRegular() {
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
 				return addFileToZip(path, info)
 			}
 

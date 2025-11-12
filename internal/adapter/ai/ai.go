@@ -249,7 +249,7 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 		return nil, err
 	}
 
-	body, contentType, err := prepareMultipartBody(archivePath, MultipartField{Key: "Name", Value: branchName})
+	body, contentType, err := prepareMultipartBody(ctx, archivePath, MultipartField{Key: "Name", Value: branchName})
 	if err != nil {
 		return nil, err
 	}
@@ -741,7 +741,7 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 		return err
 	}
 
-	body, contentType, err := prepareMultipartBody(archivePath)
+	body, contentType, err := prepareMultipartBody(ctx, archivePath)
 	if err != nil {
 		return err
 	}
