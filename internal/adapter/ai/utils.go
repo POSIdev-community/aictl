@@ -23,10 +23,11 @@ type MultipartField struct {
 func prepareMultipartBody(
 	ctx context.Context,
 	archivePath string,
+	reportProgress bool,
 	fields ...MultipartField) (io.ReadCloser, string, error) {
 
 	log := logger.FromContext(ctx)
-	progress := createProgressReporter(log)
+	progress := createProgressReporter(log, reportProgress)
 
 	file, err := os.Open(archivePath)
 	if err != nil {
@@ -317,7 +318,11 @@ func reference[T any](value T) *T {
 	return &value
 }
 
-func createProgressReporter(log *logger.Logger) func(int) {
+func createProgressReporter(log *logger.Logger, reportProgress bool) func(int) {
+	if !reportProgress {
+		return func(int) {}
+	}
+
 	var lastPrintedPercent = -1
 
 	return func(sentPercent int) {

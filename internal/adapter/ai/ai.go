@@ -244,7 +244,8 @@ func (a *Adapter) SetProjectSettings(ctx context.Context, projectId uuid.UUID, s
 }
 
 func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string) (*uuid.UUID, error) {
-	if scanTargetPath == "" {
+	useStubSources := scanTargetPath == ""
+	if useStubSources {
 		var err error
 		scanTargetPath, err = createStubScanTarget()
 		if err != nil {
@@ -260,7 +261,7 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 		return nil, err
 	}
 
-	body, contentType, err := prepareMultipartBody(ctx, archivePath, MultipartField{Key: "Name", Value: branchName})
+	body, contentType, err := prepareMultipartBody(ctx, archivePath, !useStubSources, MultipartField{Key: "Name", Value: branchName})
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +758,7 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 		log.StdErrf("archive prepared, size: %.1f MB", float64(fi.Size())/(1024*1024))
 	}
 
-	body, contentType, err := prepareMultipartBody(ctx, archivePath)
+	body, contentType, err := prepareMultipartBody(ctx, archivePath, true)
 	if err != nil {
 		return err
 	}
