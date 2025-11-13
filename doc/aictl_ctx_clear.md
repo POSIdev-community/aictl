@@ -10,13 +10,7 @@ aictl ctx clear [flags]
 
 ```
   -h, --help   help for clear
-```
-
-### Options inherited from parent commands
-
-```
-  -l, --log-path string   log file path
-  -v, --verbose           verbose output
+  -y, --yes    Skip confirmation prompt
 ```
 
 ### SEE ALSO

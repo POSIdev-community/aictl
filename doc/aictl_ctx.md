@@ -8,13 +8,6 @@ aictl context
   -h, --help   help for ctx
 ```
 
-### Options inherited from parent commands
-
-```
-  -l, --log-path string   log file path
-  -v, --verbose           verbose output
-```
-
 ### SEE ALSO
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool

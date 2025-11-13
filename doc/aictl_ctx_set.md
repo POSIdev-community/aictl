@@ -18,13 +18,6 @@ aictl ctx set [flags]
   -u, --uri string          AI server uri
 ```
 
-### Options inherited from parent commands
-
-```
-  -l, --log-path string   log file path
-  -v, --verbose           verbose output
-```
-
 ### SEE ALSO
 
 * [aictl ctx](aictl_ctx.md)	 - aictl context

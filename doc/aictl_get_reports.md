@@ -11,6 +11,9 @@ aictl get reports [flags]
 ```
   -d, --dest-path string   Destination path (default ".")
   -h, --help               help for reports
+      --include-comments   Include comments in the report file
+      --include-dfd        Include dfd in the report file
+      --include-glossary   Include glossary report
       --plain              Get plaint report
       --sarif              Get sarif report
 ```

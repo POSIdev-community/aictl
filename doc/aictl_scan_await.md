@@ -9,7 +9,8 @@ aictl scan await [flags]
 ### Options
 
 ```
-  -h, --help   help for await
+  -h, --help                help for await
+  -p, --project-id string   project id
 ```
 
 ### Options inherited from parent commands

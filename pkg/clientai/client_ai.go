@@ -19,7 +19,7 @@ type AiClient struct {
 	refreshToken string
 }
 
-func NewAiClient(ctx context.Context, cfg *config.Config) (*AiClient, error) {
+func NewAiClient(ctx context.Context, cfg *config.Config, withJwtRetry bool) (*AiClient, error) {
 	httpClient := &http.Client{}
 	jwtHTTPClient := &http.Client{}
 
@@ -50,7 +50,9 @@ func NewAiClient(ctx context.Context, cfg *config.Config) (*AiClient, error) {
 		jwtClient:           jwtClient,
 	}
 
-	httpClient.Transport = NewRetryRoundTripper(httpClient.Transport, http.StatusUnauthorized, aiClient.refreshJWT)
+	if withJwtRetry {
+		httpClient.Transport = NewRetryRoundTripper(httpClient.Transport, http.StatusUnauthorized, aiClient.refreshJWT)
+	}
 
 	if err := aiClient.getJWT(ctx, cfg); err != nil {
 		return nil, fmt.Errorf("update jwt: %w", err)
@@ -102,7 +104,7 @@ func (a *AiClient) refreshJWT(ctx context.Context, req *http.Request) error {
 	}
 
 	if response.JSON200.AccessToken == nil {
-		log.StdErrF("Got empty access token")
+		log.StdErrf("Got empty access token")
 
 		return fmt.Errorf("no access token")
 	}

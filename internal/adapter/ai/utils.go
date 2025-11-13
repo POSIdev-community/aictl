@@ -2,12 +2,17 @@ package ai
 
 import (
 	"archive/zip"
+	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
 type MultipartField struct {
@@ -15,7 +20,14 @@ type MultipartField struct {
 	Value string
 }
 
-func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Reader, string, error) {
+func prepareMultipartBody(
+	ctx context.Context,
+	archivePath string,
+	fields ...MultipartField) (io.ReadCloser, string, error) {
+
+	log := logger.FromContext(ctx)
+	progress := createProgressReporter(log)
+
 	file, err := os.Open(archivePath)
 	if err != nil {
 		return nil, "", fmt.Errorf("error opening file: %w", err)
@@ -23,12 +35,24 @@ func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Read
 
 	pr, pw := io.Pipe()
 	writer := multipart.NewWriter(pw)
-
 	contentType := writer.FormDataContentType()
 
 	go func() {
-		defer pw.Close()
-		defer file.Close()
+
+		defer func() {
+			writer.Close()
+			pw.Close()
+		}()
+
+		done := make(chan struct{})
+		defer close(done)
+		go func() {
+			select {
+			case <-ctx.Done():
+				pw.CloseWithError(ctx.Err())
+			case <-done:
+			}
+		}()
 
 		filename := filepath.Base(archivePath)
 		part, err := writer.CreateFormFile("file", filename)
@@ -37,25 +61,78 @@ func prepareMultipartBody(archivePath string, fields ...MultipartField) (io.Read
 			return
 		}
 
-		if _, err = io.Copy(part, file); err != nil {
-			pw.CloseWithError(fmt.Errorf("failed to copy file: %w", err))
+		fi, err := file.Stat()
+		if err != nil {
+			pw.CloseWithError(fmt.Errorf("stat file: %w", err))
+			return
+		}
+		totalSize := fi.Size()
+		if totalSize == 0 {
+			pw.CloseWithError(errors.New("archive is empty"))
 			return
 		}
 
+		buf := make([]byte, 1*1024*1024)
+		uploaded := int64(0)
+
+		bytesPerPercent := totalSize / 100
+		if bytesPerPercent == 0 {
+			bytesPerPercent = 1 // на случай очень маленьких файлов
+		}
+
+		progress(0)
+		for {
+			n, readErr := file.Read(buf)
+			if n > 0 {
+				// Пишем чанк в multipart
+				if _, writeErr := part.Write(buf[:n]); writeErr != nil {
+					pw.CloseWithError(fmt.Errorf("write to multipart part: %w", writeErr))
+					return
+				}
+				uploaded += int64(n)
+
+				currentPercent := int(uploaded / bytesPerPercent)
+				if currentPercent > 100 {
+					currentPercent = 100
+				}
+
+				progress(currentPercent)
+			}
+
+			if readErr == io.EOF {
+				break
+			}
+			if readErr != nil {
+				pw.CloseWithError(fmt.Errorf("read archive: %w", readErr))
+				return
+			}
+		}
+
+		if progress != nil {
+			progress(100)
+		}
+
+		// Поля (после файла — стандарт для multipart)
 		for _, field := range fields {
 			if err := writer.WriteField(field.Key, field.Value); err != nil {
 				pw.CloseWithError(fmt.Errorf("failed to write field %q: %w", field.Key, err))
 				return
 			}
 		}
-
-		if err := writer.Close(); err != nil {
-			pw.CloseWithError(fmt.Errorf("failed to close multipart writer: %w", err))
-			return
-		}
 	}()
 
-	return pr, contentType, nil
+	return &multipartReadCloser{Reader: pr, pw: pw, file: file}, contentType, nil
+}
+
+type multipartReadCloser struct {
+	io.Reader
+	pw   *io.PipeWriter
+	file *os.File
+}
+
+func (mrc *multipartReadCloser) Close() error {
+	_ = mrc.pw.CloseWithError(errors.New("body closed by caller"))
+	return mrc.file.Close()
 }
 
 func prepareArchive(sourcePath string) (archivePath string, err error) {
@@ -143,7 +220,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 
 	if info.IsDir() {
 		// Обрабатываем директорию рекурсивно
-		err = filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+		err = filepath.WalkDir(sourcePath, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
@@ -153,12 +230,19 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 				return nil
 			}
 
-			mode := info.Mode()
-			if mode.IsDir() {
+			if d.IsDir() {
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
 				return addDirToZip(path, info)
 			}
 
-			if mode.IsRegular() {
+			if d.Type().IsRegular() {
+				info, err := d.Info()
+				if err != nil {
+					return err
+				}
 				return addFileToZip(path, info)
 			}
 
@@ -231,4 +315,18 @@ func getOrDefault[T any](value *T, defaultValue T) T {
 
 func reference[T any](value T) *T {
 	return &value
+}
+
+func createProgressReporter(log *logger.Logger) func(int) {
+	var lastPrintedPercent = -1
+
+	return func(sentPercent int) {
+		percent := sentPercent / 10 * 10
+
+		if percent > lastPrintedPercent {
+			lastPrintedPercent = percent
+
+			log.StdErrf("updating sources: %d%%", percent)
+		}
+	}
 }

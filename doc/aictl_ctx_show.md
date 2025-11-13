@@ -14,13 +14,6 @@ aictl ctx show [flags]
       --yaml   Yaml format context
 ```
 
-### Options inherited from parent commands
-
-```
-  -l, --log-path string   log file path
-  -v, --verbose           verbose output
-```
-
 ### SEE ALSO
 
 * [aictl ctx](aictl_ctx.md)	 - aictl context

@@ -37,6 +37,8 @@ func TestUseCase_Execute(t *testing.T) {
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
+		cliAdapter.On("ShowTextf", "getting sarif scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowText", "sarif scan report got").Return().Once()
 
 		uc, err := NewUseCase(aiAdapter, cliAdapter)
 		require.NoError(t, err)
@@ -62,6 +64,9 @@ func TestUseCase_Execute(t *testing.T) {
 		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
+
+		cliAdapter.On("ShowTextf", "getting sarif scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowText", "sarif scan report got").Return().Once()
 
 		uc, err := NewUseCase(aiAdapter, cliAdapter)
 		require.NoError(t, err)

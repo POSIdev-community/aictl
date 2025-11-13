@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
@@ -26,7 +27,7 @@ type AI interface {
 
 type CLI interface {
 	ShowText(text string)
-	ShowTextF(format string, a ...any)
+	ShowTextf(format string, a ...any)
 }
 
 type UseCase struct {
@@ -47,6 +48,8 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID) error {
+	u.cliAdapter.ShowTextf("awating scan, id '%v'", scanId.String())
+
 	failCount := 0
 	stage := scanstage.ScanStage{}
 	var err error
@@ -84,9 +87,9 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 				}
 			}
 
-			u.cliAdapter.ShowTextF("%s: %d/%d", Enqueued, place, len(queue))
+			u.cliAdapter.ShowTextf("%s: %d/%d", strings.ToLower(stage.Stage), place, len(queue))
 		} else {
-			u.cliAdapter.ShowTextF("%s: %d%%", stage.Stage, stage.Value)
+			u.cliAdapter.ShowTextf("%s: %d%%", strings.ToLower(stage.Stage), stage.Value)
 		}
 
 		time.Sleep(3 * time.Second)
@@ -96,7 +99,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 		return fmt.Errorf("scan stage %s in project %s", stage.Stage, cfg.ProjectId())
 	}
 
-	u.cliAdapter.ShowTextF("Scan '%s'", stage.Stage)
+	u.cliAdapter.ShowTextf("Scan '%s'", stage.Stage)
 
 	return nil
 }

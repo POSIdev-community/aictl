@@ -32,7 +32,7 @@ func NewConfigUnsetCommand(
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log := logger.FromContext(cmd.Context())
-			log.StdErrF("aictl ctx")
+			log.StdErrf("aictl ctx")
 
 			useCase, err := depsContainer.ConfigUnsetUseCase()
 			if err != nil {

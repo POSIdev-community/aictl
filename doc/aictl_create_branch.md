@@ -18,6 +18,7 @@ aictl create branch [flags]
 
 ```
   -l, --log-path string   log file path
+      --safe              if resource exists, return its id without error
       --tls-skip          Skip certificate verification
   -t, --token string      AI server access token
   -u, --uri string        AI server uri

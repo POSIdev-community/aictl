@@ -15,6 +15,9 @@ aictl get scan report plain [flags]
 ### Options inherited from parent commands
 
 ```
+      --include-comments    Include comments in the report file
+      --include-dfd         Include dfd in the report file
+      --include-glossary    Include glossary report
   -l, --log-path string     log file path
   -o, --output string       Destination path for the report file
   -p, --project-id string   project id

@@ -27,7 +27,18 @@ import (
 )
 
 func NewAdapter(ctx context.Context, cfg *config.Config) (*Adapter, error) {
-	aiClient, err := NewAiClient(ctx, cfg)
+	aiClient, err := NewAiClient(ctx, cfg, false)
+	if err != nil {
+		return nil, fmt.Errorf("new adapter: %w", err)
+	}
+
+	return &Adapter{
+		aiClient,
+	}, nil
+}
+
+func NewAdapterWithJwtRetry(ctx context.Context, cfg *config.Config) (*Adapter, error) {
+	aiClient, err := NewAiClient(ctx, cfg, true)
 	if err != nil {
 		return nil, fmt.Errorf("new adapter: %w", err)
 	}
@@ -249,7 +260,7 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 		return nil, err
 	}
 
-	body, contentType, err := prepareMultipartBody(archivePath, MultipartField{Key: "Name", Value: branchName})
+	body, contentType, err := prepareMultipartBody(ctx, archivePath, MultipartField{Key: "Name", Value: branchName})
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +394,7 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 	log := logger.FromContext(ctx)
 
-	log.StdErrF("Send get projects request")
+	log.StdErrf("Send get projects request")
 
 	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
@@ -732,19 +743,25 @@ func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 }
 
 func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string) error {
+	log := logger.FromContext(ctx)
+
 	archivePath, err := prepareArchive(scanTargetPath)
 	if archivePath != scanTargetPath {
 		defer os.Remove(archivePath)
 	}
-
 	if err != nil {
 		return err
 	}
 
-	body, contentType, err := prepareMultipartBody(archivePath)
+	if fi, err := os.Stat(archivePath); err == nil {
+		log.StdErrf("archive prepared, size: %.1f MB", float64(fi.Size())/(1024*1024))
+	}
+
+	body, contentType, err := prepareMultipartBody(ctx, archivePath)
 	if err != nil {
 		return err
 	}
+	defer body.Close()
 
 	archived := true
 	params := PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
