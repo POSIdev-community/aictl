@@ -87,6 +87,10 @@ func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
 			s.JavaSettings.UserPackagePrefixes = *aiproj.JavaSettings.UserPackagePrefixes
 		}
 
+		if aiproj.JavaSettings.Version == "" {
+			s.JavaSettings.Version = "21"
+		}
+
 		s.JavaSettings.Version = "v1_" + aiproj.JavaSettings.Version
 
 		if aiproj.JavaSettings.CustomParameters != nil {
