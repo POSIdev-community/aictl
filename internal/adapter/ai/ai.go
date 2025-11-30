@@ -454,6 +454,10 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 		aiReportType = ReportTypeSarif
 	case report.PlainReportType:
 		aiReportType = ReportTypePlainReport
+	case report.GitlabReportType:
+		aiReportType = ReportTypeGitlab
+	default:
+		return uuid.UUID{}, fmt.Errorf("invalid reportType: %s", reportType)
 	}
 
 	response, err := a.aiClient.GetApiReportsTemplatesType(ctx, aiReportType, &params, a.aiClient.AddJWTToHeader)
