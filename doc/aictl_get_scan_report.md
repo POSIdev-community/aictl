@@ -30,6 +30,7 @@ aictl get scan report [flags]
 ### SEE ALSO
 
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
+* [aictl get scan report gitlab](aictl_get_scan_report_gitlab.md)	 - Get scan report gitlab
 * [aictl get scan report plain](aictl_get_scan_report_plain.md)	 - Get scan report plain
 * [aictl get scan report sarif](aictl_get_scan_report_sarif.md)	 - Get scan report sarif
 

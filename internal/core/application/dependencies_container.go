@@ -22,6 +22,7 @@ import (
 	getScanAiproj "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
 	getScanLogs "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/logs"
 	getScanReport "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report"
+	getScanReportGitlab "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/gitlab"
 	getScanReportPlain "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/plain"
 	getScanReportSarif "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif"
 	getScanResult "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/result"
@@ -205,6 +206,18 @@ func (c *DependenciesContainer) GetScanReportPlainUseCase(ctx context.Context, c
 	cliAdapter := cli.NewCli(log)
 
 	return getScanReportPlain.NewUseCase(aiAdapter, cliAdapter)
+}
+
+func (c *DependenciesContainer) GetScanReportGitlabUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportGitlab.UseCase, error) {
+	aiAdapter, err := ai.NewAdapterWithJwtRetry(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	log := logger.FromContext(ctx)
+	cliAdapter := cli.NewCli(log)
+
+	return getScanReportGitlab.NewUseCase(aiAdapter, cliAdapter)
 }
 
 func (c *DependenciesContainer) GetScanReportSarifUseCase(ctx context.Context, cfg *domainConfig.Config) (*getScanReportSarif.UseCase, error) {

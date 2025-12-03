@@ -1,6 +1,7 @@
 package report
 
 const (
-	SarifReportType = "SARIF"
-	PlainReportType = "PLAIN_REPORT"
+	GitlabReportType = "GITLAB"
+	SarifReportType  = "SARIF"
+	PlainReportType  = "PLAIN_REPORT"
 )

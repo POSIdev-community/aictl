@@ -33,6 +33,7 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 		},
 	}
 
+	cmd.AddCommand(NewGetScanReportGitlabCmd(cfg, depsContainer))
 	cmd.AddCommand(NewGetScanReportPlainCmd(cfg, depsContainer))
 	cmd.AddCommand(NewGetScanReportSarifCmd(cfg, depsContainer))
 
