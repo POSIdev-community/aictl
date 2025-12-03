@@ -82,3 +82,8 @@ doc:
 	@go run ./cmd/doc/generate_doc.go
 	@git add ./doc/*
 	@echo "✅"
+
+.PHONY: check-doc
+check-doc:
+	@go run ./cmd/doc/generate_doc.go
+	@git diff --exit-code -- ./doc/ || (echo "❌ Docs outdated. Run 'make doc' and commit."; exit 1)
