@@ -87,7 +87,11 @@ func (c *DependenciesContainer) ConfigUnsetUseCase() (*configUnset.UseCase, erro
 	return useCase, nil
 }
 
-func (c *DependenciesContainer) CreateBranchUseCase(ctx context.Context, cfg *domainConfig.Config) (*createBranch.UseCase, error) {
+type CreateBranchUseCase interface {
+	Execute(context.Context, *domainConfig.Config, string, string, bool) error
+}
+
+func (c *DependenciesContainer) CreateBranchUseCase(ctx context.Context, cfg *domainConfig.Config) (CreateBranchUseCase, error) {
 	aiAdapter, err := ai.NewAdapter(ctx, cfg)
 	if err != nil {
 		return nil, err

@@ -80,7 +80,7 @@ func (cfg *Config) SetProjectId(projectIdFlag string) error {
 
 	projectId, err := uuid.Parse(projectIdFlag)
 	if err != nil {
-		return errs.NewValidationFieldError("project-id", fmt.Sprintf("'%s' invalud uuid", projectIdFlag))
+		return errs.NewValidationFieldError("project-id", fmt.Sprintf("'%s' invalid uuid", projectIdFlag))
 	}
 
 	cfg.projectId = projectId

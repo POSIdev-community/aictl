@@ -1,6 +1,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/application"
@@ -11,9 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type DependenciesContainer interface {
+	CreateBranchUseCase(context.Context, *config.Config) (application.CreateBranchUseCase, error)
+}
+
 func NewCreateBranchCommand(
 	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+	depsContainer DependenciesContainer) *cobra.Command {
 
 	var (
 		projectIdFlag string

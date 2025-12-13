@@ -18,8 +18,8 @@ func NewCreateCmd(
 		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
-	cmd.AddCommand(NewCreateProjectCommand(cfg, depsContainer))
 	cmd.AddCommand(NewCreateBranchCommand(cfg, depsContainer))
+	cmd.AddCommand(NewCreateProjectCommand(cfg, depsContainer))
 
 	_utils.AddConnectionPersistentFlags(cmd)
 
