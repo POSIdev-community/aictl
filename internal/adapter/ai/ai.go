@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
@@ -43,18 +44,17 @@ func NewAdapter(cfg *config.Config) (*Adapter, error) {
 func (a *Adapter) Initialize(ctx context.Context) error {
 	err := a.aiClient.Initialize(ctx, a.cfg)
 	if err != nil {
-		return fmt.Errorf("initialize ai adapter: %w", err)
+		return fmt.Errorf("initialize ai client: %w", err)
 	}
 
-	// TODO: add version check
-
-	ok, err := a.checkLicense(ctx)
+	err = a.CheckMinVersion(ctx)
 	if err != nil {
-		return fmt.Errorf("check license failded: %w", err)
+		return fmt.Errorf("check min version: %w", err)
 	}
 
-	if !ok {
-		return fmt.Errorf("license is invalid")
+	err = a.CheckLicense(ctx)
+	if err != nil {
+		return fmt.Errorf("check license: %w", err)
 	}
 
 	return nil
@@ -67,6 +67,20 @@ func (a *Adapter) InitializeWithRetry(ctx context.Context) error {
 	}
 
 	a.aiClient.AddJwtRetry()
+
+	return nil
+}
+
+func (a *Adapter) CheckMinVersion(ctx context.Context) error {
+	v, err := a.GetVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("get version: %w", err)
+	}
+
+	minVersion, _ := version.NewVersion("5.0.0")
+	if v.Less(&minVersion) {
+		return fmt.Errorf("version less than 5.0.0")
+	}
 
 	return nil
 }
@@ -811,18 +825,38 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 	return nil
 }
 
-func (a *Adapter) checkLicense(ctx context.Context) (bool, error) {
-	response, err := a.aiClient.GetApiLicenseWithResponse(ctx, a.aiClient.AddJWTToHeader)
+func (a *Adapter) GetVersion(ctx context.Context) (version.Version, error) {
+	response, err := a.aiClient.GetApiVersionsPackageCurrentWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
-		return false, fmt.Errorf("ai check license: %w", err)
+		return version.Version{}, fmt.Errorf("ai get version: %w", err)
 	}
 
 	statusCode := response.StatusCode()
 	responseBody := string(response.Body)
 	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
-		return false, fmt.Errorf("ai check license: %w", err)
+		return version.Version{}, fmt.Errorf("ai get version: %w", err)
 	}
 
-	return *response.JSON200.IsValid, nil
+	v, err := version.NewVersion(responseBody)
 
+	return v, nil
+}
+
+func (a *Adapter) CheckLicense(ctx context.Context) error {
+	response, err := a.aiClient.GetApiLicenseWithResponse(ctx, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai check license: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return fmt.Errorf("ai check license: %w", err)
+	}
+
+	if !*response.JSON200.IsValid {
+		return fmt.Errorf("license is invalid")
+	}
+
+	return nil
 }
