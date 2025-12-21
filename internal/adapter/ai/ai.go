@@ -48,6 +48,15 @@ func (a *Adapter) Initialize(ctx context.Context) error {
 
 	// TODO: add version check
 
+	ok, err := a.checkLicense(ctx)
+	if err != nil {
+		return fmt.Errorf("check license failded: %w", err)
+	}
+
+	if !ok {
+		return fmt.Errorf("license is invalid")
+	}
+
 	return nil
 }
 
@@ -800,4 +809,20 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 	}
 
 	return nil
+}
+
+func (a *Adapter) checkLicense(ctx context.Context) (bool, error) {
+	response, err := a.aiClient.GetApiLicenseWithResponse(ctx, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai check license: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return false, fmt.Errorf("ai check license: %w", err)
+	}
+
+	return *response.JSON200.IsValid, nil
+
 }
