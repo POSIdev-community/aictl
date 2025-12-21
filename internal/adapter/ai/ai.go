@@ -26,30 +26,40 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
-func NewAdapter(ctx context.Context, cfg *config.Config) (*Adapter, error) {
-	aiClient, err := NewAiClient(ctx, cfg, false)
-	if err != nil {
-		return nil, fmt.Errorf("new adapter: %w", err)
-	}
-
-	return &Adapter{
-		aiClient,
-	}, nil
-}
-
-func NewAdapterWithJwtRetry(ctx context.Context, cfg *config.Config) (*Adapter, error) {
-	aiClient, err := NewAiClient(ctx, cfg, true)
-	if err != nil {
-		return nil, fmt.Errorf("new adapter: %w", err)
-	}
-
-	return &Adapter{
-		aiClient,
-	}, nil
-}
-
 type Adapter struct {
 	aiClient *AiClient
+	cfg      *config.Config
+}
+
+func NewAdapter(cfg *config.Config) (*Adapter, error) {
+	aiClient, err := NewAiClient()
+	if err != nil {
+		return nil, fmt.Errorf("new adapter: %w", err)
+	}
+
+	return &Adapter{aiClient, cfg}, nil
+}
+
+func (a *Adapter) Initialize(ctx context.Context) error {
+	err := a.aiClient.Initialize(ctx, a.cfg)
+	if err != nil {
+		return fmt.Errorf("initialize ai adapter: %w", err)
+	}
+
+	// TODO: add version check
+
+	return nil
+}
+
+func (a *Adapter) InitializeWithRetry(ctx context.Context) error {
+	err := a.Initialize(ctx)
+	if err != nil {
+		return fmt.Errorf("initialize ai adapter: %w", err)
+	}
+
+	a.aiClient.AddJwtRetry()
+
+	return nil
 }
 
 func (a *Adapter) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
@@ -255,7 +265,9 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 
 	archivePath, err := prepareArchive(scanTargetPath)
 	if archivePath != scanTargetPath {
-		defer os.Remove(archivePath)
+		defer func() {
+			_ = os.Remove(archivePath)
+		}()
 	}
 	if err != nil {
 		return nil, err
@@ -387,9 +399,9 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 		return nil, fmt.Errorf("ai adapter get project name exists: %w", err)
 	}
 
-	project := *response.JSON200
+	proj := *response.JSON200
 
-	return project.Id, nil
+	return proj.Id, nil
 }
 
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
@@ -752,7 +764,9 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 
 	archivePath, err := prepareArchive(scanTargetPath)
 	if archivePath != scanTargetPath {
-		defer os.Remove(archivePath)
+		defer func() {
+			_ = os.Remove(archivePath)
+		}()
 	}
 	if err != nil {
 		return err
@@ -766,7 +780,9 @@ func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UU
 	if err != nil {
 		return err
 	}
-	defer body.Close()
+	defer func() {
+		_ = body.Close()
+	}()
 
 	archived := true
 	params := PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}

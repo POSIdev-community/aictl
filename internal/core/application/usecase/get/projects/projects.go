@@ -10,12 +10,13 @@ import (
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	GetProjects(ctx context.Context) ([]project.Project, error)
 }
 
 type CLI interface {
-	ShowProjects(projects []project.Project)
-	ShowProjectsQuite(projects []project.Project)
+	ShowProjects(ctx context.Context, projects []project.Project)
+	ShowProjectsQuite(ctx context.Context, projects []project.Project)
 }
 
 type UseCase struct {
@@ -36,6 +37,11 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error {
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+	}
+
 	projects, err := u.aiAdapter.GetProjects(ctx)
 	if err != nil {
 		return fmt.Errorf("get projects: %w", err)
@@ -55,9 +61,9 @@ func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, q
 	}
 
 	if quite {
-		u.cliAdapter.ShowProjectsQuite(filteredProjects)
+		u.cliAdapter.ShowProjectsQuite(ctx, filteredProjects)
 	} else {
-		u.cliAdapter.ShowProjects(filteredProjects)
+		u.cliAdapter.ShowProjects(ctx, filteredProjects)
 	}
 
 	return nil

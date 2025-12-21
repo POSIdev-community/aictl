@@ -1,13 +1,20 @@
 package context
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/pkg/logger"
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
-func NewConfigClearCommand(
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdConfigClear struct {
+	*cobra.Command
+}
+
+type UseCaseConfigClear interface {
+	Execute(ctx context.Context, skipConfirm bool) error
+}
+
+func NewConfigClearCommand(uc UseCaseConfigClear) CmdConfigClear {
 
 	var skipConfirm bool
 
@@ -16,20 +23,12 @@ func NewConfigClearCommand(
 		Short: "Clear current aictl configuration",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log := logger.FromContext(cmd.Context())
-			log.StdErrf("start clearing context")
+			ctx := cmd.Context()
 
-			useCase, err := depsContainer.ConfigClearUseCase(cmd.Context())
+			err := uc.Execute(ctx, skipConfirm)
 			if err != nil {
 				return err
 			}
-
-			err = useCase.Execute(skipConfirm)
-			if err != nil {
-				return err
-			}
-
-			log.StdErrf("context successfully cleared")
 
 			return nil
 		},
@@ -37,5 +36,5 @@ func NewConfigClearCommand(
 
 	cmd.Flags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip confirmation prompt")
 
-	return cmd
+	return CmdConfigClear{cmd}
 }

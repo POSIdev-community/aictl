@@ -2,6 +2,7 @@ package scan
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
@@ -10,19 +11,21 @@ import (
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error)
 }
 
 type CLI interface {
-	ShowScans(scans []scan.Scan)
+	ShowScans(ctx context.Context, scans []scan.Scan)
 }
 
 type UseCase struct {
 	aiAdapter  AI
 	cliAdapter CLI
+	cfg        *config.Config
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -34,16 +37,22 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{
 		aiAdapter:  aiAdapter,
 		cliAdapter: cliAdapter,
+		cfg:        cfg,
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID) error {
-	scanStage, err := u.aiAdapter.GetScan(ctx, cfg.ProjectId(), scanId)
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+	}
+
+	scanStage, err := u.aiAdapter.GetScan(ctx, u.cfg.ProjectId(), scanId)
 	if err != nil {
 		return err
 	}
 
-	u.cliAdapter.ShowScans([]scan.Scan{*scanStage})
+	u.cliAdapter.ShowScans(ctx, []scan.Scan{*scanStage})
 
 	return nil
 }

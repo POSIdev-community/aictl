@@ -2,17 +2,19 @@ package stop
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	StopScan(ctx context.Context, scanResultId uuid.UUID) error
 }
 
 type CLI interface {
-	ReturnText(string)
+	ReturnText(ctx context.Context, text string)
 }
 
 type UseCase struct {
@@ -33,12 +35,17 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, scanResultId uuid.UUID) error {
-	err := u.aiAdapter.StopScan(ctx, scanResultId)
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+	}
+
+	err = u.aiAdapter.StopScan(ctx, scanResultId)
 	if err != nil {
 		return err
 	}
 
-	u.cliAdapter.ReturnText(scanResultId.String())
+	u.cliAdapter.ReturnText(ctx, scanResultId.String())
 
 	return nil
 }

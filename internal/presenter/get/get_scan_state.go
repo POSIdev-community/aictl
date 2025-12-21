@@ -1,14 +1,22 @@
 package get
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
-func NewGetScanStateCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdGetScanState struct {
+	*cobra.Command
+}
+
+type UseCaseGetScanState interface {
+	Execute(ctx context.Context, scanId uuid.UUID) error
+}
+
+func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 	cmd := &cobra.Command{
 		Short: "Get scan stage",
 		Use:   "stage",
@@ -16,12 +24,7 @@ func NewGetScanStateCmd(cfg *config.Config, depsContainer *application.Dependenc
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.GetScanStateUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get scan state useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg, scanId); err != nil {
+			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)
@@ -31,5 +34,5 @@ func NewGetScanStateCmd(cfg *config.Config, depsContainer *application.Dependenc
 		},
 	}
 
-	return cmd
+	return CmdGetScanState{cmd}
 }

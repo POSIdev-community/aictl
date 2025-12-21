@@ -1,24 +1,25 @@
 package delete
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/spf13/cobra"
 )
 
-func NewDeleteCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdDelete struct {
+	*cobra.Command
+}
+
+func NewDeleteCmd(cfg *config.Config, cmdDeleteProjects CmdDeleteProjects) *CmdDelete {
 	cmd := &cobra.Command{
 		Use:               "delete",
 		Short:             "Delete resources",
 		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
-	cmd.AddCommand(NewDeleteProjectsCommand(cfg, depsContainer))
+	cmd.AddCommand(cmdDeleteProjects.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 
-	return cmd
+	return &CmdDelete{cmd}
 }

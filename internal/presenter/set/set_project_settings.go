@@ -1,20 +1,26 @@
 package set
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-
 	"github.com/spf13/cobra"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
 
-func NewSetProjectSettingsCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdSetProjectSettings struct {
+	*cobra.Command
+}
+
+type UseCaseSetProjectSettings interface {
+	Execute(ctx context.Context, aiProj *aiproj.AIProj) error
+}
+
+func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSettings {
 	var (
 		filePath   string
 		aiprojData aiproj.AIProj
@@ -61,12 +67,7 @@ func NewSetProjectSettingsCmd(cfg *config.Config, depsContainer *application.Dep
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.SetProjectSettingsUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("presenter set project settings useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg.ProjectId(), &aiprojData); err != nil {
+			if err := uc.Execute(ctx, &aiprojData); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("presenter set project settings: %w", err)
@@ -78,5 +79,5 @@ func NewSetProjectSettingsCmd(cfg *config.Config, depsContainer *application.Dep
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "path to aiproj.json")
 
-	return cmd
+	return CmdSetProjectSettings{cmd}
 }

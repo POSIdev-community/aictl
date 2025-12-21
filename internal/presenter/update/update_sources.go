@@ -1,19 +1,25 @@
 package update
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/spf13/cobra"
 )
 
-func NewUpdateSourcesCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdUpdateSources struct {
+	*cobra.Command
+}
+
+type UseCaseUpdateSources interface {
+	Execute(ctx context.Context, sourcePath string) error
+}
+
+func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, cmdUpdateSourcesGit CmdUpdateSourcesGit) CmdUpdateSources {
 
 	var (
 		path string
@@ -49,12 +55,7 @@ func NewUpdateSourcesCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.UpdateSourcesUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("update sources useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg, path); err != nil {
+			if err := uc.Execute(ctx, path); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)
@@ -67,7 +68,7 @@ func NewUpdateSourcesCommand(
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "branch id")
 
-	cmd.AddCommand(NewUpdateSourcesGitCommand(cfg, depsContainer))
+	cmd.AddCommand(cmdUpdateSourcesGit.Command)
 
-	return cmd
+	return CmdUpdateSources{cmd}
 }

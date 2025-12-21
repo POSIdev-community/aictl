@@ -1,8 +1,6 @@
 package git
 
 import (
-	"context"
-
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
@@ -29,6 +27,6 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context) error {
+func (u *UseCase) Execute() error {
 	panic("not implemented")
 }

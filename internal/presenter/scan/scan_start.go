@@ -1,22 +1,22 @@
 package scan
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/spf13/cobra"
 )
 
-func NewScanStartCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdScanStart struct {
+	*cobra.Command
+}
+
+func NewScanStartCmd(cmdScanStart CmdScanStartBranch, cmdScanStartProject CmdScanStartProject) CmdScanStart {
 
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Start scan",
 	}
 
-	cmd.AddCommand(NewScanStartBranchCommand(cfg, depsContainer))
-	cmd.AddCommand(NewScanStartProjectCommand(cfg, depsContainer))
+	cmd.AddCommand(cmdScanStart.Command)
+	cmd.AddCommand(cmdScanStartProject.Command)
 
-	return cmd
+	return CmdScanStart{cmd}
 }

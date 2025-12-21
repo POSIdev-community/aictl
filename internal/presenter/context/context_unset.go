@@ -1,16 +1,20 @@
 package context
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
-func NewConfigUnsetCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdConfigUnset struct {
+	*cobra.Command
+}
+
+type UseCaseConfigUnset interface {
+	Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset bool) error
+}
+
+func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 
 	var (
 		uriUnset       bool
@@ -34,12 +38,7 @@ func NewConfigUnsetCommand(
 			log := logger.FromContext(cmd.Context())
 			log.StdErrf("aictl ctx")
 
-			useCase, err := depsContainer.ConfigUnsetUseCase()
-			if err != nil {
-				return err
-			}
-
-			err = useCase.Execute(cfg, uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset)
+			err := uc.Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset)
 			if err != nil {
 				return err
 			}
@@ -54,5 +53,5 @@ func NewConfigUnsetCommand(
 	cmd.Flags().BoolVarP(&projectIdUnset, "project-id", "p", false, "Unset project id")
 	cmd.Flags().BoolVarP(&branchIdUnset, "branch-id", "b", false, "Unset branch id")
 
-	return cmd
+	return CmdConfigUnset{cmd}
 }

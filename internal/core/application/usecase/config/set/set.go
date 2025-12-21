@@ -11,18 +11,19 @@ type CFG interface {
 
 type UseCase struct {
 	configAdapter CFG
+	cfg           *config.Config
 }
 
-func NewUseCase(configAdapter CFG) (*UseCase, error) {
+func NewUseCase(configAdapter CFG, cfg *config.Config) (*UseCase, error) {
 	if configAdapter == nil {
 		return nil, errs.NewValidationRequiredError("configAdapter")
 	}
 
-	return &UseCase{configAdapter}, nil
+	return &UseCase{configAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(cfg *config.Config) error {
-	if err := u.configAdapter.StoreContext(cfg); err != nil {
+func (u *UseCase) Execute() error {
+	if err := u.configAdapter.StoreContext(u.cfg); err != nil {
 		return err
 	}
 

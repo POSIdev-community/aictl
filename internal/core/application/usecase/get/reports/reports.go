@@ -17,10 +17,10 @@ import (
 )
 
 type CLI interface {
-	ShowReader(r io.Reader) error
 }
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
 	GetProject(ctx context.Context, id uuid.UUID) (*project.Project, error)
 	GetBranches(ctx context.Context, projectId uuid.UUID) (branches []branch.Branch, err error)
@@ -46,6 +46,11 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif bool, plain bool, destPath string, includeComments, includeDFD, includeGlossary bool) error {
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+	}
+
 	var reportType string
 	switch {
 	case sarif:
@@ -59,7 +64,7 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 	}
 
 	for _, projectId := range projectIds {
-		project, err := u.aiAdapter.GetProject(ctx, projectId)
+		proj, err := u.aiAdapter.GetProject(ctx, projectId)
 		if err != nil {
 			return fmt.Errorf("get reports usecase get project: %w", err)
 		}
@@ -81,7 +86,7 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 			return fmt.Errorf("get reports usecase get report: %w", err)
 		}
 
-		err = utils.CopyFileToPath(file, filepath.Join(destPath, project.Name+".sarif"))
+		err = utils.CopyFileToPath(file, filepath.Join(destPath, proj.Name+".sarif"))
 		if err != nil {
 			return fmt.Errorf("get reports usecase: %w", err)
 		}

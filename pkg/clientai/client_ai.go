@@ -12,16 +12,38 @@ import (
 
 type AiClient struct {
 	*ClientWithResponses
-
 	jwtClient *ClientWithResponses
+
+	httpClient    *http.Client
+	jwtHttpClient *http.Client
 
 	accessToken  string
 	refreshToken string
 }
 
-func NewAiClient(ctx context.Context, cfg *config.Config, withJwtRetry bool) (*AiClient, error) {
+func NewAiClient() (*AiClient, error) {
 	httpClient := &http.Client{}
 	jwtHTTPClient := &http.Client{}
+
+	aiClient := AiClient{
+		httpClient:    httpClient,
+		jwtHttpClient: jwtHTTPClient,
+	}
+
+	return &aiClient, nil
+}
+
+func (a *AiClient) Initialize(ctx context.Context, cfg *config.Config) error {
+	client, err := NewClientWithResponses(cfg.UriString(), WithHTTPClient(a.httpClient))
+	if err != nil {
+		return fmt.Errorf("new client: %w", err)
+	}
+	a.ClientWithResponses = client
+
+	a.jwtClient, err = NewClientWithResponses(cfg.UriString(), WithHTTPClient(a.jwtHttpClient))
+	if err != nil {
+		return fmt.Errorf("new jwt client: %w", err)
+	}
 
 	transport := &http.Transport{}
 	if cfg.TLSSkip() {
@@ -32,33 +54,18 @@ func NewAiClient(ctx context.Context, cfg *config.Config, withJwtRetry bool) (*A
 		transport.TLSClientConfig.InsecureSkipVerify = true
 	}
 
-	httpClient.Transport = transport.Clone()
-	jwtHTTPClient.Transport = transport.Clone()
+	a.httpClient.Transport = transport.Clone()
+	a.jwtHttpClient.Transport = transport.Clone()
 
-	client, err := NewClientWithResponses(cfg.UriString(), WithHTTPClient(httpClient))
-	if err != nil {
-		return nil, fmt.Errorf("new client: %w", err)
+	if err := a.getJWT(ctx, cfg); err != nil {
+		return fmt.Errorf("update jwt: %w", err)
 	}
 
-	jwtClient, err := NewClientWithResponses(cfg.UriString(), WithHTTPClient(jwtHTTPClient))
-	if err != nil {
-		return nil, fmt.Errorf("new jwt client: %w", err)
-	}
+	return nil
+}
 
-	aiClient := AiClient{
-		ClientWithResponses: client,
-		jwtClient:           jwtClient,
-	}
-
-	if withJwtRetry {
-		httpClient.Transport = NewRetryRoundTripper(httpClient.Transport, http.StatusUnauthorized, aiClient.refreshJWT)
-	}
-
-	if err := aiClient.getJWT(ctx, cfg); err != nil {
-		return nil, fmt.Errorf("update jwt: %w", err)
-	}
-
-	return &aiClient, nil
+func (a *AiClient) AddJwtRetry() {
+	a.httpClient.Transport = NewRetryRoundTripper(a.httpClient.Transport, http.StatusUnauthorized, a.refreshJWT)
 }
 
 func (a *AiClient) AddJWTToHeader(_ context.Context, req *http.Request) error {

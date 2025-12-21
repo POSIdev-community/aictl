@@ -1,18 +1,23 @@
 package delete
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
-func NewDeleteProjectsCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdDeleteProjects struct {
+	*cobra.Command
+}
+
+type UseCaseDeleteProjects interface {
+	Execute(ctx context.Context, projectIds []uuid.UUID) error
+}
+
+func NewDeleteProjectsCommand(uc UseCaseDeleteProjects) CmdDeleteProjects {
 
 	var projectIds []uuid.UUID
 
@@ -34,12 +39,7 @@ func NewDeleteProjectsCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.DeleteProjectsUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, projectIds); err != nil {
+			if err := uc.Execute(ctx, projectIds); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)
@@ -49,5 +49,5 @@ func NewDeleteProjectsCommand(
 		},
 	}
 
-	return cmd
+	return CmdDeleteProjects{cmd}
 }

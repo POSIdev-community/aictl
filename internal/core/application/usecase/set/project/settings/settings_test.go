@@ -3,6 +3,7 @@ package settings
 import (
 	"testing"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
@@ -39,18 +40,21 @@ func TestUseCase_Execute(t *testing.T) {
 		updatedSettings.GoSettings.LaunchParameters = "+z"
 
 		aiAdapter := mocks.NewAI(t)
+		aiAdapter.On("InitializeWithRetry", ctx).Return(nil).Once()
 		aiAdapter.On("GetDefaultSettings", ctx).Return(filledSettings, nil).Once()
 		aiAdapter.On("SetProjectSettings", ctx, projectID, &updatedSettings).Return(nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 
-		uc, err := NewUseCase(aiAdapter, cliAdapter)
+		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+		uc, err := NewUseCase(aiAdapter, cliAdapter, cfg)
 		require.NoError(t, err)
 
 		aiProj, err := aiproj.FromString(okAIProj)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(ctx, projectID, &aiProj))
+		require.NoError(t, uc.Execute(ctx, &aiProj))
 	})
 
 	t.Run("empty default settings", func(t *testing.T) {
@@ -63,18 +67,21 @@ func TestUseCase_Execute(t *testing.T) {
 		updatedSettings.GoSettings.LaunchParameters = "+z"
 
 		aiAdapter := mocks.NewAI(t)
+		aiAdapter.On("InitializeWithRetry", ctx).Return(nil).Once()
 		aiAdapter.On("GetDefaultSettings", ctx).Return(emptySettings, nil).Once()
 		aiAdapter.On("SetProjectSettings", ctx, projectID, &updatedSettings).Return(nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 
-		uc, err := NewUseCase(aiAdapter, cliAdapter)
+		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+		uc, err := NewUseCase(aiAdapter, cliAdapter, cfg)
 		require.NoError(t, err)
 
 		aiProj, err := aiproj.FromString(okAIProj)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(ctx, projectID, &aiProj))
+		require.NoError(t, uc.Execute(ctx, &aiProj))
 	})
 
 }

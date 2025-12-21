@@ -1,9 +1,9 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
@@ -11,9 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCreateBranchCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdCreateBranch struct {
+	*cobra.Command
+}
+
+type UseCaseCreateBranch interface {
+	Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool) error
+}
+
+func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBranch {
 
 	var (
 		projectIdFlag string
@@ -48,12 +54,7 @@ func NewCreateBranchCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.CreateBranchUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg, branchName, scanTarget, safeFlag); err != nil {
+			if err := uc.Execute(ctx, cfg, branchName, scanTarget, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)
@@ -66,5 +67,5 @@ func NewCreateBranchCommand(
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 	cmd.Flags().StringVarP(&scanTarget, "scan-target", "s", "", "scan target path")
 
-	return cmd
+	return CmdCreateBranch{cmd}
 }

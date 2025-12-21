@@ -1,12 +1,14 @@
 package get
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/spf13/cobra"
 )
 
-func NewGetScanLogsCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdGetScanLogs struct {
+	*cobra.Command
+}
+
+func NewGetScanLogsCmd() CmdGetScanLogs {
 	cmd := &cobra.Command{
 		Short: "Get scan logs",
 		Use:   "logs",
@@ -18,5 +20,5 @@ func NewGetScanLogsCmd(cfg *config.Config, depsContainer *application.Dependenci
 		},
 	}
 
-	return cmd
+	return CmdGetScanLogs{cmd}
 }

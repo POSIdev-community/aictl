@@ -2,17 +2,19 @@ package projects
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	DeleteProject(context context.Context, projectId uuid.UUID) error
 }
 
 type CLI interface {
-	ReturnText(text string)
+	ReturnText(ctx context.Context, text string)
 }
 
 type UseCase struct {
@@ -33,13 +35,18 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID) error {
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+	}
+
 	for _, projectId := range projectIds {
 		err := u.aiAdapter.DeleteProject(ctx, projectId)
 		if err != nil {
 			return err
 		}
 
-		u.cliAdapter.ReturnText(projectId.String())
+		u.cliAdapter.ReturnText(ctx, projectId.String())
 	}
 
 	return nil

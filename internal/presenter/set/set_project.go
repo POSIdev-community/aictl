@@ -3,13 +3,16 @@ package set
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
 
+type CmdSetProject struct {
+	*cobra.Command
+}
+
 var projectIdFlag string
 
-func NewSetProjectCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
+func NewSetProjectCmd(cfg *config.Config, setProjectSettingsCmd CmdSetProjectSettings) CmdSetProject {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "Project",
@@ -23,9 +26,9 @@ func NewSetProjectCmd(cfg *config.Config, depsContainer *application.Dependencie
 		},
 	}
 
-	cmd.AddCommand(NewSetProjectSettingsCmd(cfg, depsContainer))
+	cmd.AddCommand(setProjectSettingsCmd.Command)
 
 	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 
-	return cmd
+	return CmdSetProject{cmd}
 }
