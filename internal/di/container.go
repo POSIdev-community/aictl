@@ -121,7 +121,7 @@ func buildContextCmd(cfgAdapter *configAdapter.Adapter, cliAdapter *cli.Adapter,
 }
 
 func buildCreateCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*create.CmdCreate, error) {
-	branchUC, err := branch.NewUseCase(aiAdapter, cliAdapter)
+	branchUC, err := branch.NewUseCase(aiAdapter, cliAdapter, cfg)
 	if err != nil {
 		return nil, err
 	}

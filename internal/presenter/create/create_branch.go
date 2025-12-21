@@ -16,7 +16,7 @@ type CmdCreateBranch struct {
 }
 
 type UseCaseCreateBranch interface {
-	Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool) error
+	Execute(ctx context.Context, branchName, scanTarget string, safe bool) error
 }
 
 func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBranch {
@@ -54,7 +54,7 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, cfg, branchName, scanTarget, safeFlag); err != nil {
+			if err := uc.Execute(ctx, branchName, scanTarget, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("get projects: %w", err)

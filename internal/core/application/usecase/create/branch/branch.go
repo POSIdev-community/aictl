@@ -24,9 +24,10 @@ type CLI interface {
 type UseCase struct {
 	aiAdapter  AI
 	cliAdapter CLI
+	cfg        *config.Config
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -35,10 +36,10 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 		return nil, errs.NewValidationRequiredError("cliAdapter")
 	}
 
-	return &UseCase{aiAdapter, cliAdapter}, nil
+	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool) error {
+func (u *UseCase) Execute(ctx context.Context, branchName, scanTarget string, safe bool) error {
 	err := u.aiAdapter.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf("could not initialize with jwt retry: %w", err)
@@ -48,7 +49,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 
 	if safe {
 
-		branches, err := u.aiAdapter.GetBranches(ctx, cfg.ProjectId())
+		branches, err := u.aiAdapter.GetBranches(ctx, u.cfg.ProjectId())
 		if err != nil {
 			return fmt.Errorf("get branches useCase error: %w", err)
 		}
@@ -62,7 +63,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 		}
 	}
 
-	branchId, err := u.aiAdapter.CreateBranch(ctx, cfg.ProjectId(), branchName, scanTarget)
+	branchId, err := u.aiAdapter.CreateBranch(ctx, u.cfg.ProjectId(), branchName, scanTarget)
 	if err != nil {
 		return fmt.Errorf("usecase create branch: %w", err)
 	}

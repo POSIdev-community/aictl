@@ -15,3 +15,7 @@ packages:
     config:
       all: true
       recursive: true
+  github.com/POSIdev-community/aictl/internal/presenter:
+    config:
+      all: true
+      recursive: true
