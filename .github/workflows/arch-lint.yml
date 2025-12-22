@@ -21,6 +21,9 @@ jobs:
           go-version: '1.24.5'
           cache: true
 
+      - name: Generate mocks and run go generate
+        run: make generate
+
       - name: Install go-arch-lint
         run: go install github.com/fe3dback/go-arch-lint@latest
 

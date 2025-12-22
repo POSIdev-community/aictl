@@ -1,25 +1,33 @@
 package get
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
+
+type CmdGetScan struct {
+	*cobra.Command
+}
+
+type UseCaseGetScan interface {
+	Execute(ctx context.Context, scanId uuid.UUID) error
+}
 
 var (
 	projectIdFlag string
 	scanId        uuid.UUID
 )
 
-func NewGetScanCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+func NewGetScanCmd(cfg *config.Config, uc UseCaseGetScan, cmdGetScanAiproj CmdGetScanAiproj,
+	cmdGetScanLogs CmdGetScanLogs, cmdGetScanReport CmdGetScanReport, cmdGetScanSbom CmdGetScanSbom,
+	cmdGetScanState CmdGetScanState) CmdGetScan {
 	cmd := &cobra.Command{
 		Use:   "scan",
 		Short: "Get scan",
@@ -46,28 +54,23 @@ func NewGetScanCmd(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.GetScanUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg, scanId); err != nil {
+			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'get scan' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	cmd.AddCommand(NewGetScanAiprojCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanLogsCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanReportCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanSbomCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanStateCmd(cfg, depsContainer))
+	cmd.AddCommand(cmdGetScanAiproj.Command)
+	cmd.AddCommand(cmdGetScanLogs.Command)
+	cmd.AddCommand(cmdGetScanReport.Command)
+	cmd.AddCommand(cmdGetScanSbom.Command)
+	cmd.AddCommand(cmdGetScanState.Command)
 
 	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 
-	return cmd
+	return CmdGetScan{cmd}
 }

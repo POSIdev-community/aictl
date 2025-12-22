@@ -1,6 +1,7 @@
 package show
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
@@ -14,15 +15,16 @@ type CFG interface {
 }
 
 type CLI interface {
-	ReturnText(text string)
+	ReturnText(ctx context.Context, text string)
 }
 
 type UseCase struct {
 	configAdapter CFG
 	cliAdapter    CLI
+	cfg           *config.Config
 }
 
-func NewUseCase(configAdapter CFG, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(configAdapter CFG, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
 	if configAdapter == nil {
 		return nil, errs.NewValidationRequiredError("configAdapter")
 	}
@@ -31,10 +33,10 @@ func NewUseCase(configAdapter CFG, cliAdapter CLI) (*UseCase, error) {
 		return nil, errs.NewValidationRequiredError("cliAdapter")
 	}
 
-	return &UseCase{configAdapter, cliAdapter}, nil
+	return &UseCase{configAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(config *config.Config, json bool, yaml bool) error {
+func (u *UseCase) Execute(ctx context.Context, json bool, yaml bool) error {
 	if json && yaml {
 		return fmt.Errorf("cannot use both json and yaml format")
 	}
@@ -46,18 +48,18 @@ func (u *UseCase) Execute(config *config.Config, json bool, yaml bool) error {
 
 	switch {
 	case json:
-		str, err = u.configAdapter.StringJson(config)
+		str, err = u.configAdapter.StringJson(u.cfg)
 	case yaml:
-		str, err = u.configAdapter.StringYaml(config)
+		str, err = u.configAdapter.StringYaml(u.cfg)
 	default:
-		str, err = u.configAdapter.String(config)
+		str, err = u.configAdapter.String(u.cfg)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	u.cliAdapter.ReturnText(str)
+	u.cliAdapter.ReturnText(ctx, str)
 
 	return nil
 }

@@ -2,6 +2,7 @@ package sources
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
@@ -9,19 +10,21 @@ import (
 )
 
 type AI interface {
+	Initialize(ctx context.Context) error
 	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, sourcePath string) error
 }
 
 type CLI interface {
-	ShowText(text string)
+	ShowText(ctx context.Context, text string)
 }
 
 type UseCase struct {
 	aiAdapter  AI
 	cliAdapter CLI
+	cfg        *config.Config
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -30,18 +33,23 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 		return nil, errs.NewValidationRequiredError("cliAdapter")
 	}
 
-	return &UseCase{aiAdapter, cliAdapter}, nil
+	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, sourcePath string) error {
-	u.cliAdapter.ShowText("start updating sources")
+func (u *UseCase) Execute(ctx context.Context, sourcePath string) error {
+	err := u.aiAdapter.Initialize(ctx)
+	if err != nil {
+		return fmt.Errorf("initialize with retry: %w", err)
+	}
 
-	err := u.aiAdapter.UpdateSources(ctx, cfg.ProjectId(), cfg.BranchId(), sourcePath)
+	u.cliAdapter.ShowText(ctx, "start updating sources")
+
+	err = u.aiAdapter.UpdateSources(ctx, u.cfg.ProjectId(), u.cfg.BranchId(), sourcePath)
 	if err != nil {
 		return err
 	}
 
-	u.cliAdapter.ShowText("sources updated")
+	u.cliAdapter.ShowText(ctx, "sources updated")
 
 	return nil
 }

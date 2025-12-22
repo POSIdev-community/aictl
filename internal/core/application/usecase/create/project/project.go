@@ -9,13 +9,14 @@ import (
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error)
 	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
 }
 
 type CLI interface {
-	ReturnText(text string)
-	ShowTextf(format string, a ...any)
+	ReturnText(ctx context.Context, text string)
+	ShowTextf(ctx context.Context, format string, a ...any)
 }
 
 type UseCase struct {
@@ -36,12 +37,17 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) error {
-	u.cliAdapter.ShowTextf("creating project '%v'", projectName)
-
 	var (
 		projectId *uuid.UUID
 		err       error
 	)
+
+	err = u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	u.cliAdapter.ShowTextf(ctx, "creating project '%v'", projectName)
 
 	if safe {
 		projectId, err = u.aiAdapter.GetProjectId(ctx, projectName)
@@ -51,18 +57,18 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 	}
 
 	if projectId != nil {
-		u.cliAdapter.ShowTextf("project '%v' already exixts, id '%v'", projectName, projectId.String())
-		u.cliAdapter.ReturnText(projectId.String())
+		u.cliAdapter.ShowTextf(ctx, "project '%v' already exixts, id '%v'", projectName, projectId.String())
+		u.cliAdapter.ReturnText(ctx, projectId.String())
 		return nil
 	}
 
 	projectId, err = u.aiAdapter.CreateProject(ctx, projectName)
 	if err != nil {
-		return fmt.Errorf("usecase create branch: %w", err)
+		return fmt.Errorf("create branch: %w", err)
 	}
 
-	u.cliAdapter.ShowTextf("project '%v' created, id '%v'", projectName, projectId.String())
-	u.cliAdapter.ReturnText(projectId.String())
+	u.cliAdapter.ShowTextf(ctx, "project '%v' created, id '%v'", projectName, projectId.String())
+	u.cliAdapter.ReturnText(ctx, projectId.String())
 
 	return nil
 }

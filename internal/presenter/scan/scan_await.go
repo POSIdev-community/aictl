@@ -1,9 +1,9 @@
 package scan
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
@@ -11,10 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewScanAwaitCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdScanAwait struct {
+	*cobra.Command
+}
 
+type UseCaseScanAwait interface {
+	Execute(ctx context.Context, scanId uuid.UUID) error
+}
+
+func NewScanAwaitCmd(cfg *config.Config, uc UseCaseScanAwait) CmdScanAwait {
 	var (
 		projectIdFlag string
 		scanIdFlag    string
@@ -44,15 +49,10 @@ func NewScanAwaitCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.ScanAwaitUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg, scanId); err != nil {
+			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan await' usecase call: %w", err)
 			}
 
 			return nil
@@ -61,5 +61,5 @@ func NewScanAwaitCommand(
 
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 
-	return cmd
+	return CmdScanAwait{cmd}
 }

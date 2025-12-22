@@ -1,19 +1,24 @@
 package scan
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
-func NewScanStopCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdScanStop struct {
+	*cobra.Command
+}
+
+type UseCaseScanStop interface {
+	Execute(ctx context.Context, scanResultId uuid.UUID) error
+}
+
+func NewScanStopCmd(uc UseCaseScanStop) CmdScanStop {
 
 	var scanId uuid.UUID
 
@@ -36,20 +41,15 @@ func NewScanStopCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.ScanStopUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, scanId); err != nil {
+			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan stop' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	return cmd
+	return CmdScanStop{cmd}
 }

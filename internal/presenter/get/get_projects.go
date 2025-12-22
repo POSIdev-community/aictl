@@ -1,17 +1,22 @@
 package get
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/spf13/cobra"
 )
 
-func NewGetProjectsCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdGetProjects struct {
+	*cobra.Command
+}
+
+type UseCaseGetProjects interface {
+	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error
+}
+
+func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 
 	var (
 		filter string
@@ -31,7 +36,7 @@ func NewGetProjectsCmd(
 			if err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("new filter error: %w", err)
+				return fmt.Errorf("new filter: %w", err)
 			}
 
 			return nil
@@ -39,15 +44,10 @@ func NewGetProjectsCmd(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.GetProjectsUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, regexFilter, quite); err != nil {
+			if err := uc.Execute(ctx, regexFilter, quite); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'get projects' usecase call: %w", err)
 			}
 
 			return nil
@@ -57,5 +57,5 @@ func NewGetProjectsCmd(
 	cmd.Flags().StringVarP(&filter, "name", "n", "", "Filter projects by name. Support regular expression")
 	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Get only ids")
 
-	return cmd
+	return CmdGetProjects{cmd}
 }

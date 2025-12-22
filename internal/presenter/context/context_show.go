@@ -1,16 +1,21 @@
 package context
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/spf13/cobra"
 )
 
-func NewConfigShowCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdConfigShow struct {
+	*cobra.Command
+}
+
+type UseCaseConfigShow interface {
+	Execute(ctx context.Context, json bool, yaml bool) error
+}
+
+func NewConfigShowCommand(uc UseCaseConfigShow) CmdConfigShow {
 
 	var (
 		json bool
@@ -29,14 +34,11 @@ func NewConfigShowCommand(
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			useCase, err := depsContainer.ConfigShowUseCase(cmd.Context())
-			if err != nil {
-				return err
-			}
+			ctx := cmd.Context()
 
-			err = useCase.Execute(cfg, json, yaml)
+			err := uc.Execute(ctx, json, yaml)
 			if err != nil {
-				return err
+				return fmt.Errorf("'ctx show' usecase call: %w", err)
 			}
 
 			return nil
@@ -46,5 +48,5 @@ func NewConfigShowCommand(
 	cmd.Flags().BoolVar(&json, "json", false, "Json format context")
 	cmd.Flags().BoolVar(&yaml, "yaml", false, "Yaml format context")
 
-	return cmd
+	return CmdConfigShow{cmd}
 }

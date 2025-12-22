@@ -1,6 +1,8 @@
 package clear
 
 import (
+	"context"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
@@ -9,8 +11,8 @@ type CFG interface {
 }
 
 type CLI interface {
-	ShowText(text string)
-	AskConfirmation(question string) (bool, error)
+	ShowText(ctx context.Context, text string)
+	AskConfirmation(ctx context.Context, question string) (bool, error)
 }
 
 type UseCase struct {
@@ -30,14 +32,14 @@ func NewUseCase(configAdapter CFG, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{configAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(skipConfirm bool) error {
+func (u *UseCase) Execute(ctx context.Context, skipConfirm bool) error {
 	var (
 		ok  = skipConfirm
 		err error
 	)
 
 	if !ok {
-		ok, err = u.cliAdapter.AskConfirmation(
+		ok, err = u.cliAdapter.AskConfirmation(ctx,
 			"Are you sure you want to delete the existing configuration?")
 		if err != nil {
 			return err
@@ -45,7 +47,7 @@ func (u *UseCase) Execute(skipConfirm bool) error {
 	}
 
 	if !ok {
-		u.cliAdapter.ShowText("Cancelled")
+		u.cliAdapter.ShowText(ctx, "Cancelled")
 
 		return nil
 	}

@@ -11,13 +11,14 @@ import (
 )
 
 type AI interface {
+	Initialize(ctx context.Context) error
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
 	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string) (*uuid.UUID, error)
 }
 
 type CLI interface {
-	ReturnText(text string)
-	ShowTextf(format string, a ...any)
+	ReturnText(ctx context.Context, text string)
+	ShowTextf(ctx context.Context, format string, a ...any)
 }
 
 type UseCase struct {
@@ -38,19 +39,24 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 }
 
 func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool) error {
-	u.cliAdapter.ShowTextf("creating branch '%v'", branchName)
+	err := u.aiAdapter.Initialize(ctx)
+	if err != nil {
+		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	u.cliAdapter.ShowTextf(ctx, "creating branch '%v'", branchName)
 
 	if safe {
 
 		branches, err := u.aiAdapter.GetBranches(ctx, cfg.ProjectId())
 		if err != nil {
-			return fmt.Errorf("get branches useCase error: %w", err)
+			return fmt.Errorf("get branches: %w", err)
 		}
 
 		for _, b := range branches {
 			if b.Name == branchName {
-				u.cliAdapter.ShowTextf("branch '%v' already exists, id '%v'", branchName, b.Id.String())
-				u.cliAdapter.ReturnText(b.Id.String())
+				u.cliAdapter.ShowTextf(ctx, "branch '%v' already exists, id '%v'", branchName, b.Id.String())
+				u.cliAdapter.ReturnText(ctx, b.Id.String())
 				return nil
 			}
 		}
@@ -58,11 +64,11 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 
 	branchId, err := u.aiAdapter.CreateBranch(ctx, cfg.ProjectId(), branchName, scanTarget)
 	if err != nil {
-		return fmt.Errorf("usecase create branch: %w", err)
+		return fmt.Errorf("create branch: %w", err)
 	}
 
-	u.cliAdapter.ShowTextf("branch '%v' created, id '%v'", branchName, branchId.String())
-	u.cliAdapter.ReturnText(branchId.String())
+	u.cliAdapter.ShowTextf(ctx, "branch '%v' created, id '%v'", branchName, branchId.String())
+	u.cliAdapter.ReturnText(ctx, branchId.String())
 
 	return nil
 }

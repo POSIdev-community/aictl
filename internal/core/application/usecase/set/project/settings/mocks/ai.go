@@ -99,6 +99,57 @@ func (_c *AI_GetDefaultSettings_Call) RunAndReturn(run func(ctx context.Context)
 	return _c
 }
 
+// InitializeWithRetry provides a mock function for the type AI
+func (_mock *AI) InitializeWithRetry(ctx context.Context) error {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InitializeWithRetry")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// AI_InitializeWithRetry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InitializeWithRetry'
+type AI_InitializeWithRetry_Call struct {
+	*mock.Call
+}
+
+// InitializeWithRetry is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *AI_Expecter) InitializeWithRetry(ctx interface{}) *AI_InitializeWithRetry_Call {
+	return &AI_InitializeWithRetry_Call{Call: _e.mock.On("InitializeWithRetry", ctx)}
+}
+
+func (_c *AI_InitializeWithRetry_Call) Run(run func(ctx context.Context)) *AI_InitializeWithRetry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *AI_InitializeWithRetry_Call) Return(err error) *AI_InitializeWithRetry_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *AI_InitializeWithRetry_Call) RunAndReturn(run func(ctx context.Context) error) *AI_InitializeWithRetry_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetProjectSettings provides a mock function for the type AI
 func (_mock *AI) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings1 *settings.ScanSettings) error {
 	ret := _mock.Called(ctx, projectId, settings1)

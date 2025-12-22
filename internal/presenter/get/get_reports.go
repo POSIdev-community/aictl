@@ -1,18 +1,23 @@
 package get
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
-func NewGetReportsCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdGetReports struct {
+	*cobra.Command
+}
+
+type UseCaseGetReports interface {
+	Execute(ctx context.Context, projectIds []uuid.UUID, sarif bool, plain bool, destPath string, includeComments, includeDFD, includeGlossary bool) error
+}
+
+func NewGetReportsCmd(uc UseCaseGetReports) CmdGetReports {
 
 	var (
 		sarif    bool
@@ -40,7 +45,7 @@ func NewGetReportsCmd(
 			args = _utils.ReadArgsFromStdin(args)
 			projectIds, err = _utils.ParseUUIDs(args)
 			if err != nil {
-				return fmt.Errorf("get reports project ids parse error: %w", err)
+				return fmt.Errorf("project ids parse: %w", err)
 			}
 
 			return nil
@@ -48,15 +53,10 @@ func NewGetReportsCmd(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.GetReportsUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("presenter get reports useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, projectIds, sarif, plain, destPath, includeComments, includeDFD, includeGlossary); err != nil {
+			if err := uc.Execute(ctx, projectIds, sarif, plain, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get reports: %w", err)
+				return fmt.Errorf("'get reports' usecase call: %w", err)
 			}
 
 			return nil
@@ -70,5 +70,5 @@ func NewGetReportsCmd(
 	cmd.Flags().BoolVarP(&includeDFD, "include-dfd", "", false, "Include dfd in the report file")
 	cmd.Flags().BoolVarP(&includeGlossary, "include-glossary", "", false, "Include glossary report")
 
-	return cmd
+	return CmdGetReports{cmd}
 }

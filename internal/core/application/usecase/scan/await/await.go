@@ -21,21 +21,23 @@ const (
 )
 
 type AI interface {
+	InitializeWithRetry(ctx context.Context) error
 	GetScanStage(ctx context.Context, projectId uuid.UUID, scanId uuid.UUID) (scanstage.ScanStage, error)
 	GetScanQueue(ctx context.Context) ([]uuid.UUID, error)
 }
 
 type CLI interface {
-	ShowText(text string)
-	ShowTextf(format string, a ...any)
+	ShowText(ctx context.Context, text string)
+	ShowTextf(ctx context.Context, format string, a ...any)
 }
 
 type UseCase struct {
 	aiAdapter  AI
 	cliAdapter CLI
+	cfg        *config.Config
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, errs.NewValidationRequiredError("aiAdapter")
 	}
@@ -44,17 +46,21 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 		return nil, errs.NewValidationRequiredError("cliAdapter")
 	}
 
-	return &UseCase{aiAdapter, cliAdapter}, nil
+	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.UUID) error {
-	u.cliAdapter.ShowTextf("awating scan, id '%v'", scanId.String())
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
+	err := u.aiAdapter.InitializeWithRetry(ctx)
+	if err != nil {
+		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	u.cliAdapter.ShowTextf(ctx, "awating scan, id '%v'", scanId.String())
 
 	failCount := 0
 	stage := scanstage.ScanStage{}
-	var err error
 	for failCount < 3 {
-		stage, err = u.aiAdapter.GetScanStage(ctx, cfg.ProjectId(), scanId)
+		stage, err = u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				return err
@@ -62,7 +68,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 
 			failCount++
 			time.Sleep(3 * time.Second)
-			u.cliAdapter.ShowText("...")
+			u.cliAdapter.ShowText(ctx, "...")
 			continue
 		}
 
@@ -76,7 +82,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 			if err != nil {
 				failCount++
 				time.Sleep(3 * time.Second)
-				u.cliAdapter.ShowText("...")
+				u.cliAdapter.ShowText(ctx, "...")
 				continue
 			}
 
@@ -87,19 +93,19 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, scanId uuid.U
 				}
 			}
 
-			u.cliAdapter.ShowTextf("%s: %d/%d", strings.ToLower(stage.Stage), place, len(queue))
+			u.cliAdapter.ShowTextf(ctx, "%s: %d/%d", strings.ToLower(stage.Stage), place, len(queue))
 		} else {
-			u.cliAdapter.ShowTextf("%s: %d%%", strings.ToLower(stage.Stage), stage.Value)
+			u.cliAdapter.ShowTextf(ctx, "%s: %d%%", strings.ToLower(stage.Stage), stage.Value)
 		}
 
 		time.Sleep(3 * time.Second)
 	}
 
 	if err != nil || !ScanComplete(stage) {
-		return fmt.Errorf("scan stage %s in project %s", stage.Stage, cfg.ProjectId())
+		return fmt.Errorf("scan stage %s in project %s", stage.Stage, u.cfg.ProjectId())
 	}
 
-	u.cliAdapter.ShowTextf("Scan '%s'", stage.Stage)
+	u.cliAdapter.ShowTextf(ctx, "Scan '%s'", stage.Stage)
 
 	return nil
 }

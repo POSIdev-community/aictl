@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -12,16 +13,16 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 )
 
-type Cli struct {
-	logger *logger.Logger
+type Adapter struct {
 }
 
-func NewCli(logger *logger.Logger) *Cli {
-	return &Cli{logger}
+func NewAdapter() *Adapter {
+	return &Adapter{}
 }
 
-func (cli *Cli) AskConfirmation(question string) (bool, error) {
-	cli.logger.StdOutf("%s [y/n]: ", question)
+func (cli *Adapter) AskConfirmation(ctx context.Context, question string) (bool, error) {
+	log := logger.FromContext(ctx)
+	log.StdOutf("%s [y/n]: ", question)
 
 	var answer string
 	_, err := fmt.Scan(&answer)
@@ -33,53 +34,66 @@ func (cli *Cli) AskConfirmation(question string) (bool, error) {
 		strings.ToLower(answer) == "yes", nil
 }
 
-func (cli *Cli) ShowProjects(projects []project.Project) {
+func (cli *Adapter) ShowProjects(ctx context.Context, projects []project.Project) {
+	log := logger.FromContext(ctx)
 	const format = "%-36s\t%s"
 
-	cli.logger.StdOutf(format, "ID", "NAME")
+	log.StdOutf(format, "ID", "NAME")
 
 	for _, p := range projects {
-		cli.logger.StdOutf(format, p.Id, p.Name)
+		log.StdOutf(format, p.Id, p.Name)
 	}
 }
 
-func (cli *Cli) ShowProjectsQuite(projects []project.Project) {
+func (cli *Adapter) ShowProjectsQuite(ctx context.Context, projects []project.Project) {
+	log := logger.FromContext(ctx)
+
 	for _, p := range projects {
-		cli.logger.StdOut(p.Id.String())
+		log.StdOut(p.Id.String())
 	}
 }
 
-func (cli *Cli) ShowText(text string) {
-	cli.logger.StdErr(text)
+func (cli *Adapter) ShowText(ctx context.Context, text string) {
+	log := logger.FromContext(ctx)
+
+	log.StdErr(text)
 }
 
-func (cli *Cli) ShowTextf(format string, a ...any) {
-	cli.logger.StdErrf(format, a...)
+func (cli *Adapter) ShowTextf(ctx context.Context, format string, a ...any) {
+	log := logger.FromContext(ctx)
+
+	log.StdErrf(format, a...)
 }
 
-func (cli *Cli) ReturnText(text string) {
-	cli.logger.StdOut(text)
+func (cli *Adapter) ReturnText(ctx context.Context, text string) {
+	log := logger.FromContext(ctx)
+
+	log.StdOut(text)
 }
 
-func (cli *Cli) ReturnTextf(format string, a ...any) {
-	cli.logger.StdOutf(format, a...)
+func (cli *Adapter) ReturnTextf(ctx context.Context, format string, a ...any) {
+	log := logger.FromContext(ctx)
+
+	log.StdOutf(format, a...)
 }
 
 // ShowReader copy provided reader to stdout.
-func (cli *Cli) ShowReader(r io.Reader) error {
+func (cli *Adapter) ShowReader(r io.Reader) error {
 	if _, err := io.Copy(os.Stdout, r); err != nil {
-		return fmt.Errorf("failed to write to stdout: %w", err)
+		return fmt.Errorf("write to stdout: %w", err)
 	}
 
 	return nil
 }
 
-func (cli *Cli) ShowScans(scans []scan.Scan) {
+func (cli *Adapter) ShowScans(ctx context.Context, scans []scan.Scan) {
+	log := logger.FromContext(ctx)
+
 	const format = "%-36s\t%-36s\n"
 
-	cli.logger.StdErrf(format, "ID", "SETTINGS ID")
+	log.StdErrf(format, "ID", "SETTINGS ID")
 
 	for _, p := range scans {
-		cli.logger.StdErrf(format, p.Id, p.SettingsId)
+		log.StdErrf(format, p.Id, p.SettingsId)
 	}
 }

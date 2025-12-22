@@ -3,12 +3,10 @@ package presenter
 import (
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/internal/presenter/context"
 	"github.com/POSIdev-community/aictl/internal/presenter/create"
-	"github.com/POSIdev-community/aictl/internal/presenter/delete"
+	deletePresenter "github.com/POSIdev-community/aictl/internal/presenter/delete"
 	"github.com/POSIdev-community/aictl/internal/presenter/get"
 	"github.com/POSIdev-community/aictl/internal/presenter/scan"
 	"github.com/POSIdev-community/aictl/internal/presenter/set"
@@ -18,9 +16,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewRootCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdRoot struct {
+	*cobra.Command
+}
+
+func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, deleteCmd *deletePresenter.CmdDelete,
+	getCmd *get.CmdGet, scanCmd *scan.CmdScan, setCmd *set.CmdSet, updateCmd *update.CmdUpdate) *CmdRoot {
 
 	var versionFlag bool
 
@@ -49,15 +50,15 @@ func NewRootCmd(
 		},
 	}
 
-	rootCmd.AddCommand(context.NewContextCmd(cfg, depsContainer))
-	rootCmd.AddCommand(create.NewCreateCmd(cfg, depsContainer))
-	rootCmd.AddCommand(delete.NewDeleteCmd(cfg, depsContainer))
-	rootCmd.AddCommand(get.NewGetCmd(cfg, depsContainer))
-	rootCmd.AddCommand(scan.NewScanCmd(cfg, depsContainer))
-	rootCmd.AddCommand(set.NewSetCmd(cfg, depsContainer))
-	rootCmd.AddCommand(update.NewUpdateCmd(cfg, depsContainer))
+	rootCmd.AddCommand(contextCmd.Command)
+	rootCmd.AddCommand(createCmd.Command)
+	rootCmd.AddCommand(deleteCmd.Command)
+	rootCmd.AddCommand(getCmd.Command)
+	rootCmd.AddCommand(scanCmd.Command)
+	rootCmd.AddCommand(setCmd.Command)
+	rootCmd.AddCommand(updateCmd.Command)
 
 	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "show version")
 
-	return rootCmd
+	return &CmdRoot{rootCmd}
 }

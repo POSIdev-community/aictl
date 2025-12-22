@@ -31,7 +31,7 @@ func prepareMultipartBody(
 
 	file, err := os.Open(archivePath)
 	if err != nil {
-		return nil, "", fmt.Errorf("error opening file: %w", err)
+		return nil, "", fmt.Errorf("open file: %w", err)
 	}
 
 	pr, pw := io.Pipe()
@@ -58,7 +58,7 @@ func prepareMultipartBody(
 		filename := filepath.Base(archivePath)
 		part, err := writer.CreateFormFile("file", filename)
 		if err != nil {
-			pw.CloseWithError(fmt.Errorf("failed to create form file: %w", err))
+			pw.CloseWithError(fmt.Errorf("create form file: %w", err))
 			return
 		}
 
@@ -116,7 +116,7 @@ func prepareMultipartBody(
 		// Поля (после файла — стандарт для multipart)
 		for _, field := range fields {
 			if err := writer.WriteField(field.Key, field.Value); err != nil {
-				pw.CloseWithError(fmt.Errorf("failed to write field %q: %w", field.Key, err))
+				pw.CloseWithError(fmt.Errorf("write field %q: %w", field.Key, err))
 				return
 			}
 		}
@@ -140,7 +140,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 	// Проверяем существование пути
 	info, err := os.Stat(sourcePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to get file info: %w", err)
+		return "", fmt.Errorf("get file info: %w", err)
 	}
 
 	// Если это ZIP архив - возвращаем путь как есть
@@ -151,7 +151,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 	// Создаем временный файл для архива
 	tmpFile, err := os.CreateTemp("", "archive_*.zip")
 	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
+		return "", fmt.Errorf("create temp file: %w", err)
 	}
 	defer tmpFile.Close()
 
@@ -252,7 +252,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 
 		if err != nil {
 			os.Remove(archivePath) // Удаляем временный файл в случае ошибки
-			return "", fmt.Errorf("failed to walk directory: %w", err)
+			return "", fmt.Errorf("walk directory: %w", err)
 		}
 	} else {
 		filename := filepath.Base(sourcePath)

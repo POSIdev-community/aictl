@@ -1,23 +1,28 @@
 package context
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/spf13/cobra"
 )
 
+type CmdContext struct {
+	*cobra.Command
+}
+
 func NewContextCmd(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+	cmdConfigClear CmdConfigClear,
+	cmdConfigSet CmdConfigSet,
+	cmdConfigShow CmdConfigShow,
+	cmdConfigUnset CmdConfigUnset) *CmdContext {
+
 	cmd := &cobra.Command{
 		Use:   "ctx",
 		Short: "aictl context",
 	}
 
-	cmd.AddCommand(NewConfigClearCommand(depsContainer))
-	cmd.AddCommand(NewConfigSetCommand(cfg, depsContainer))
-	cmd.AddCommand(NewConfigShowCommand(cfg, depsContainer))
-	cmd.AddCommand(NewConfigUnsetCommand(cfg, depsContainer))
+	cmd.AddCommand(cmdConfigClear.Command)
+	cmd.AddCommand(cmdConfigSet.Command)
+	cmd.AddCommand(cmdConfigShow.Command)
+	cmd.AddCommand(cmdConfigUnset.Command)
 
-	return cmd
+	return &CmdContext{cmd}
 }

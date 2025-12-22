@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
+
+type CmdGetScanReport struct {
+	*cobra.Command
+}
 
 var (
 	destPath        string
@@ -16,7 +17,11 @@ var (
 	includeGlossary bool
 )
 
-func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.DependenciesContainer) *cobra.Command {
+func NewGetScanReportCmd(
+	cmdGetScanReportGitlab CmdGetScanReportGitlab,
+	cmdGetScanReportPlain CmdGetScanReportPlain,
+	cmdGetScanReportSarif CmdGetScanReportSarif) CmdGetScanReport {
+
 	cmd := &cobra.Command{
 		Short: "Get scan report",
 		Use:   "report",
@@ -33,14 +38,14 @@ func NewGetScanReportCmd(cfg *config.Config, depsContainer *application.Dependen
 		},
 	}
 
-	cmd.AddCommand(NewGetScanReportGitlabCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanReportPlainCmd(cfg, depsContainer))
-	cmd.AddCommand(NewGetScanReportSarifCmd(cfg, depsContainer))
+	cmd.AddCommand(cmdGetScanReportGitlab.Command)
+	cmd.AddCommand(cmdGetScanReportPlain.Command)
+	cmd.AddCommand(cmdGetScanReportSarif.Command)
 
 	cmd.PersistentFlags().StringVarP(&destPath, "output", "o", "", "Destination path for the report file")
 	cmd.PersistentFlags().BoolVarP(&includeComments, "include-comments", "", false, "Include comments in the report file")
 	cmd.PersistentFlags().BoolVarP(&includeDFD, "include-dfd", "", false, "Include dfd in the report file")
 	cmd.PersistentFlags().BoolVarP(&includeGlossary, "include-glossary", "", false, "Include glossary report")
 
-	return cmd
+	return CmdGetScanReport{cmd}
 }

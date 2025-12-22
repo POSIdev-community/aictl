@@ -5,26 +5,37 @@ allow:
 
 components:
   adapter: { in: adapter/** }
-  application: {in: application/** }
+  application: { in: application/** }
+  di: { in: di/** }
   core: { in: core/application/** }
   domain: { in: core/domain/** }
   presenter: { in: presenter/** }
   pkg: { in: ../pkg/** }
 
 deps:
-  application:
+  di:
     mayDependOn:
-      - application
       - adapter
+      - application
       - core
+      - di
+      - presenter
       - domain
       - pkg
+  application:
+    mayDependOn:
+      - adapter
+      - application
+      - core
+      - di
       - presenter
+      - domain
+      - pkg
   presenter:
     mayDependOn:
       - core
-      - domain
       - presenter
+      - domain
       - pkg
   core:
     mayDependOn:
@@ -39,4 +50,5 @@ deps:
   domain:
     mayDependOn:
       - domain
+      # TODO: split errs to domain, networks
       - pkg

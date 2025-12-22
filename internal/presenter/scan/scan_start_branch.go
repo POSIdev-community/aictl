@@ -1,18 +1,23 @@
 package scan
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/spf13/cobra"
 )
 
-func NewScanStartBranchCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdScanStartBranch struct {
+	*cobra.Command
+}
 
+type UseCaseScanStartBranch interface {
+	Execute(ctx context.Context) error
+}
+
+func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdScanStartBranch {
 	cmd := &cobra.Command{
 		Use:   "branch",
 		Short: "Start branch scan",
@@ -34,20 +39,15 @@ func NewScanStartBranchCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.ScanStartBranchUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("get projects useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, cfg); err != nil {
+			if err := uc.Execute(ctx); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan start branch' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	return cmd
+	return CmdScanStartBranch{cmd}
 }

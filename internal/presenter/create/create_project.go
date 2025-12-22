@@ -1,17 +1,22 @@
 package create
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/application"
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/spf13/cobra"
 )
 
-func NewCreateProjectCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdCreateProject struct {
+	*cobra.Command
+}
+
+type UseCaseCreateProject interface {
+	Execute(ctx context.Context, projectName string, safe bool) error
+}
+
+func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 
 	var (
 		projectName string
@@ -30,20 +35,15 @@ func NewCreateProjectCommand(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			useCase, err := depsContainer.CreateProjectUseCase(ctx, cfg)
-			if err != nil {
-				return fmt.Errorf("create project useCase error: %w", err)
-			}
-
-			if err := useCase.Execute(ctx, projectName, safeFlag); err != nil {
+			if err := uc.Execute(ctx, projectName, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("create project useCase execute: %w", err)
+				return fmt.Errorf("'create project' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	return cmd
+	return CmdCreateProject{cmd}
 }

@@ -1,15 +1,22 @@
 package context
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/application"
+	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/spf13/cobra"
 )
 
-func NewConfigSetCommand(
-	cfg *config.Config,
-	depsContainer *application.DependenciesContainer) *cobra.Command {
+type CmdConfigSet struct {
+	*cobra.Command
+}
+
+type UseCaseConfigSet interface {
+	Execute() error
+}
+
+func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 
 	var (
 		uriFlag       string
@@ -67,14 +74,9 @@ func NewConfigSetCommand(
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			useCase, err := depsContainer.ConfigSetUseCase(cmd.Context())
+			err := uc.Execute()
 			if err != nil {
-				return err
-			}
-
-			err = useCase.Execute(cfg)
-			if err != nil {
-				return err
+				return fmt.Errorf("'ctx set' usecase call: %w", err)
 			}
 
 			return nil
@@ -89,5 +91,5 @@ func NewConfigSetCommand(
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id")
 	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Branch id")
 
-	return cmd
+	return CmdConfigSet{cmd}
 }
