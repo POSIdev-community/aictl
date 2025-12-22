@@ -51,11 +51,11 @@ func UpdateConfig(cfg *config.Config) func(cmd *cobra.Command, args []string) er
 	return func(cmd *cobra.Command, args []string) error {
 		err := UpdateConnectionConfig(cfg)
 		if err != nil {
-			return fmt.Errorf("could not update context: %w", err)
+			return fmt.Errorf("update context: %w", err)
 		}
 
 		if err := cfg.Validate(); err != nil {
-			return fmt.Errorf("validate cfg error: %w", err)
+			return fmt.Errorf("validate cfg: %w", err)
 		}
 
 		return nil

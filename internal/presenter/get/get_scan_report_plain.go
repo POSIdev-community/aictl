@@ -26,7 +26,7 @@ func NewGetScanReportPlainCmd(uc UseCaseGetScanReportPlain) CmdGetScanReportPlai
 			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get scan repot plain: %w", err)
+				return fmt.Errorf("'get scan report plain' usecase call: %w", err)
 			}
 
 			return nil

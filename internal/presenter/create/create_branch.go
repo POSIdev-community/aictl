@@ -57,7 +57,7 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 			if err := uc.Execute(ctx, cfg, branchName, scanTarget, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'create branch' usecase call: %w", err)
 			}
 
 			return nil

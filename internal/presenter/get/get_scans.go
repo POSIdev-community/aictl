@@ -38,7 +38,7 @@ func NewGetScansCmd(cfg *config.Config, uc UseCaseGetScans) CmdGetScans {
 			if err := uc.Execute(ctx); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get reports: %w", err)
+				return fmt.Errorf("'get scans' usecase call: %w", err)
 			}
 
 			return nil

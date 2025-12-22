@@ -39,7 +39,7 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 			if err := uc.Execute(ctx, scanId, outPath); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'get scan airpoj' usecase call: %w", err)
 			}
 
 			return nil

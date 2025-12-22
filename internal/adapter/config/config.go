@@ -84,7 +84,7 @@ func (a *Adapter) StoreContext(cfg *config.Config) error {
 
 	dir := filepath.Join(configDir, appDir)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create directories: %w", err)
+		return fmt.Errorf("create directories: %w", err)
 	}
 	configPath := filepath.Join(dir, configFile)
 	err = os.WriteFile(configPath, yamlBytes, 0644)

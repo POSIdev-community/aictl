@@ -27,7 +27,7 @@ func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'get scan state' usecase call: %w", err)
 			}
 
 			return nil

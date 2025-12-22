@@ -36,7 +36,7 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 			if err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("new filter error: %w", err)
+				return fmt.Errorf("new filter: %w", err)
 			}
 
 			return nil
@@ -47,7 +47,7 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 			if err := uc.Execute(ctx, regexFilter, quite); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'get projects' usecase call: %w", err)
 			}
 
 			return nil

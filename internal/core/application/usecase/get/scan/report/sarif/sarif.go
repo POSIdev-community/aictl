@@ -50,7 +50,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
-		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
 	u.cliAdapter.ShowTextf(ctx, "getting sarif scan report, id '%v'", scanId.String())

@@ -48,7 +48,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif bool, plain bool, destPath string, includeComments, includeDFD, includeGlossary bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
-		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
 	var reportType string
@@ -60,35 +60,35 @@ func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID, sarif boo
 	}
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, reportType)
 	if err != nil {
-		return fmt.Errorf("get reports usecase: %w", err)
+		return fmt.Errorf("get template id: %w", err)
 	}
 
 	for _, projectId := range projectIds {
 		proj, err := u.aiAdapter.GetProject(ctx, projectId)
 		if err != nil {
-			return fmt.Errorf("get reports usecase get project: %w", err)
+			return fmt.Errorf("get project: %w", err)
 		}
 
 		branches, err := u.aiAdapter.GetBranches(ctx, projectId)
 		if err != nil {
-			return fmt.Errorf("get reports usecase get project branches: %w", err)
+			return fmt.Errorf("get project branches: %w", err)
 		}
 
 		branchId := branches[0].Id
 
 		scanResult, err := u.aiAdapter.GetLastScan(ctx, branchId)
 		if err != nil {
-			return fmt.Errorf("get reports usecase get project scanResult: %w", err)
+			return fmt.Errorf("get last scanResult: %w", err)
 		}
 
 		file, err := u.aiAdapter.GetReport(ctx, projectId, scanResult.Id, templateId, includeComments, includeDFD, includeGlossary)
 		if err != nil {
-			return fmt.Errorf("get reports usecase get report: %w", err)
+			return fmt.Errorf("get report: %w", err)
 		}
 
 		err = utils.CopyFileToPath(file, filepath.Join(destPath, proj.Name+".sarif"))
 		if err != nil {
-			return fmt.Errorf("get reports usecase: %w", err)
+			return fmt.Errorf("copy report: %w", err)
 		}
 	}
 

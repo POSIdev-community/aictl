@@ -45,7 +45,7 @@ func (app *Application) Run(ctx context.Context) {
 
 func (app *Application) GenerateDoc(path string) error {
 	if err := doc.GenMarkdownTree(app.cmd.Command, path); err != nil {
-		return fmt.Errorf("err while generate doc: %w", err)
+		return fmt.Errorf("generate doc: %w", err)
 	}
 
 	return nil

@@ -1,6 +1,8 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/spf13/cobra"
@@ -40,7 +42,7 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 
 			err := uc.Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset)
 			if err != nil {
-				return err
+				return fmt.Errorf("'ctx unset' usecase call: %w", err)
 			}
 
 			return nil

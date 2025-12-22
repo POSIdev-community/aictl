@@ -42,7 +42,7 @@ func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdSca
 			if err := uc.Execute(ctx); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan start branch' usecase call: %w", err)
 			}
 
 			return nil

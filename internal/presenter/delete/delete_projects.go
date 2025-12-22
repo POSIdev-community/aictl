@@ -31,7 +31,7 @@ func NewDeleteProjectsCommand(uc UseCaseDeleteProjects) CmdDeleteProjects {
 			args = _utils.ReadArgsFromStdin(args)
 			projectIds, err = _utils.ParseUUIDs(args)
 			if err != nil {
-				return fmt.Errorf("get reports project ids parse error: %w", err)
+				return fmt.Errorf("project ids parse: %w", err)
 			}
 
 			return nil
@@ -42,7 +42,7 @@ func NewDeleteProjectsCommand(uc UseCaseDeleteProjects) CmdDeleteProjects {
 			if err := uc.Execute(ctx, projectIds); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'delete projects' usecase call: %w", err)
 			}
 
 			return nil

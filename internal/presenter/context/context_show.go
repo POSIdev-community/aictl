@@ -38,7 +38,7 @@ func NewConfigShowCommand(uc UseCaseConfigShow) CmdConfigShow {
 
 			err := uc.Execute(ctx, json, yaml)
 			if err != nil {
-				return err
+				return fmt.Errorf("'ctx show' usecase call: %w", err)
 			}
 
 			return nil

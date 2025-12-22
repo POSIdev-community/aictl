@@ -34,7 +34,7 @@ type Adapter struct {
 func NewAdapter(cfg *config.Config) (*Adapter, error) {
 	aiClient, err := NewAiClient()
 	if err != nil {
-		return nil, fmt.Errorf("new adapter: %w", err)
+		return nil, fmt.Errorf("new ai client: %w", err)
 	}
 
 	return &Adapter{aiClient, cfg}, nil

@@ -50,7 +50,7 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 
 				content, err := os.ReadFile(filePath)
 				if err != nil {
-					return fmt.Errorf("read aiproj file error: %w", err)
+					return fmt.Errorf("read aiproj file: %w", err)
 				}
 
 				aiprojString = string(content)
@@ -70,7 +70,7 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 			if err := uc.Execute(ctx, &aiprojData); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter set project settings: %w", err)
+				return fmt.Errorf("'set project settings' usecase call: %w", err)
 			}
 
 			return nil

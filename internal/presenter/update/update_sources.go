@@ -58,7 +58,7 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, cmdUpdateS
 			if err := uc.Execute(ctx, path); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'update sources' usecase call: %w", err)
 			}
 
 			return nil

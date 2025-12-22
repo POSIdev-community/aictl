@@ -40,7 +40,7 @@ func generatePresenterCode(currentDir string, newCmdPath []string) error {
 	if !fshelper.PathExists(cmdPath) {
 		err := os.Mkdir(cmdPath, 0755)
 		if err != nil {
-			return fmt.Errorf("generating presenter code make dir: %v", err)
+			return fmt.Errorf("make dir: %v", err)
 		}
 	}
 
@@ -112,7 +112,7 @@ func getPresenterCode(cmdPath []string, filepath string) error {
 	)
 
 	if err := f.Save(filepath); err != nil {
-		return fmt.Errorf("generating presenter code save file: %v", err)
+		return fmt.Errorf("save file: %v", err)
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func generateUseCaseCode(currentDir string, newCmdPath []string) error {
 	cmdPath := filepath.Join(allParts...)
 	err := os.MkdirAll(cmdPath, 0755)
 	if err != nil {
-		return fmt.Errorf("generating use case code make dir: %v", err)
+		return fmt.Errorf("make dir: %v", err)
 	}
 	filename := newCmdPath[len(newCmdPath)-1] + ".go"
 	newCmdFilePath := path.Join(cmdPath, filename)
@@ -198,7 +198,7 @@ func getUseCaseCode(cmdPath []string, filepath string) error {
 	)
 
 	if err := f.Save(filepath); err != nil {
-		return fmt.Errorf("generating presenter code save file: %v", err)
+		return fmt.Errorf("save file: %v", err)
 	}
 
 	return nil

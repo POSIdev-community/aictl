@@ -26,7 +26,7 @@ func NewGetScanReportGitlabCmd(uc UseCaseGetScanReportGitlab) CmdGetScanReportGi
 			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get scan repot sarif: %w", err)
+				return fmt.Errorf("'get scan report gitlab' usecase call: %w", err)
 			}
 
 			return nil

@@ -23,7 +23,7 @@ func NewUpdateSourcesGitCmd(uc UseCaseUpdateSourcesGit) CmdUpdateSourcesGit {
 			if err := uc.Execute(); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("get projects: %w", err)
+				return fmt.Errorf("'update sources git' usecase call: %w", err)
 			}
 
 			return nil

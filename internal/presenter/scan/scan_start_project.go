@@ -41,7 +41,7 @@ func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdS
 			if err := uc.Execute(ctx); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan start project' usecase call: %w", err)
 			}
 
 			return nil

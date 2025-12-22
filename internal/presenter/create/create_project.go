@@ -38,7 +38,7 @@ func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 			if err := uc.Execute(ctx, projectName, safeFlag); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("create project useCase execute: %w", err)
+				return fmt.Errorf("'create project' usecase call: %w", err)
 			}
 
 			return nil

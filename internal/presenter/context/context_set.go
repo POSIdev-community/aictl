@@ -1,6 +1,8 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/spf13/cobra"
@@ -74,7 +76,7 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			err := uc.Execute()
 			if err != nil {
-				return err
+				return fmt.Errorf("'ctx set' usecase call: %w", err)
 			}
 
 			return nil

@@ -2,6 +2,7 @@ package context
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ func NewConfigClearCommand(uc UseCaseConfigClear) CmdConfigClear {
 
 			err := uc.Execute(ctx, skipConfirm)
 			if err != nil {
-				return err
+				return fmt.Errorf("'ctx clear' usecase call: %w", err)
 			}
 
 			return nil

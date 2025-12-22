@@ -37,7 +37,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 func (u *UseCase) Execute(ctx context.Context, projectIds []uuid.UUID) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
-		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
 	for _, projectId := range projectIds {

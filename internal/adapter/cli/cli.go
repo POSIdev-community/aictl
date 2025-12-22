@@ -80,7 +80,7 @@ func (cli *Adapter) ReturnTextf(ctx context.Context, format string, a ...any) {
 // ShowReader copy provided reader to stdout.
 func (cli *Adapter) ShowReader(r io.Reader) error {
 	if _, err := io.Copy(os.Stdout, r); err != nil {
-		return fmt.Errorf("failed to write to stdout: %w", err)
+		return fmt.Errorf("write to stdout: %w", err)
 	}
 
 	return nil

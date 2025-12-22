@@ -45,7 +45,7 @@ func NewGetReportsCmd(uc UseCaseGetReports) CmdGetReports {
 			args = _utils.ReadArgsFromStdin(args)
 			projectIds, err = _utils.ParseUUIDs(args)
 			if err != nil {
-				return fmt.Errorf("get reports project ids parse error: %w", err)
+				return fmt.Errorf("project ids parse: %w", err)
 			}
 
 			return nil
@@ -56,7 +56,7 @@ func NewGetReportsCmd(uc UseCaseGetReports) CmdGetReports {
 			if err := uc.Execute(ctx, projectIds, sarif, plain, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get reports: %w", err)
+				return fmt.Errorf("'get reports' usecase call: %w", err)
 			}
 
 			return nil

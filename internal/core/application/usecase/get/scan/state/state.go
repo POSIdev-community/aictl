@@ -44,7 +44,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
-		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
 	scanStage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)

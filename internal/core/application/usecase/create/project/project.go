@@ -44,7 +44,7 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 
 	err = u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
-		return fmt.Errorf("could not initialize with jwt retry: %w", err)
+		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
 	u.cliAdapter.ShowTextf(ctx, "creating project '%v'", projectName)
@@ -64,7 +64,7 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 
 	projectId, err = u.aiAdapter.CreateProject(ctx, projectName)
 	if err != nil {
-		return fmt.Errorf("usecase create branch: %w", err)
+		return fmt.Errorf("create branch: %w", err)
 	}
 
 	u.cliAdapter.ShowTextf(ctx, "project '%v' created, id '%v'", projectName, projectId.String())

@@ -26,7 +26,7 @@ func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSari
 			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("presenter get scan repot sarif: %w", err)
+				return fmt.Errorf("'get scan report sarif' usecase call: %w", err)
 			}
 
 			return nil

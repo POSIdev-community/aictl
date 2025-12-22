@@ -44,7 +44,7 @@ func NewScanStopCmd(uc UseCaseScanStop) CmdScanStop {
 			if err := uc.Execute(ctx, scanId); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("scan start: %w", err)
+				return fmt.Errorf("'scan stop' usecase call: %w", err)
 			}
 
 			return nil

@@ -9,7 +9,7 @@ import (
 func CopyFileToPath(srcFile io.ReadCloser, fullDestPath string) error {
 	destFile, err := os.Create(fullDestPath)
 	if err != nil {
-		return fmt.Errorf("не удалось создать файл назначения: %v", err)
+		return fmt.Errorf("create target file: %v", err)
 	}
 
 	defer func(destFile *os.File) {
@@ -21,7 +21,7 @@ func CopyFileToPath(srcFile io.ReadCloser, fullDestPath string) error {
 
 	_, err = io.Copy(destFile, srcFile)
 	if err != nil {
-		return fmt.Errorf("ошибка копирования файла: %v", err)
+		return fmt.Errorf("copy file: %v", err)
 	}
 
 	return nil
