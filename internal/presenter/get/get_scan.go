@@ -12,8 +12,33 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
 
+type PersistentPreRunEGetScanCmd _utils.RunE
+
 type CmdGetScan struct {
 	*cobra.Command
+}
+
+func NewPersistentPreRunEGetScanCmd(cfg *config.Config, prev PersistentPreRunEGetCmd) PersistentPreRunEGetScanCmd {
+	return _utils.ChainRunE(prev, func(cmd *cobra.Command, args []string) error {
+		var err error
+		if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
+			return err
+		}
+
+		args = _utils.ReadArgsFromStdin(args)
+		if len(args) < 1 {
+			return errs.NewValidationError("missing scan id")
+		}
+
+		scanIdFlag := args[0]
+
+		scanId, err = uuid.Parse(scanIdFlag)
+		if err != nil {
+			return errs.NewValidationFieldError(scanIdFlag, "invalid uuid")
+		}
+
+		return nil
+	})
 }
 
 type UseCaseGetScan interface {
@@ -25,32 +50,14 @@ var (
 	scanId        uuid.UUID
 )
 
-func NewGetScanCmd(cfg *config.Config, uc UseCaseGetScan, cmdGetScanAiproj CmdGetScanAiproj,
+func NewGetScanCmd(persistentPreRunE PersistentPreRunEGetScanCmd, uc UseCaseGetScan, cmdGetScanAiproj CmdGetScanAiproj,
 	cmdGetScanLogs CmdGetScanLogs, cmdGetScanReport CmdGetScanReport, cmdGetScanSbom CmdGetScanSbom,
 	cmdGetScanState CmdGetScanState) CmdGetScan {
+
 	cmd := &cobra.Command{
-		Use:   "scan",
-		Short: "Get scan",
-		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, func(cmd *cobra.Command, args []string) error {
-			var err error
-			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
-				return err
-			}
-
-			args = _utils.ReadArgsFromStdin(args)
-			if len(args) < 1 {
-				return errs.NewValidationError("missing scan id")
-			}
-
-			scanIdFlag := args[0]
-
-			scanId, err = uuid.Parse(scanIdFlag)
-			if err != nil {
-				return errs.NewValidationFieldError(scanIdFlag, "invalid uuid")
-			}
-
-			return nil
-		}),
+		Use:               "scan",
+		Short:             "Get scan",
+		PersistentPreRunE: persistentPreRunE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

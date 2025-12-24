@@ -17,7 +17,5 @@ Get resources
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
 * [aictl get projects](aictl_get_projects.md)	 - Get AI projects
-* [aictl get reports](aictl_get_reports.md)	 - Get AI reports
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
-* [aictl get scans](aictl_get_scans.md)	 - Get scans
 

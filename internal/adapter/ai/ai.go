@@ -526,15 +526,12 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 	return *dest.Id, nil
 }
 
-func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error) {
-
-	localeId := "ru"
-
+func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
 	useFilters := false
 	sessionId := uuid.New()
 
 	model := ReportGenerateModel{
-		LocaleId: &localeId,
+		LocaleId: &l10n,
 		Parameters: &UserReportParametersModel{
 			IncludeComments:  &includeComments,
 			IncludeDFD:       &includeDFD,
@@ -661,28 +658,6 @@ func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID)
 		Value: *model.Value,
 		Stage: string(*model.Stage),
 	}, nil
-}
-
-func (a *Adapter) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
-	response, err := a.aiClient.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.aiClient.AddJWTToHeader)
-	if err != nil {
-		return nil, fmt.Errorf("ai adapter get branches: %w", err)
-	}
-
-	statusCode := response.StatusCode()
-	body := string(response.Body)
-	errorModel := response.JSON400
-	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
-		return nil, fmt.Errorf("ai adapter get scans: %w", err)
-	}
-
-	models := *response.JSON200
-	scans := make([]scan.Scan, len(models))
-	for i, model := range models {
-		scans[i].Id = *model.Id
-	}
-
-	return scans, nil
 }
 
 func (a *Adapter) GetScanQueue(ctx context.Context) ([]uuid.UUID, error) {

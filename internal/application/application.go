@@ -43,8 +43,17 @@ func (app *Application) Run(ctx context.Context) {
 	os.Exit(exitCode)
 }
 
-func (app *Application) GenerateDoc(path string) error {
-	if err := doc.GenMarkdownTree(app.cmd.Command, path); err != nil {
+func (app *Application) GenerateDoc(dirPath string) error {
+	if err := os.RemoveAll(dirPath); err != nil {
+		return fmt.Errorf("Error removing directory: %v\n", err)
+	}
+	fmt.Printf("Directory %s removed.\n", dirPath)
+
+	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		return fmt.Errorf("Error recreating directory: %v\n", err)
+	}
+
+	if err := doc.GenMarkdownTree(app.cmd.Command, dirPath); err != nil {
 		return fmt.Errorf("generate doc: %w", err)
 	}
 

@@ -13,7 +13,7 @@ type CmdGetScanReportPlain struct {
 }
 
 type UseCaseGetScanReportPlain interface {
-	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error
+	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
 }
 
 func NewGetScanReportPlainCmd(uc UseCaseGetScanReportPlain) CmdGetScanReportPlain {
@@ -23,7 +23,7 @@ func NewGetScanReportPlainCmd(uc UseCaseGetScanReportPlain) CmdGetScanReportPlai
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
+			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report plain' usecase call: %w", err)

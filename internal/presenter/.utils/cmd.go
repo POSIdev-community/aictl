@@ -62,14 +62,17 @@ func UpdateConfig(cfg *config.Config) func(cmd *cobra.Command, args []string) er
 	}
 }
 
-func ConcatFuncs(funcs ...func(cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
+type RunE = func(cmd *cobra.Command, args []string) error
+
+func ChainRunE(funcs ...RunE) RunE {
 	return func(cmd *cobra.Command, args []string) error {
-		for _, f := range funcs {
-			if err := f(cmd, args); err != nil {
-				return err
+		if funcs != nil {
+			for _, f := range funcs {
+				if err := f(cmd, args); err != nil {
+					return err
+				}
 			}
 		}
-
 		return nil
 	}
 }

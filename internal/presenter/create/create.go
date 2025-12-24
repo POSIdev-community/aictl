@@ -20,7 +20,7 @@ func NewCreateCmd(
 	cmd := &cobra.Command{
 		Use:               "create",
 		Short:             "Create resource",
-		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
+		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(cmdCreateProject.Command)

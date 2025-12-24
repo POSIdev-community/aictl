@@ -13,7 +13,7 @@ type CmdGetScanReportGitlab struct {
 }
 
 type UseCaseGetScanReportGitlab interface {
-	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error
+	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
 }
 
 func NewGetScanReportGitlabCmd(uc UseCaseGetScanReportGitlab) CmdGetScanReportGitlab {
@@ -23,7 +23,7 @@ func NewGetScanReportGitlabCmd(uc UseCaseGetScanReportGitlab) CmdGetScanReportGi
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
+			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report gitlab' usecase call: %w", err)

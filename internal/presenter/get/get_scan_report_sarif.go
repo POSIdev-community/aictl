@@ -13,7 +13,7 @@ type CmdGetScanReportSarif struct {
 }
 
 type UseCaseGetScanReportSarif interface {
-	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error
+	Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
 }
 
 func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSarif {
@@ -23,7 +23,7 @@ func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSari
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary); err != nil {
+			if err := uc.Execute(ctx, scanId, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report sarif' usecase call: %w", err)
