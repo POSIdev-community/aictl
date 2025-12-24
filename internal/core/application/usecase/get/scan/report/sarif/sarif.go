@@ -8,7 +8,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 
-	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/errs"
 )
@@ -16,7 +16,7 @@ import (
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
-	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool) (io.ReadCloser, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
 }
 
 type CLI interface {
@@ -47,7 +47,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -60,7 +60,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath st
 		return err
 	}
 
-	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary)
+	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n)
 	if err != nil {
 		return fmt.Errorf("get scan report: %w", err)
 	}

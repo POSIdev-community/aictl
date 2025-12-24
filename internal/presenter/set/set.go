@@ -17,7 +17,7 @@ func NewSetCmd(
 	cmd := &cobra.Command{
 		Use:               "set",
 		Short:             "Set",
-		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
+		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(setProjectCmd.Command)

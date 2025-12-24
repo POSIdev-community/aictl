@@ -12,14 +12,12 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/project"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/delete/projects"
 	getProjects "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/projects"
-	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/reports"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/gitlab"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/plain"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/state"
-	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scans"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/await"
 	startBranch "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/branch"
 	startProject "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/project"
@@ -154,13 +152,6 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 	}
 	cmdProjects := get.NewGetProjectsCmd(projectsUC)
 
-	// Reports
-	reportsUC, err := reports.NewUseCase(aiAdapter, cliAdapter)
-	if err != nil {
-		return nil, err
-	}
-	cmdReports := get.NewGetReportsCmd(reportsUC)
-
 	// Scan
 	scanUC, err := scan.NewUseCase(aiAdapter, cliAdapter, cfg)
 	if err != nil {
@@ -193,7 +184,11 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 	}
 	cmdReportSarif := get.NewGetScanReportSarifCmd(sarifUC)
 
-	cmdReport := get.NewGetScanReportCmd(cmdReportGitlab, cmdReportPlain, cmdReportSarif)
+	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(cfg)
+	persistentPreRunEGetScanCmd := get.NewPersistentPreRunEGetScanCmd(cfg, persistentPreRunEGetCmd)
+	persistentPreRunEGetScanReportCmd := get.NewPersistentPreRunEGetScanReportCmd(persistentPreRunEGetScanCmd)
+
+	cmdReport := get.NewGetScanReportCmd(persistentPreRunEGetScanReportCmd, cmdReportGitlab, cmdReportPlain, cmdReportSarif)
 
 	cmdSbom := get.NewGetScanSbomCmd()
 
@@ -203,16 +198,9 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 	}
 	cmdState := get.NewGetScanStateCmd(stateUC)
 
-	cmdScan := get.NewGetScanCmd(cfg, scanUC, cmdAiproj, cmdLogs, cmdReport, cmdSbom, cmdState)
+	cmdScan := get.NewGetScanCmd(persistentPreRunEGetScanCmd, scanUC, cmdAiproj, cmdLogs, cmdReport, cmdSbom, cmdState)
 
-	// Scans
-	scansUC, err := scans.NewUseCase(aiAdapter, cliAdapter, cfg)
-	if err != nil {
-		return nil, err
-	}
-	cmdScans := get.NewGetScansCmd(cfg, scansUC)
-
-	return get.NewGetCmd(cfg, cmdProjects, cmdReports, cmdScan, cmdScans), nil
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdProjects, cmdScan), nil
 }
 
 func buildScanCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*scanPresenter.CmdScan, error) {

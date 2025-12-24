@@ -30,11 +30,12 @@ func TestUseCase_Execute(t *testing.T) {
 		includeComments := false
 		includeDfd := false
 		includeGlossary := false
+		l10n := "en"
 
 		aiAdapter := mocks.NewAI(t)
 		aiAdapter.On("InitializeWithRetry", t.Context()).Return(nil).Once()
 		aiAdapter.On("GetTemplateId", t.Context(), report.PlainReportType).Return(templateID, nil).Once()
-		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
@@ -46,7 +47,7 @@ func TestUseCase_Execute(t *testing.T) {
 		uc, err := NewUseCase(aiAdapter, cliAdapter, cfg)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(t.Context(), scanID, "", includeComments, includeDfd, includeGlossary))
+		require.NoError(t, uc.Execute(t.Context(), scanID, "", includeComments, includeDfd, includeGlossary, l10n))
 	})
 
 	t.Run("write to file", func(t *testing.T) {
@@ -61,11 +62,12 @@ func TestUseCase_Execute(t *testing.T) {
 		includeComments := false
 		includeDfd := false
 		includeGlossary := false
+		l10n := "en"
 
 		aiAdapter := mocks.NewAI(t)
 		aiAdapter.On("InitializeWithRetry", t.Context()).Return(nil).Once()
 		aiAdapter.On("GetTemplateId", t.Context(), report.PlainReportType).Return(templateID, nil).Once()
-		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary).Return(reportReader, nil).Once()
+		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowTextf", t.Context(), "getting plain scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
@@ -76,7 +78,7 @@ func TestUseCase_Execute(t *testing.T) {
 		uc, err := NewUseCase(aiAdapter, cliAdapter, cfg)
 		require.NoError(t, err)
 
-		require.NoError(t, uc.Execute(t.Context(), scanID, filePath, includeComments, includeDfd, includeGlossary))
+		require.NoError(t, uc.Execute(t.Context(), scanID, filePath, includeComments, includeDfd, includeGlossary, l10n))
 
 		data, err := os.ReadFile(filePath)
 		require.NoError(t, err)

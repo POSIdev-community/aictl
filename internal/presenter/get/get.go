@@ -6,27 +6,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type PersistentPreRunEGetCmd _utils.RunE
+
 type CmdGet struct {
 	*cobra.Command
 }
 
+func NewPersistentPreRunEGetCmd(cfg *config.Config) PersistentPreRunEGetCmd {
+	return _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg))
+}
+
 func NewGetCmd(
-	cfg *config.Config,
+	persistentPreRunE PersistentPreRunEGetCmd,
 	cmdGetProjects CmdGetProjects,
-	cmdGetReports CmdGetReports,
-	cmdGetScan CmdGetScan,
-	cmdGetScans CmdGetScans) *CmdGet {
+	cmdGetScan CmdGetScan) *CmdGet {
 
 	cmd := &cobra.Command{
 		Use:               "get",
 		Short:             "Get resources",
-		PersistentPreRunE: _utils.ConcatFuncs(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
+		PersistentPreRunE: persistentPreRunE,
 	}
 
 	cmd.AddCommand(cmdGetProjects.Command)
-	cmd.AddCommand(cmdGetReports.Command)
 	cmd.AddCommand(cmdGetScan.Command)
-	cmd.AddCommand(cmdGetScans.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 

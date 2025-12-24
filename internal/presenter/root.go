@@ -3,7 +3,7 @@ package presenter
 import (
 	"fmt"
 
-	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
+	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/internal/presenter/context"
 	"github.com/POSIdev-community/aictl/internal/presenter/create"
 	deletePresenter "github.com/POSIdev-community/aictl/internal/presenter/delete"
