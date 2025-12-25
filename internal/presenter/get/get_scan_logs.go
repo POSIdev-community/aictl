@@ -10,8 +10,9 @@ type CmdGetScanLogs struct {
 
 func NewGetScanLogsCmd() CmdGetScanLogs {
 	cmd := &cobra.Command{
+		Use:   "logs <scan-id>",
 		Short: "Get scan logs",
-		Use:   "logs",
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

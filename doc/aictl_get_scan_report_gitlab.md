@@ -3,7 +3,7 @@
 Get scan report gitlab
 
 ```
-aictl get scan report gitlab [flags]
+aictl get scan report gitlab <scan-id> [flags]
 ```
 
 ### Options

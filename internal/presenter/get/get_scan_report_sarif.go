@@ -18,8 +18,9 @@ type UseCaseGetScanReportSarif interface {
 
 func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSarif {
 	cmd := &cobra.Command{
+		Use:   "sarif <scan-id>",
 		Short: "Get scan report sarif",
-		Use:   "sarif",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

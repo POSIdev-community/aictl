@@ -3,7 +3,7 @@
 Stop scan
 
 ```
-aictl scan stop [flags]
+aictl scan stop <scan-id> [flags]
 ```
 
 ### Options

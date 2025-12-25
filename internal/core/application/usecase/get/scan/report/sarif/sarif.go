@@ -53,7 +53,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath st
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	u.cliAdapter.ShowTextf(ctx, "getting sarif scan report, id '%v'", scanId.String())
+	u.cliAdapter.ShowTextf(ctx, "getting sarif scan report, scan-id '%v'", scanId.String())
 
 	templateId, err := u.aiAdapter.GetTemplateId(ctx, report.SarifReportType)
 	if err != nil {

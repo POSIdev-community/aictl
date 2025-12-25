@@ -22,8 +22,9 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 	var outPath string
 
 	cmd := &cobra.Command{
+		Use:   "aiproj <scan-id>",
 		Short: "Get scan aiproj",
-		Use:   "aiproj",
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
 				if fshelper.PathExists(outPath) {

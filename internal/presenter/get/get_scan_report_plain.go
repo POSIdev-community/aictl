@@ -18,8 +18,9 @@ type UseCaseGetScanReportPlain interface {
 
 func NewGetScanReportPlainCmd(uc UseCaseGetScanReportPlain) CmdGetScanReportPlain {
 	cmd := &cobra.Command{
+		Use:   "plain <scan-id>",
 		Short: "Get scan report plain",
-		Use:   "plain",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

@@ -3,7 +3,7 @@
 Delete AI projects
 
 ```
-aictl delete projects [flags]
+aictl delete projects <project-id>... [flags]
 ```
 
 ### Options

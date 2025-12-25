@@ -3,7 +3,7 @@
 Get scan stage
 
 ```
-aictl get scan stage [flags]
+aictl get scan stage <scan-id> [flags]
 ```
 
 ### Options

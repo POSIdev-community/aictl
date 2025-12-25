@@ -14,14 +14,14 @@ type CmdScanStartBranch struct {
 }
 
 type UseCaseScanStartBranch interface {
-	Execute(ctx context.Context) error
+	Execute(ctx context.Context, scanLabel string) error
 }
 
 func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdScanStartBranch {
 	cmd := &cobra.Command{
-		Use:   "branch",
+		Use:   "branch <branch-id>",
 		Short: "Start branch scan",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
 
@@ -39,7 +39,7 @@ func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdSca
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx); err != nil {
+			if err := uc.Execute(ctx, scanLabel); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'scan start branch' usecase call: %w", err)

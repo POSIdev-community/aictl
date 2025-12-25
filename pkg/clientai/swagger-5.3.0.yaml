@@ -1,56 +1,9 @@
-openapi: 3.0.1
+openapi: 3.0.4
 info:
-  title: Current private API
-  description: Only for communicating microservices and internal clients
-  version: '5.0.0'
+  title: Current API v16
+  description: 'API path is case sensitive. To specify the API version in your request, add v{version} after api/ in the address. For example, api/v16/auth.'
+  version: '16'
 paths:
-  '/api/auth/accessToken/{name}':
-    get:
-      tags:
-        - AccessToken
-      summary: Access token by name
-      parameters:
-        - name: name
-          in: path
-          description: Token`s name
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Returns tokens
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccessTokenModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/AccessTokenModel'
-        '401':
-          description: Unauthorized
-  /api/auth/accessToken/verify:
-    post:
-      tags:
-        - AccessToken
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/AccessTokenValidationModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccessTokenValidationModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/AccessTokenValidationModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/AccessTokenValidationModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
   /api/auth/accessToken:
     get:
       tags:
@@ -172,99 +125,11 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/auth/userLogin:
-    post:
-      tags:
-        - Auth
-      summary: Login local user by credentials
-      parameters:
-        - name: scopeType
-          in: query
-          description: Scope type
-          schema:
-            $ref: '#/components/schemas/AuthScope'
-      requestBody:
-        description: Model with username and password
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/UserLoginModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserLoginModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/UserLoginModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/UserLoginModel'
-      responses:
-        '200':
-          description: Returns JWT token or pair of access and refresh tokes for Web scope
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResultModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/AuthResultModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/auth/validateToken:
-    post:
-      tags:
-        - Auth
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '401':
-          description: Unauthorized
-  /api/auth/currentTime:
-    get:
-      tags:
-        - Auth
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: date-time
-        '401':
-          description: Unauthorized
   /api/auth/signin:
     get:
       tags:
         - Auth
-      summary: "Login by access token in request headers.\r\nSend access token in header with name \"Access-Token\""
+      summary: "Login by access token in request headers.\nSend access token in header with name \"Access-Token\""
       responses:
         '200':
           description: Returns the created JWT token
@@ -320,188 +185,6 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/RefreshTokenResultModel'
-        '401':
-          description: Unauthorized
-  /api/branches/ids:
-    get:
-      tags:
-        - Branches
-      summary: Get all branches ids
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-            text/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/branches/{branchId}/sourcesSettings':
-    get:
-      tags:
-        - Branches
-      summary: Get branch sources settings
-      parameters:
-        - name: branchId
-          in: path
-          description: Branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SourcesSettingsModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/SourcesSettingsModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Branches
-      summary: Update branch sources settings
-      parameters:
-        - name: branchId
-          in: path
-          description: Branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Sources settings
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/SourcesSettingsUpdateModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SourcesSettingsUpdateModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/SourcesSettingsUpdateModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/SourcesSettingsUpdateModel'
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/branches/{branchId}/scanResults':
-    get:
-      tags:
-        - Branches
-      summary: Get all scan results of branch
-      parameters:
-        - name: branchId
-          in: path
-          description: branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ScanResultModel'
-            text/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ScanResultModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-    post:
-      tags:
-        - Branches
-      summary: Add scan result to repository
-      parameters:
-        - name: branchId
-          in: path
-          description: Branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: ScanResult creation model
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ScanResultCreationModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScanResultCreationModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ScanResultCreationModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ScanResultCreationModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
         '401':
           description: Unauthorized
   '/api/branches/{branchId}':
@@ -666,6 +349,78 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+  '/api/branches/{branchId}/sourcesSettings':
+    get:
+      tags:
+        - Branches
+      summary: Get branch sources settings
+      parameters:
+        - name: branchId
+          in: path
+          description: Branch id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourcesSettingsModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/SourcesSettingsModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
+  '/api/branches/{branchId}/scanResults':
+    get:
+      tags:
+        - Branches
+      summary: Get all scan results of branch
+      parameters:
+        - name: branchId
+          in: path
+          description: branch id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanResultModel'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanResultModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
   '/api/branches/{branchId}/scanResults/last':
     get:
       tags:
@@ -700,62 +455,73 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/history:
-    post:
+  '/api/branches/{branchId}/exportTriage':
+    get:
       tags:
-        - ChangeHistory
-      summary: Add branch history row
-      requestBody:
-        description: Row model
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ChangeHistoryRowModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChangeHistoryRowModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ChangeHistoryRowModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ChangeHistoryRowModel'
+        - Branches
+      summary: Get a zip archive with scan results for export
+      parameters:
+        - name: branchId
+          in: path
+          description: branch id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: maximum number of objects in one json file
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: OK
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Bad Request
+          content:
+            application/zip:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/history/batch:
+  '/api/branches/{branchId}/importTriage':
     post:
       tags:
-        - ChangeHistory
-      summary: Batch add branch history rows
-      requestBody:
-        description: Rows models
-        content:
-          application/json-patch+json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChangeHistoryRowModel'
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChangeHistoryRowModel'
-          text/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChangeHistoryRowModel'
-          application/*+json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChangeHistoryRowModel'
+        - Branches
+      summary: Import scan results from zip archive
+      parameters:
+        - name: branchId
+          in: path
+          description: branch id
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResultModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ImportResultModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
   '/api/history/branches/{branchId}':
@@ -891,23 +657,6 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/configs/globalScanSettings:
-    get:
-      tags:
-        - Configs
-      summary: Get global scan settings
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GlobalScanSettingsModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/GlobalScanSettingsModel'
-        '401':
-          description: Unauthorized
   /api/configs/securityPoliciesTemplate:
     get:
       tags:
@@ -926,7 +675,7 @@ paths:
     get:
       tags:
         - Configs
-      summary: Get pattern matching rules
+      summary: Get pattern matching rules with groups ids
       responses:
         '200':
           description: OK
@@ -935,12 +684,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PmRuleModel'
+                  $ref: '#/components/schemas/PmRuleWithGroupsModel'
             text/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PmRuleModel'
+                  $ref: '#/components/schemas/PmRuleWithGroupsModel'
         '401':
           description: Unauthorized
     post:
@@ -980,7 +729,7 @@ paths:
       tags:
         - Configs
       summary: Export pattern matching rules
-      description: "Request to export a list of PM rules.\r\nThe response will be a file in .json format when exporting one rule, or .zip when exporting several."
+      description: "Request to export a list of PM rules.\nThe response will be a file in .json format when exporting one rule, or .zip when exporting several."
       requestBody:
         content:
           application/json-patch+json:
@@ -1043,7 +792,7 @@ paths:
     delete:
       tags:
         - Configs
-      summary: Delete pattern matching rule by it's identifier
+      summary: Delete pattern matching rule by identifier
       parameters:
         - name: id
           in: path
@@ -1068,7 +817,7 @@ paths:
     get:
       tags:
         - Configs
-      summary: Get pattern matching rule by it's identifier
+      summary: Get pattern matching rule with groups ids by identifier
       parameters:
         - name: id
           in: path
@@ -1082,12 +831,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PmRuleModel'
+                $ref: '#/components/schemas/PmRuleWithGroupsModel'
             text/json:
               schema:
-                $ref: '#/components/schemas/PmRuleModel'
-        '400':
-          description: Bad Request
+                $ref: '#/components/schemas/PmRuleWithGroupsModel'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -1095,12 +846,10 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
     put:
       tags:
         - Configs
-      summary: Update pattern matching rule by it's identifier
+      summary: Update pattern matching rule by identifier
       parameters:
         - name: id
           in: path
@@ -1133,551 +882,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
             text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/credentials/global/accessTokenSalt:
-    get:
-      tags:
-        - Credentials
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/projects/{projectId}/bb/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: type
-          in: query
-          schema:
-            $ref: '#/components/schemas/CredentialsType'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/BlackBoxCredentialsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BlackBoxCredentialsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/BlackBoxCredentialsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/BlackBoxCredentialsModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/projects/{projectId}/bbproxy/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/global/tracker/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: type
-          in: query
-          schema:
-            $ref: '#/components/schemas/CredentialsType'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/IssueTrackerCredentialsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IssueTrackerCredentialsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/IssueTrackerCredentialsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/IssueTrackerCredentialsModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/projects/{projectId}/mail/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/projects/{projectId}':
-    delete:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/global/proxy/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/credentials/projects/{projectId}/vcs/{id}':
-    get:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: type
-          in: query
-          schema:
-            $ref: '#/components/schemas/CredentialsType'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Credentials
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/SourceControlCredentialsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SourceControlCredentialsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/SourceControlCredentialsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/SourceControlCredentialsModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  /api/descriptions:
-    post:
-      tags:
-        - Descriptions
-      summary: Read vulnerabilities descriptions by keys. Only for internal use and scan agents
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: array
-              items:
-                type: string
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
-          text/json:
-            schema:
-              type: array
-              items:
-                type: string
-          application/*+json:
-            schema:
-              type: array
-              items:
-                type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-        '401':
-          description: Unauthorized
-  /api/metadatas:
-    post:
-      tags:
-        - Descriptions
-      summary: Read vulnerabilities metadatas by keys. Only for internal use and scan agents
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              type: array
-              items:
-                type: string
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
-          text/json:
-            schema:
-              type: array
-              items:
-                type: string
-          application/*+json:
-            schema:
-              type: array
-              items:
-                type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-        '401':
-          description: Unauthorized
-  '/api/directoryContent/{projectId}/projectFilePaths':
-    get:
-      tags:
-        - DirectoryContent
-      summary: Get solution and project paths from branch files
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: programmingLanguageGroup
-          in: query
-          description: Programming language group
-          schema:
-            $ref: '#/components/schemas/LegacyProgrammingLanguageGroup'
-      responses:
-        '200':
-          description: Returns the directory content information
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/directoryContent/{projectId}/branches/{branchId}/entries/exists':
-    post:
-      tags:
-        - DirectoryContent
-      summary: Check if branch contain entry
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: branchId
-          in: path
-          description: Branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: isDirectory
-          in: query
-          description: Is entry directory
-          schema:
-            type: boolean
-      requestBody:
-        description: Entry path
-        content:
-          application/json-patch+json:
-            schema:
-              type: string
-          application/json:
-            schema:
-              type: string
-          text/json:
-            schema:
-              type: string
-          application/*+json:
-            schema:
-              type: string
-      responses:
-        '200':
-          description: Returns the directory content information
-          content:
-            application/json:
-              schema:
-                type: boolean
-        '400':
-          description: Bad Request
-          content:
-            application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
@@ -1770,30 +974,6 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/auth/external/callback:
-    get:
-      tags:
-        - ExternalAuth
-      summary: "с\r\n            External callback after success authorization"
-      parameters:
-        - name: code
-          in: query
-          schema:
-            type: string
-        - name: state
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
   /api/auth/external/providers:
     get:
       tags:
@@ -2303,149 +1483,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheckSummaryResult'
-  /api/auth/initiators/current:
-    get:
-      tags:
-        - Initiator
-      summary: Get initator from current token
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InitiatorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/InitiatorModel'
-        '401':
-          description: Unauthorized
-  '/api/auth/initiators/{type}/{id}':
-    get:
-      tags:
-        - Initiator
-      summary: Get initiator
-      parameters:
-        - name: type
-          in: path
-          description: ''
-          required: true
-          schema:
-            $ref: '#/components/schemas/InitiatorType'
-        - name: id
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InitiatorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/InitiatorModel'
-        '401':
-          description: Unauthorized
-  /api/auth/integration/signin:
-    get:
-      tags:
-        - IntegrationAuth
-      summary: External signin. Just redirects to external application login page
-      parameters:
-        - name: callbackUrl
-          in: query
-          schema:
-            type: string
-        - name: type
-          in: query
-          schema:
-            type: string
-        - name: state
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
-  /api/auth/integration/callback:
-    get:
-      tags:
-        - IntegrationAuth
-      summary: "с\r\n            External callback after success authorization"
-      parameters:
-        - name: callbackUrl
-          in: query
-          schema:
-            type: string
-        - name: type
-          in: query
-          schema:
-            type: string
-        - name: code
-          in: query
-          schema:
-            type: string
-        - name: state
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ActionResult'
-  '/api/tracker/connections/{connectionId}/tickets/link':
-    post:
-      tags:
-        - IssueTracker
-      summary: Get ticket URI
-      parameters:
-        - name: connectionId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        description: Ticket link
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/BaseTicketLinkModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BaseTicketLinkModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/BaseTicketLinkModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/BaseTicketLinkModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '401':
-          description: Unauthorized
   /api/tracker/trackers:
     get:
       tags:
@@ -2539,7 +1576,7 @@ paths:
     get:
       tags:
         - IssueTracker
-      summary: Get connection setting by it's identifier
+      summary: Get connection setting by identifier
       parameters:
         - name: id
           in: path
@@ -2649,7 +1686,7 @@ paths:
     get:
       tags:
         - IssueTracker
-      summary: Get projects for connection by it's identifier
+      summary: Get projects for connection by identifier
       parameters:
         - name: connectionId
           in: path
@@ -3193,6 +2230,7 @@ paths:
               properties:
                 file:
                   type: string
+                  description: ''
                   format: binary
             encoding:
               file:
@@ -3285,39 +2323,6 @@ paths:
             application/zip:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
-  '/api/mailing/mailProfiles/{mailProfileName}':
-    get:
-      tags:
-        - Mailing
-      summary: Get mail profile model by name
-      parameters:
-        - name: mailProfileName
-          in: path
-          description: Mail profile name
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MailProfileModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/MailProfileModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
   /api/mailing/sendTestEmail:
     post:
       tags:
@@ -3891,6 +2896,212 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+  /api/configs/pmGroups:
+    get:
+      tags:
+        - PMGroups
+      summary: Get pattern matching rules groups
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PMGroupModel'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PMGroupModel'
+        '401':
+          description: Unauthorized
+    post:
+      tags:
+        - PMGroups
+      summary: Add a pattern matching rules group
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+      responses:
+        '201':
+          description: Created
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: uuid
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
+  '/api/configs/pmGroups/{id}':
+    delete:
+      tags:
+        - PMGroups
+      summary: Delete pattern matching rules group by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No Content
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+    get:
+      tags:
+        - PMGroups
+      summary: Get pattern matching rule group by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PMGroupModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/PMGroupModel'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+    patch:
+      tags:
+        - PMGroups
+      summary: Update a pattern matching rules group by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/PMGroupUpsertModel'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: uuid
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/configs/pmGroups/{id}/rules':
+    get:
+      tags:
+        - PMGroups
+      summary: Get a list of PM rules for a PM group by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PmRuleModel'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PmRuleModel'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/pmRuleVulnTypes:
     get:
       tags:
@@ -3980,207 +3191,26 @@ paths:
                 $ref: '#/components/schemas/PmRuleVulnTypeModel'
         '401':
           description: Unauthorized
-  /api/projects/sorted:
-    post:
-      tags:
-        - Projects
-      summary: Get sorted projects by options priority
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ProjectSortingOptionsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectSortingOptionsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ProjectSortingOptionsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ProjectSortingOptionsModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProjectWithBaseSourceInfoModel'
-            text/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ProjectWithBaseSourceInfoModel'
-        '401':
-          description: Unauthorized
-  /api/projects/count:
-    get:
-      tags:
-        - Projects
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: integer
-                format: int32
-        '401':
-          description: Unauthorized
-  /api/projects/correctNameForNewProject:
-    get:
-      tags:
-        - Projects
-      parameters:
-        - name: initialName
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/isNameAvailable':
-    get:
-      tags:
-        - Projects
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: name
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '401':
-          description: Unauthorized
-  '/api/projects/temp/{expirationInterval}':
-    get:
-      tags:
-        - Projects
-      parameters:
-        - name: expirationInterval
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-            text/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-        '401':
-          description: Unauthorized
-  '/api/projects/disposable/{expirationInterval}':
-    get:
-      tags:
-        - Projects
-      parameters:
-        - name: expirationInterval
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int32
-        - name: wereScanned
-          in: query
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-            text/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-        '401':
-          description: Unauthorized
   /api/projects:
-    delete:
-      tags:
-        - Projects
-      summary: Delete projects
-      requestBody:
-        description: Project identifiers
-        content:
-          application/json-patch+json:
-            schema:
-              type: array
-              items:
-                type: string
-                format: uuid
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
-                format: uuid
-          text/json:
-            schema:
-              type: array
-              items:
-                type: string
-                format: uuid
-          application/*+json:
-            schema:
-              type: array
-              items:
-                type: string
-                format: uuid
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
     get:
       tags:
         - Projects
       summary: Get projects
+      parameters:
+        - name: limit
+          in: query
+          description: Максимальное количество возвращаемых элементов. При передаче -1 возвращаются все элементы
+          schema:
+            type: integer
+            format: int32
+            default: -1
+        - name: offset
+          in: query
+          description: 'Количество элементов, которые нужно пропустить перед началом выборки'
+          schema:
+            type: integer
+            format: int32
+            default: -1
       responses:
         '200':
           description: OK
@@ -4195,812 +3225,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProjectModel'
-        '401':
-          description: Unauthorized
-    post:
-      tags:
-        - Projects
-      summary: Create project
-      requestBody:
-        description: Create project model
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/CreateProjectModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateProjectModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/CreateProjectModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/CreateProjectModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/name':
-    put:
-      tags:
-        - Projects
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: name
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/settings/actualize':
-    post:
-      tags:
-        - Projects
-      summary: Actualize project settings
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/scanResults/{scanResultId}/physicalPath':
-    get:
-      tags:
-        - Projects
-      summary: Get vfs physical path by node path
-      parameters:
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: nodePath
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Returns projects with high vulnerabilities statistic
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/scanResults/{scanResultId}/issues/fullInfo':
-    get:
-      tags:
-        - Projects
-      summary: Get issues with full info
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VulnerabilityFullModel'
-            text/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/VulnerabilityFullModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/issues/{issueId}/hash':
-    get:
-      tags:
-        - Projects
-      summary: Get issue hash
-      parameters:
-        - name: projectId
-          in: path
-          description: Project`s id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: issueId
-          in: path
-          description: Issue ids model
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/issues/hash':
-    post:
-      tags:
-        - Projects
-      summary: Get issues hash
-      parameters:
-        - name: projectId
-          in: path
-          description: Project`s id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Issue ids model
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/IssueIdsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IssueIdsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/IssueIdsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/IssueIdsModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-            text/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/projectType':
-    get:
-      tags:
-        - Projects
-      summary: Get project type
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProjectType'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ProjectType'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/scanResults/{scanResultId}/vfs':
-    get:
-      tags:
-        - Projects
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Node'
-            text/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Node'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/issues/{issueId}/exploit':
-    put:
-      tags:
-        - Projects
-      summary: Update issue exploit
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: issueId
-          in: path
-          description: Vulnerability id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Details of changing exploit
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/UpdateIssueExploitModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateIssueExploitModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/UpdateIssueExploitModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/UpdateIssueExploitModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/issues/autoApprove':
-    put:
-      tags:
-        - Projects
-      summary: Set issues auto approval state
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Model with issue ids
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/SetIssuesAutoApprovalStateModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SetIssuesAutoApprovalStateModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/SetIssuesAutoApprovalStateModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/SetIssuesAutoApprovalStateModel'
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/issues/state/byHashId':
-    put:
-      tags:
-        - Projects
-      summary: Change issues state
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: Details of changing approval statuses
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ChangeIssuesApprovalStateByHashIdModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChangeIssuesApprovalStateByHashIdModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ChangeIssuesApprovalStateByHashIdModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ChangeIssuesApprovalStateByHashIdModel'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/scanResults/{scanResultId}/stage':
-    put:
-      tags:
-        - Projects
-      summary: Set scan result stage. Only for agents
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: stage
-          in: query
-          description: Stage
-          schema:
-            $ref: '#/components/schemas/Stage'
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/projects/scanResults/{scanResultId}/projectId':
-    get:
-      tags:
-        - Projects
-      summary: "Get project id by scan result id (need this to check project permissions in routes, where only scanResultId is coming)\r\nOnly for internal usage"
-      parameters:
-        - name: scanResultId
-          in: path
-          description: ScanResult id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/scanResults/{projectId}/upload':
-    post:
-      tags:
-        - Projects
-      summary: "Update the project's scan results and other related meta-information:\r\n* Scan results\r\n* VFS\r\n* Issues list (including statuses)\r\n* Issues statistics\r\n* Scan result statistics"
-      parameters:
-        - name: projectId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: ''
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ScanArtifactsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScanArtifactsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ScanArtifactsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ScanArtifactsModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/settings/sourceType':
-    put:
-      tags:
-        - Projects
-      summary: Update project source type
-      parameters:
-        - name: projectId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: sourceType
-          in: query
-          description: ''
-          schema:
-            $ref: '#/components/schemas/SourceType'
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/branches':
-    get:
-      tags:
-        - Projects
-      summary: Get project branches
-      parameters:
-        - name: projectId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BranchModel'
-            text/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/BranchModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-    post:
-      tags:
-        - Projects
-      summary: Create branch in project
-      parameters:
-        - name: projectId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: ''
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/BranchBaseModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BranchBaseModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/BranchBaseModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/BranchBaseModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/branches/count':
-    get:
-      tags:
-        - Projects
-      summary: Get project branches count
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: integer
-                format: int32
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/branches/ids':
-    get:
-      tags:
-        - Projects
-      summary: Get project branches ids
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-            text/json:
-              schema:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/branches/working':
-    get:
-      tags:
-        - Projects
-      summary: 'Get user main branch id if token of user passed, the default branch otherwise'
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/branches/{branchId}/exist':
-    get:
-      tags:
-        - Projects
-      summary: Check if branch exist in project
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: branchId
-          in: path
-          description: Branch id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
   '/api/projects/{projectId}':
@@ -5279,6 +3503,65 @@ paths:
         '401':
           description: Unauthorized
   /api/projects/withScans:
+    get:
+      tags:
+        - Projects
+      summary: Get projects with high vulnerabilities statistic
+      parameters:
+        - name: ProjectName
+          in: query
+          schema:
+            type: string
+        - name: Stages
+          in: query
+          schema:
+            type: string
+        - name: PolicyStates
+          in: query
+          schema:
+            type: string
+        - name: languages
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort options
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ProjectSortModel'
+        - name: limit
+          in: query
+          description: 'Number of items per page. Default value is -1. By default, gets all items'
+          schema:
+            type: integer
+            format: int32
+            default: -1
+        - name: offset
+          in: query
+          description: 'Number of items to skip. Default value is 0. By default, does not skip items'
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectWithScanInfoModel'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectWithScanInfoModel'
+        '401':
+          description: Unauthorized
+  /api/projects/withScansLegacy:
     get:
       tags:
         - Projects
@@ -5963,81 +4246,6 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  '/api/projects/{projectId}/pmRules':
-    get:
-      tags:
-        - Projects
-      summary: Get PM rules
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PmRulesBaseModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/PmRulesBaseModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Projects
-      summary: Update PM rules
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        description: PM rules model
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/PmRulesBaseModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PmRulesBaseModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/PmRulesBaseModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/PmRulesBaseModel'
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
   '/api/projects/{projectId}/analysisRules':
     get:
       tags:
@@ -6057,12 +4265,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AnalysisRulesModel'
+                $ref: '#/components/schemas/AnalysisRulesSettingsModel'
             text/json:
               schema:
-                $ref: '#/components/schemas/AnalysisRulesModel'
-        '400':
-          description: Bad Request
+                $ref: '#/components/schemas/AnalysisRulesSettingsModel'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
           content:
             application/json:
               schema:
@@ -6070,8 +4280,6 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
     put:
       tags:
         - Projects
@@ -6089,16 +4297,16 @@ paths:
         content:
           application/json-patch+json:
             schema:
-              $ref: '#/components/schemas/AnalysisRulesBaseModel'
+              $ref: '#/components/schemas/AnalysisRulesUpdateSettingsModel'
           application/json:
             schema:
-              $ref: '#/components/schemas/AnalysisRulesBaseModel'
+              $ref: '#/components/schemas/AnalysisRulesUpdateSettingsModel'
           text/json:
             schema:
-              $ref: '#/components/schemas/AnalysisRulesBaseModel'
+              $ref: '#/components/schemas/AnalysisRulesUpdateSettingsModel'
           application/*+json:
             schema:
-              $ref: '#/components/schemas/AnalysisRulesBaseModel'
+              $ref: '#/components/schemas/AnalysisRulesUpdateSettingsModel'
       responses:
         '200':
           description: OK
@@ -6905,6 +5113,44 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+  '/api/projects/{projectId}/branches':
+    get:
+      tags:
+        - Projects
+      summary: Get project branches
+      parameters:
+        - name: projectId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BranchModel'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BranchModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
   '/api/projects/{projectId}/branches/withScans':
     get:
       tags:
@@ -7232,7 +5478,7 @@ paths:
     post:
       tags:
         - Reports
-      summary: "Generate report\r\nPass sessionId in model for progress notifications.\r\nsessionId will be removed when the report generation process becomes asynchronous"
+      summary: "Generate report\nPass sessionId in model for progress notifications.\nsessionId will be removed when the report generation process becomes asynchronous"
       requestBody:
         description: Report generate model
         content:
@@ -7518,121 +5764,6 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/scanAgents/registration:
-    post:
-      tags:
-        - ScanAgent
-      summary: Register agent. Only for scan agents
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/RegisterAgentModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterAgentModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/RegisterAgentModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/RegisterAgentModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-                format: uuid
-        '401':
-          description: Unauthorized
-  '/api/scanAgents/{scanAgentId}/status':
-    post:
-      tags:
-        - ScanAgent
-      summary: Update agent status. Only for scan agents
-      parameters:
-        - name: scanAgentId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/UpdateAgentStatusModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateAgentStatusModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/UpdateAgentStatusModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/UpdateAgentStatusModel'
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/scanAgents/{scanAgentId}/alive':
-    post:
-      tags:
-        - ScanAgent
-      summary: Set agent is alive. Only for scan agents
-      parameters:
-        - name: scanAgentId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/scanAgents/registration/{scanAgentId}':
-    delete:
-      tags:
-        - ScanAgent
-      summary: Unregister agent . Only for scan agents
-      parameters:
-        - name: scanAgentId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
   /api/scanAgents:
     get:
       tags:
@@ -7755,7 +5886,7 @@ paths:
     post:
       tags:
         - ScanAgent
-      summary: 'Activate agent, i.e. set it''s status to Active'
+      summary: 'Activate agent, i.e. set status to Active'
       parameters:
         - name: scanAgentId
           in: path
@@ -7790,114 +5921,6 @@ paths:
               schema:
                 type: integer
                 format: int32
-        '401':
-          description: Unauthorized
-  '/api/scans/{scanAgentId}':
-    get:
-      tags:
-        - ScanQueue
-      summary: Get scan task. Only for scan agents
-      parameters:
-        - name: scanAgentId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScanTaskModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ScanTaskModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/scans/{scanResultId}/fail':
-    post:
-      tags:
-        - ScanQueue
-      summary: Set scan failed. Only for scan agents
-      parameters:
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/scans/lockScheduling:
-    put:
-      tags:
-        - ScanQueue
-      summary: Lock scheduling new scans
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/scans/unlockScheduling:
-    put:
-      tags:
-        - ScanQueue
-      summary: Unlock scheduling new scans
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/scans/isSchedulingLocked:
-    get:
-      tags:
-        - ScanQueue
-      summary: Get scheduling lock state
-      responses:
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
   /api/scans:
@@ -8102,7 +6125,7 @@ paths:
     get:
       tags:
         - ServerSettings
-      summary: Get current certificater
+      summary: Get current certificate
       responses:
         '200':
           description: OK
@@ -8113,78 +6136,6 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/CertificateInfoModel'
-        '401':
-          description: Unauthorized
-  /api/update/status:
-    get:
-      tags:
-        - ServerUpdate
-      summary: Get current update status
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UpdateStatusType'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/UpdateStatusType'
-  /api/settings:
-    get:
-      tags:
-        - Settings
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SettingsScopeModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/SettingsScopeModel'
-        '401':
-          description: Unauthorized
-  /api/settings/scanScheduler:
-    get:
-      tags:
-        - Settings
-      summary: Settings for scan scheduler to an external system
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-        '401':
-          description: Unauthorized
-    put:
-      tags:
-        - Settings
-      summary: Settings for scan scheduler to an external system
-      requestBody:
-        description: ''
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ScanSchedulerSettingsModel'
-      responses:
-        '200':
-          description: OK
         '401':
           description: Unauthorized
   /api/settings/logs:
@@ -8622,7 +6573,7 @@ paths:
     post:
       tags:
         - SourceControl
-      summary: Checkout repository with creating new branch. Pass settings in body. Progress send in the background in notifications
+      summary: "Checkout repository with creating new branch. Pass settings in body. Progress send in the background in\nnotifications"
       parameters:
         - name: projectId
           in: path
@@ -8633,7 +6584,7 @@ paths:
             format: uuid
         - name: actualizeProjectSettings
           in: query
-          description: Should be true if need to actualize project settings. Available only while project creating process
+          description: "Should be true if we need to actualize project settings. Available only while\nproject creating process"
           schema:
             type: boolean
       requestBody:
@@ -8714,7 +6665,7 @@ paths:
       parameters:
         - name: operationId
           in: path
-          description: Operation id id
+          description: Operation id
           required: true
           schema:
             type: string
@@ -8731,398 +6682,27 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/stat/vulnTimeDistrib:
-    post:
-      tags:
-        - Statistic
-      summary: Get vulnerabilities time distribution statistic
-      requestBody:
-        content:
-          application/json-patch+json:
-            schema:
-              $ref: '#/components/schemas/VulnTimeDistribFilterModel'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VulnTimeDistribFilterModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/VulnTimeDistribFilterModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/VulnTimeDistribFilterModel'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StatisticByScanResultModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/StatisticByScanResultModel'
-        '401':
-          description: Unauthorized
-  /api/stat/vulnState:
-    get:
-      tags:
-        - Statistic
-      summary: Get vulnerabilities state
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StatisticVulnStateResultModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/StatisticVulnStateResultModel'
-        '401':
-          description: Unauthorized
-  '/api/store/{projectId}/branches/{branchId}/temp':
-    get:
-      tags:
-        - Store
-      summary: Download project temp's
-      parameters:
-        - name: projectId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: branchId
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/zip:
-              schema:
-                type: string
-                format: binary
-        '400':
-          description: Bad Request
-          content:
-            application/zip:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-    post:
-      tags:
-        - Store
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: branchId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-            encoding:
-              file:
-                style: form
-      responses:
-        '200':
-          description: OK
-        '401':
-          description: Unauthorized
-  '/api/store/{projectId}/logs/{scanResultId}':
-    get:
-      tags:
-        - Store
-      summary: Download scan logs
-      parameters:
-        - name: projectId
-          in: path
-          description: project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/zip:
-              schema:
-                type: string
-                format: binary
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/zip:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-    post:
-      tags:
-        - Store
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-            encoding:
-              file:
-                style: form
-      responses:
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-  '/api/store/{projectId}/reports/{scanResultId}':
-    get:
-      tags:
-        - Store
-      summary: Download scan reports
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/zip:
-              schema:
-                type: string
-                format: binary
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/zip:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-    post:
-      tags:
-        - Store
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-            encoding:
-              file:
-                style: form
-      responses:
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-  '/api/store/{projectId}/graphs/{scanResultId}':
-    get:
-      tags:
-        - Store
-      summary: Download scan graph
-      parameters:
-        - name: projectId
-          in: path
-          description: Project id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/html:
-              schema:
-                type: string
-                format: binary
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            text/html:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-    post:
-      tags:
-        - Store
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-            encoding:
-              file:
-                style: form
-      responses:
-        '401':
-          description: Unauthorized
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-  '/api/store/{branchId}/graphs/{scanResultId}/graphExists':
-    get:
-      tags:
-        - Store
-      parameters:
-        - name: branchId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
         '401':
           description: Unauthorized
   /api/store/project:
     post:
       tags:
         - Store
-      summary: 'Create project with branch, sources and default settings. Uploading sources in the background after returning creation result model. Pass files in Form'
+      summary: "Create project with branch, sources and default settings. Uploading sources in the background after returning\ncreation result model. Pass files and branch creation parameters in Form"
       requestBody:
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
-                branchName:
+                Name:
                   type: string
-                branchDescription:
+                Description:
                   type: string
             encoding:
-              branchName:
+              Name:
                 style: form
-              branchDescription:
+              Description:
                 style: form
       responses:
         '200':
@@ -9149,7 +6729,7 @@ paths:
     post:
       tags:
         - Store
-      summary: Create branch with sources. Uploading sources in the background after returning branch Id. Pass files in Form
+      summary: "Create branch with sources. Uploading sources in the background after returning branch Id. Pass files and branch\ncreation parameters in Form"
       parameters:
         - name: projectId
           in: path
@@ -9164,14 +6744,14 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                Name:
                   type: string
-                description:
+                Description:
                   type: string
             encoding:
-              name:
+              Name:
                 style: form
-              description:
+              Description:
                 style: form
       responses:
         '200':
@@ -9196,21 +6776,21 @@ paths:
     post:
       tags:
         - Store
-      summary: Create project and default settings. Pass archive with sources in Form. Only one file should be passed
+      summary: "Create project and default settings. Pass archive with sources and branch creation parameters in Form. Only one\nfile should be passed"
       requestBody:
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
-                branchName:
+                Name:
                   type: string
-                branchDescription:
+                Description:
                   type: string
             encoding:
-              branchName:
+              Name:
                 style: form
-              branchDescription:
+              Description:
                 style: form
       responses:
         '200':
@@ -9237,7 +6817,7 @@ paths:
     post:
       tags:
         - Store
-      summary: Create branch. Pass archive with sources in Form. Only one file should be passed
+      summary: Create branch. Pass archive with sources and branch creation parameters in Form. Only one file should be passed
       parameters:
         - name: projectId
           in: path
@@ -9252,14 +6832,14 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                Name:
                   type: string
-                description:
+                Description:
                   type: string
             encoding:
-              name:
+              Name:
                 style: form
-              description:
+              Description:
                 style: form
       responses:
         '200':
@@ -9312,7 +6892,7 @@ paths:
     post:
       tags:
         - Store
-      summary: Upload user main branch sources using files collection
+      summary: Upload user main branch sources using files collection. Pass branch creation parameters in Form
       parameters:
         - name: projectId
           in: path
@@ -9332,14 +6912,14 @@ paths:
             schema:
               type: object
               properties:
-                branchName:
+                Name:
                   type: string
-                branchDescription:
+                Description:
                   type: string
             encoding:
-              branchName:
+              Name:
                 style: form
-              branchDescription:
+              Description:
                 style: form
       responses:
         '200':
@@ -9394,7 +6974,7 @@ paths:
     post:
       tags:
         - Store
-      summary: Upload sources using files collection
+      summary: Upload sources using files collection. Pass branch creation parameters in Form
       parameters:
         - name: projectId
           in: path
@@ -9421,14 +7001,14 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                Name:
                   type: string
-                description:
+                Description:
                   type: string
             encoding:
-              name:
+              Name:
                 style: form
-              description:
+              Description:
                 style: form
       responses:
         '200':
@@ -9683,35 +7263,22 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  '/api/auth/users/{login}':
+  '/api/store/{projectId}/graphs/{scanResultId}':
     get:
       tags:
-        - User
+        - Store
+      summary: Download scan graph
       parameters:
-        - name: login
+        - name: projectId
           in: path
+          description: Project id
           required: true
           schema:
             type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/UserModel'
-        '401':
-          description: Unauthorized
-  '/api/auth/users/{id}':
-    get:
-      tags:
-        - User
-      parameters:
-        - name: id
+            format: uuid
+        - name: scanResultId
           in: path
+          description: Scan result id
           required: true
           schema:
             type: string
@@ -9720,43 +7287,90 @@ paths:
         '200':
           description: OK
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: '#/components/schemas/UserModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/UserModel'
+                type: string
+                format: binary
         '401':
           description: Unauthorized
-  '/api/auth/users/{userId}/projects':
+        '404':
+          description: Not Found
+          content:
+            text/html:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/store/{projectId}/sboms/{scanResultId}':
     get:
       tags:
-        - User
+        - Store
+      summary: Download scan sboms
       parameters:
-        - name: userId
+        - name: projectId
           in: path
+          description: Project id
           required: true
           schema:
             type: string
             format: uuid
-        - name: permissions
-          in: query
+        - name: scanResultId
+          in: path
+          description: Scan result id
+          required: true
           schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/PermissionType'
+            type: string
+            format: uuid
       responses:
-        '400':
-          description: Bad Request
+        '200':
+          description: OK
           content:
-            application/json:
+            application/zip:
               schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
+                type: string
+                format: binary
         '401':
           description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/zip:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/store/{projectId}/logs/{scanResultId}':
+    get:
+      tags:
+        - Store
+      summary: Download scan logs
+      parameters:
+        - name: projectId
+          in: path
+          description: project id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: scanResultId
+          in: path
+          description: Scan result id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/zip:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/auth/users/current:
     get:
       tags:
@@ -9980,210 +7594,6 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  '/api/versions/{product}/latest':
-    get:
-      tags:
-        - Version
-      summary: Get latest product version number (current or candidate)
-      parameters:
-        - name: product
-          in: path
-          description: product code
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/versions/package/latest:
-    get:
-      tags:
-        - Version
-      summary: Get latest package version number (current or candidate)
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/versions/{product}/current':
-    get:
-      tags:
-        - Version
-      summary: Get current product version number
-      parameters:
-        - name: product
-          in: path
-          description: ''
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/versions/package/deployed:
-    get:
-      tags:
-        - Version
-      summary: Gets deploy time
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/versions/{product}/hasNew':
-    get:
-      tags:
-        - Version
-      summary: Check product has new version
-      parameters:
-        - name: product
-          in: path
-          description: product code
-          required: true
-          schema:
-            type: string
-        - name: version
-          in: query
-          description: current installed version number
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/versions/{product}/isAllowed':
-    get:
-      tags:
-        - Version
-      summary: Check allowed version of product
-      parameters:
-        - name: product
-          in: path
-          description: product code
-          required: true
-          schema:
-            type: string
-        - name: version
-          in: query
-          description: current installed version number
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  /api/versions/package/hasCandidateOnFus:
-    get:
-      tags:
-        - Version
-      summary: Check has package candidate on fus
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '401':
-          description: Unauthorized
-  /api/versions/package/hasCandidate:
-    get:
-      tags:
-        - Version
-      summary: Check has package candidate
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: boolean
-        '401':
-          description: Unauthorized
   /api/versions/package/current:
     get:
       tags:
@@ -10253,13 +7663,6 @@ components:
         - ScanAgent
         - LightClientAndPlugins
       type: string
-    AccessTokenValidationModel:
-      type: object
-      properties:
-        value:
-          type: string
-          nullable: true
-      additionalProperties: false
     ActionResult:
       type: object
       additionalProperties: false
@@ -10276,17 +7679,33 @@ components:
         branch:
           $ref: '#/components/schemas/BranchLightModel'
       additionalProperties: false
-    AnalysisRulesBaseModel:
+    AnalysisRulesSettingsModel:
+      required:
+        - applyAllPmRules
+        - pmGroupIds
       type: object
       properties:
-        pmRules:
-          $ref: '#/components/schemas/PmRulesBaseModel'
+        applyAllPmRules:
+          type: boolean
+        pmGroupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
       additionalProperties: false
-    AnalysisRulesModel:
+    AnalysisRulesUpdateSettingsModel:
+      required:
+        - applyAllPmRules
+        - pmGroupIds
       type: object
       properties:
-        pmRules:
-          $ref: '#/components/schemas/PmRulesBaseModel'
+        applyAllPmRules:
+          type: boolean
+        pmGroupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
       additionalProperties: false
     ApiErrorModel:
       type: object
@@ -10332,6 +7751,7 @@ components:
         - EXT_AUTH_PROVIDER_WITH_SAME_NAME_ALREADY_EXISTS
         - EXT_AUTH_SETTINGS_TEST_CONNECTION_FAILED
         - EXT_AUTH_PROVIDER_LDAP_WITH_SAME_SETTINGS_ALREADY_EXISTS
+        - EXT_AUTH_PROVIDER_FORBIDDEN
         - EXT_AUTH_SIGNIN_ERROR
         - EXT_AUTH_SIGNIN_CALLBACK_ERROR
         - EXT_AUTH_SIGNIN_PROVIDER_IS_EMPTY_OR_DISABLED
@@ -10365,6 +7785,7 @@ components:
         - PORT_IS_NOT_SPECIFIED
         - INCORRECT_DATE_VALUE
         - LOGS_NOT_FOUND
+        - EXT_LOG_SYSTEM_FORBIDDEN
         - PROJECT_WITH_SAME_NAME_ALREADY_EXISTS
         - UNEXPECTED_SCAN_STAGE
         - PROJECT_NOT_FOUND
@@ -10408,7 +7829,10 @@ components:
         - ONLY_BRANCH_WITH_LOCAL_SOURCE_TYPE_CAN_BE_UPDATED
         - LAST_BRANCH_CAN_NOT_BE_DELETED
         - MAIN_BRANCH_CAN_NOT_BE_DELETED
+        - PM_GROUP_NOT_FOUND
+        - INCORRECT_PM_GROUP
         - ISSUE_TRACKER_CONNECTION_NOT_FOUND
+        - ISSUE_TRACKER_CONNECTION_FORBIDDEN
         - ISSUE_TRACKER_CONNECTION_SETTINGS_NOT_SET
         - ISSUE_TRACKER_CONNECTION_FAILED
         - ISSUE_TRACKER_SETTINGS_ID_NOT_SET
@@ -10474,11 +7898,12 @@ components:
         - SCAN_IS_PROCESSING
         - SERVER_CERTIFICATE_NOT_FOUND
         - FILESYSTEM_ERROR_ACCESS_DENIED
+        - INVALID_LIMIT_SIZE
+        - INVALID_CONTENT_TYPE
         - VAULT_CREDENTIALS_NOT_FOUND
         - REPORT_TEMPLATE_NOT_FOUND
         - REPORT_GENERATE_FAILED
         - REPORT_TEMPLATE_INVALID
-        - REPORT_TEMPLATE_UNKNOWN_FORMAT
         - REPORT_INCORRECT_PARAMETERS
         - REPORT_TEMPLATE_WITH_SAME_NAME_ALREADY_EXISTS
         - REPORT_TEMPLATE_FILE_NAME_INCORRECT_MACROS
@@ -10495,6 +7920,12 @@ components:
         - EMPTY_CHECKOUT_SETTINGS
         - COULD_NOT_CHANGE_VCS_CONNECTION_SETTINGS
         - COULD_NOT_CHANGE_VCS_TARGET_ENV
+        - INCOMPATIBLE_VERSION
+        - CANNOT_MERGE_SCAN_HISTORY
+        - CONFLICTING_ENTITIES
+        - PROXY_HOST_CONNECTION_FORBIDDEN
+        - PROXY_HOST_CONNECTION_INVALID
+        - SMTP_HOST_CONNECTION_FORBIDDEN
       type: string
     AuthProviderScheme:
       enum:
@@ -10611,19 +8042,6 @@ components:
         blackBox:
           $ref: '#/components/schemas/BlackBoxSettingsBaseModel'
       additionalProperties: false
-    BaseCveFeedSettings:
-      type: object
-      properties:
-        modifiedUrl:
-          type: string
-          nullable: true
-        baseUrl:
-          type: string
-          nullable: true
-        retireJsUrl:
-          type: string
-          nullable: true
-      additionalProperties: false
     BaseTicketLinkModel:
       type: object
       properties:
@@ -10667,15 +8085,6 @@ components:
           $ref: '#/components/schemas/BlackBoxHttpAuthenticationModel'
         cookie:
           $ref: '#/components/schemas/BlackBoxRawCookieAuthenticationModel'
-      additionalProperties: false
-    BlackBoxCredentialsModel:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/CredentialsType'
-        credentials:
-          type: string
-          nullable: true
       additionalProperties: false
     BlackBoxFormat:
       enum:
@@ -10851,6 +8260,7 @@ components:
           type: object
           additionalProperties:
             type: string
+            nullable: true
           nullable: true
         request:
           $ref: '#/components/schemas/IssueExploitDataModel'
@@ -10996,6 +8406,8 @@ components:
           nullable: true
         syncInfo:
           $ref: '#/components/schemas/SyncInfoModel'
+        importMetadata:
+          $ref: '#/components/schemas/ImportMetadataModel'
       additionalProperties: false
     ChangeIssueApprovalStateModel:
       type: object
@@ -11021,21 +8433,6 @@ components:
         comment:
           type: string
           nullable: true
-      additionalProperties: false
-    ChangeIssuesApprovalStateByHashIdModel:
-      type: object
-      properties:
-        issuesStates:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/IssueApprovalState'
-          nullable: true
-        comment:
-          type: string
-          nullable: true
-        scanResultId:
-          type: string
-          format: uuid
       additionalProperties: false
     ChangeIssuesApprovalStateModel:
       type: object
@@ -11147,14 +8544,6 @@ components:
         credentials:
           $ref: '#/components/schemas/CredentialsModel'
       additionalProperties: false
-    CreateProjectModel:
-      type: object
-      properties:
-        settings:
-          $ref: '#/components/schemas/ProjectSettingsUpdateModel'
-        isTemp:
-          type: boolean
-      additionalProperties: false
     CredentialsModel:
       type: object
       properties:
@@ -11165,17 +8554,6 @@ components:
         oAuth:
           $ref: '#/components/schemas/OAuthCredentialsModel'
       additionalProperties: false
-    CredentialsType:
-      enum:
-        - None
-        - Basic
-        - Token
-        - Ssh
-        - Certificate
-        - Cookie
-        - OAuth1A
-        - SshPrivateKey
-      type: string
     CvssModel:
       type: object
       properties:
@@ -11190,22 +8568,6 @@ components:
           nullable: true
         severity:
           $ref: '#/components/schemas/IssueLevel'
-      additionalProperties: false
-    DatabaseSettings:
-      type: object
-      properties:
-        connectionString:
-          type: string
-          nullable: true
-        clientCert:
-          type: string
-          nullable: true
-        clientCertKey:
-          type: string
-          nullable: true
-        caCert:
-          type: string
-          nullable: true
       additionalProperties: false
     DataFormat:
       enum:
@@ -11263,6 +8625,9 @@ components:
             Solidity:
               type: number
               format: double
+            Scala:
+              type: number
+              format: double
           additionalProperties: false
           nullable: true
         dotNetSettings:
@@ -11309,6 +8674,9 @@ components:
     DirectoryContent:
       type: object
       properties:
+        name:
+          type: string
+          nullable: true
         _directories:
           type: array
           items:
@@ -11319,9 +8687,6 @@ components:
             type: string
         _hasContent:
           type: boolean
-        name:
-          type: string
-          nullable: true
       additionalProperties: false
     DotNetProjectType:
       enum:
@@ -11347,6 +8712,9 @@ components:
           type: boolean
         downloadDependencies:
           type: boolean
+        dslRulesRelativePath:
+          type: string
+          nullable: true
       additionalProperties: false
     ElasticSearchLogFormat:
       enum:
@@ -11645,14 +9013,6 @@ components:
         - IgnoredFilesListHasChanged
         - SyncedFromPlugins
       type: string
-    GlobalScanSettingsModel:
-      type: object
-      properties:
-        ignoreLineNumbersOnDiff:
-          type: boolean
-        ignoreAdditionalConditionOnDiff:
-          type: boolean
-      additionalProperties: false
     GoSettingsModel:
       type: object
       properties:
@@ -11661,6 +9021,14 @@ components:
           nullable: true
         useAvailablePublicAndProtectedMethods:
           type: boolean
+        downloadDependencies:
+          type: boolean
+        dependenciesPath:
+          type: string
+          nullable: true
+        dslRulesRelativePath:
+          type: string
+          nullable: true
       additionalProperties: false
     HealthCheckServiceResult:
       type: object
@@ -11700,6 +9068,58 @@ components:
           nullable: true
         value:
           type: string
+          nullable: true
+      additionalProperties: false
+    ImportMetadataModel:
+      required:
+        - importedAt
+        - importedFrom
+      type: object
+      properties:
+        importedAt:
+          type: string
+          format: date-time
+        importedFrom:
+          type: string
+          nullable: true
+      additionalProperties: false
+    ImportResultModel:
+      required:
+        - branchId
+        - errors
+        - exportDate
+        - importDate
+        - issuesTotal
+        - issuesUploaded
+        - projectId
+        - sourceServerName
+      type: object
+      properties:
+        exportDate:
+          type: string
+          format: date-time
+        importDate:
+          type: string
+          format: date-time
+        sourceServerName:
+          type: string
+          nullable: true
+        projectId:
+          type: string
+          format: uuid
+        branchId:
+          type: string
+          format: uuid
+        issuesTotal:
+          type: integer
+          format: int32
+        issuesUploaded:
+          type: integer
+          format: int32
+        errors:
+          type: array
+          items:
+            type: string
           nullable: true
       additionalProperties: false
     InitiatorInfoModel:
@@ -11809,16 +9229,6 @@ components:
         - Script
         - Interaction
       type: string
-    IssueIdsModel:
-      type: object
-      properties:
-        issueIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-      additionalProperties: false
     IssueLevel:
       enum:
         - None
@@ -11866,45 +9276,12 @@ components:
             $ref: '#/components/schemas/IssueMetadataModel'
           nullable: true
       additionalProperties: false
-    IssueStatisticModel:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        scanResultId:
-          type: string
-          format: uuid
-        class:
-          $ref: '#/components/schemas/IssueType'
-        type:
-          type: string
-          nullable: true
-        level:
-          $ref: '#/components/schemas/IssueLevel'
-        state:
-          $ref: '#/components/schemas/IssueApprovalState'
-        isSuppressed:
-          type: boolean
-        count:
-          type: integer
-          format: int64
-      additionalProperties: false
     IssueTrackerAuthType:
       enum:
         - Unknown
         - Basic
         - OAuth1A
       type: string
-    IssueTrackerCredentialsModel:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/CredentialsType'
-        credentials:
-          type: string
-          nullable: true
-      additionalProperties: false
     IssueTrackerIntegrationSettingsModel:
       type: object
       properties:
@@ -11949,7 +9326,6 @@ components:
         - Configuration
         - Fingerprint
         - BlackBox
-        - YaraMatch
         - Pygrep
         - Sca
         - FingerprintSca
@@ -11964,10 +9340,16 @@ components:
           type: boolean
         downloadDependencies:
           type: boolean
+        dependenciesPath:
+          type: string
+          nullable: true
         useTaintAnalysis:
           type: boolean
         useJsaAnalysis:
           type: boolean
+        dslRulesRelativePath:
+          type: string
+          nullable: true
       additionalProperties: false
     JavaSettingsModel:
       type: object
@@ -11990,6 +9372,9 @@ components:
         downloadDependencies:
           type: boolean
         dependenciesPath:
+          type: string
+          nullable: true
+        dslRulesRelativePath:
           type: string
           nullable: true
       additionalProperties: false
@@ -12078,15 +9463,7 @@ components:
         - Ruby
         - CSharp
         - Solidity
-      type: string
-    LifeTimeStatus:
-      enum:
-        - New
-        - Changed
-        - DependencyChanged
-        - Removed
-        - Actual
-        - IncludeChanged
+        - Scala
       type: string
     LightMailProfileModel:
       type: object
@@ -12278,22 +9655,6 @@ components:
         allProjects:
           type: boolean
       additionalProperties: false
-    MessageQueueSettings:
-      type: object
-      properties:
-        userName:
-          type: string
-          nullable: true
-        password:
-          type: string
-          nullable: true
-        host:
-          type: string
-          nullable: true
-        port:
-          type: integer
-          format: int32
-      additionalProperties: false
     MetaVarModel:
       type: object
       properties:
@@ -12316,48 +9677,6 @@ components:
           type: integer
           format: int32
       additionalProperties: false
-    Node:
-      type: object
-      properties:
-        PhysicalPath:
-          type: string
-          nullable: true
-        NodePath:
-          type: string
-          nullable: true
-        MaxIssueLevel:
-          $ref: '#/components/schemas/IssueLevel'
-        ScanByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        ScanningByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        ScannedByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        NodeType:
-          $ref: '#/components/schemas/NodeType'
-        IncludeInScan:
-          type: boolean
-        LifeTimeStatus:
-          $ref: '#/components/schemas/LifeTimeStatus'
-        LastModifiedDate:
-          type: integer
-          format: int64
-        Hash:
-          type: string
-          format: byte
-          nullable: true
-      additionalProperties: false
-    NodeType:
-      enum:
-        - Unknown
-        - File
-        - Folder
-        - FileWithEntry
-        - VirtualFolder
-        - FileWithDecompiledData
-        - DecompiledData
-        - FileWithDownloadedDependency
-      type: string
     Oauth1AccessTokenModel:
       type: object
       properties:
@@ -12439,11 +9758,6 @@ components:
         responseType:
           $ref: '#/components/schemas/OpenIdResponseType'
       additionalProperties: false
-    OperatingSystem:
-      enum:
-        - Windows
-        - Linux
-      type: string
     OptionValueModel:
       type: object
       properties:
@@ -12516,6 +9830,50 @@ components:
           type: boolean
         downloadDependencies:
           type: boolean
+        dependenciesPath:
+          type: string
+          nullable: true
+        dslRulesRelativePath:
+          type: string
+          nullable: true
+      additionalProperties: false
+    PMGroupModel:
+      required:
+        - id
+        - modifiedBy
+        - modifiedDate
+        - name
+        - rulesCount
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          minLength: 1
+          type: string
+        modifiedDate:
+          type: string
+          format: date-time
+        modifiedBy:
+          $ref: '#/components/schemas/UserModel'
+        rulesCount:
+          type: integer
+          format: int32
+      additionalProperties: false
+    PMGroupUpsertModel:
+      required:
+        - name
+        - rules
+      type: object
+      properties:
+        name:
+          minLength: 1
+          type: string
+        rules:
+          type: array
+          items:
+            type: string
       additionalProperties: false
     PmRuleCreateUpdateModel:
       type: object
@@ -12523,6 +9881,12 @@ components:
         vulnerabilityTypeId:
           type: string
           format: uuid
+          nullable: true
+        pmGroupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
           nullable: true
         name:
           type: string
@@ -12533,7 +9897,7 @@ components:
         programmingLanguages:
           type: array
           items:
-            $ref: '#/components/schemas/ProgrammingLanguages'
+            $ref: '#/components/schemas/PmTaintProgrammingLanguages'
           nullable: true
         dataFormat:
           $ref: '#/components/schemas/DataFormat'
@@ -12574,7 +9938,7 @@ components:
         programmingLanguages:
           type: array
           items:
-            $ref: '#/components/schemas/ProgrammingLanguages'
+            $ref: '#/components/schemas/PmTaintProgrammingLanguages'
           nullable: true
         dataFormat:
           $ref: '#/components/schemas/DataFormat'
@@ -12589,12 +9953,6 @@ components:
         contactInfo:
           type: string
           nullable: true
-      additionalProperties: false
-    PmRulesBaseModel:
-      type: object
-      properties:
-        useRules:
-          type: boolean
       additionalProperties: false
     PmRuleVulnCreationType:
       enum:
@@ -12626,6 +9984,53 @@ components:
         creationType:
           $ref: '#/components/schemas/PmRuleVulnCreationType'
       additionalProperties: false
+    PmRuleWithGroupsModel:
+      type: object
+      properties:
+        pmGroupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        id:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          format: int32
+        modifiedDate:
+          type: string
+          format: date-time
+        modifiedBy:
+          $ref: '#/components/schemas/UserModel'
+        vulnerabilityType:
+          $ref: '#/components/schemas/PmRuleVulnTypeModel'
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        programmingLanguages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PmTaintProgrammingLanguages'
+          nullable: true
+        dataFormat:
+          $ref: '#/components/schemas/DataFormat'
+        filenameWildcard:
+          type: string
+          nullable: true
+        value:
+          type: string
+          nullable: true
+        level:
+          $ref: '#/components/schemas/IssueLevel'
+        contactInfo:
+          type: string
+          nullable: true
+      additionalProperties: false
     PmTaintBaseSettingsModel:
       type: object
       properties:
@@ -12635,11 +10040,40 @@ components:
         useAvailablePublicAndProtectedMethods:
           type: boolean
       additionalProperties: false
+    PmTaintProgrammingLanguages:
+      enum:
+        - None
+        - Php
+        - Java
+        - Html
+        - JavaScript
+        - PlSql
+        - TSql
+        - Aspx
+        - C
+        - CPlusPlus
+        - ObjectiveC
+        - Swift
+        - MySql
+        - Python
+        - CSharp
+        - Go
+        - Kotlin
+        - TypeScript
+        - Ruby
+        - Solidity
+        - Scala
+      type: string
     PmTaintSettingsModel:
       type: object
       properties:
-        useCustomPmRules:
+        applyAllPmRules:
           type: boolean
+        pmGroups:
+          type: array
+          items:
+            type: string
+          nullable: true
         launchParameters:
           type: string
           nullable: true
@@ -12678,33 +10112,7 @@ components:
         - Sql
         - Ruby
         - Solidity
-      type: string
-    ProgrammingLanguages:
-      enum:
-        - None
-        - DotNet
-        - Php
-        - Java
-        - Html
-        - JavaScript
-        - SandBox
-        - Binary
-        - PlSql
-        - TSql
-        - Aspx
-        - C
-        - CPlusPlus
-        - ObjectiveC
-        - Swift
-        - MySql
-        - Python
-        - CSharpWinOnly
-        - Go
-        - Kotlin
-        - TypeScript
-        - Ruby
-        - CSharpCrossPlatform
-        - Solidity
+        - Scala
       type: string
     ProjectInfoModel:
       type: object
@@ -12767,6 +10175,9 @@ components:
           format: date-time
         projectType:
           $ref: '#/components/schemas/ProjectType'
+        projectSettingsId:
+          type: string
+          format: uuid
       additionalProperties: false
     ProjectPermissionsModel:
       type: object
@@ -12831,6 +10242,9 @@ components:
               type: number
               format: double
             Solidity:
+              type: number
+              format: double
+            Scala:
               type: number
               format: double
           additionalProperties: false
@@ -12912,14 +10326,24 @@ components:
         vcsConnectionSettings:
           $ref: '#/components/schemas/VcsConnectionSettingsModel'
       additionalProperties: false
-    ProjectSortingOptionsModel:
+    ProjectSortColumnId:
+      enum:
+        - Unknown
+        - Name
+        - Branch
+        - LastScanDate
+        - LastScanPolicyState
+        - LastScanLevel
+        - LastScanTotal
+        - LastScanFilesOrUrlsScanned
+      type: string
+    ProjectSortModel:
       type: object
       properties:
-        projectName:
-          type: string
-          nullable: true
-        languages:
-          $ref: '#/components/schemas/ProgrammingLanguages'
+        sortType:
+          $ref: '#/components/schemas/SortType'
+        projectSortColumnId:
+          $ref: '#/components/schemas/ProjectSortColumnId'
       additionalProperties: false
     ProjectType:
       enum:
@@ -12927,31 +10351,6 @@ components:
         - Disposable
         - Draft
       type: string
-    ProjectWithBaseSourceInfoModel:
-      type: object
-      properties:
-        sourceType:
-          $ref: '#/components/schemas/SourceType'
-        repositoryUrl:
-          type: string
-          nullable: true
-        languages:
-          $ref: '#/components/schemas/ProgrammingLanguages'
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-          nullable: true
-        settingsId:
-          type: string
-          format: uuid
-        creationDate:
-          type: string
-          format: date-time
-        projectType:
-          $ref: '#/components/schemas/ProjectType'
-      additionalProperties: false
     ProjectWithBranchCreationResultModel:
       type: object
       properties:
@@ -13018,6 +10417,9 @@ components:
             Solidity:
               type: number
               format: double
+            Scala:
+              type: number
+              format: double
           additionalProperties: false
           nullable: true
         isPinned:
@@ -13051,6 +10453,9 @@ components:
           format: date-time
         projectType:
           $ref: '#/components/schemas/ProjectType'
+        projectSettingsId:
+          type: string
+          format: uuid
       additionalProperties: false
     ProxySettingsModel:
       type: object
@@ -13148,6 +10553,9 @@ components:
         dependenciesPath:
           type: string
           nullable: true
+        dslRulesRelativePath:
+          type: string
+          nullable: true
       additionalProperties: false
     RefreshTokenResultModel:
       type: object
@@ -13158,18 +10566,6 @@ components:
         expiredAt:
           type: string
           format: date-time
-      additionalProperties: false
-    RegisterAgentModel:
-      type: object
-      properties:
-        name:
-          type: string
-          nullable: true
-        version:
-          type: string
-          nullable: true
-        operatingSystem:
-          $ref: '#/components/schemas/OperatingSystem'
       additionalProperties: false
     ReportGenerateModel:
       type: object
@@ -13321,6 +10717,9 @@ components:
           nullable: true
         useAvailablePublicAndProtectedMethods:
           type: boolean
+        dslRulesRelativePath:
+          type: string
+          nullable: true
       additionalProperties: false
     Saml2NameIdPolicy:
       enum:
@@ -13454,26 +10853,6 @@ components:
         - Pygrep
         - Sca
       type: string
-    ScanArtifactsModel:
-      type: object
-      properties:
-        scanResult:
-          $ref: '#/components/schemas/ScanResultModel'
-        scanSettings:
-          $ref: '#/components/schemas/ScanSettingsModel'
-        issueStatistics:
-          type: array
-          items:
-            $ref: '#/components/schemas/IssueStatisticModel'
-          nullable: true
-        vfs:
-          $ref: '#/components/schemas/VfsModel'
-        vulnerabilities:
-          type: array
-          items:
-            $ref: '#/components/schemas/VulnerabilityFullModel'
-          nullable: true
-      additionalProperties: false
     ScanEnvironmentModel:
       type: object
       properties:
@@ -13593,20 +10972,8 @@ components:
           nullable: true
         initiator:
           $ref: '#/components/schemas/InitiatorModel'
-      additionalProperties: false
-    ScanResultCreationModel:
-      type: object
-      properties:
-        scanDate:
+        scanLabel:
           type: string
-          format: date-time
-        scanEnvironment:
-          $ref: '#/components/schemas/ScanEnvironmentModel'
-        scanType:
-          $ref: '#/components/schemas/ScanType'
-        previousScanResultId:
-          type: string
-          format: uuid
           nullable: true
       additionalProperties: false
     ScanResultModel:
@@ -13653,24 +11020,19 @@ components:
           $ref: '#/components/schemas/ScanAgentInfoModel'
         hasDependencyGraph:
           type: boolean
-      additionalProperties: false
-    ScanSchedulerSettingsModel:
-      type: object
-      properties:
-        agentCheckInterval:
-          type: string
-          format: date-span
-        inactiveInterval:
-          type: string
-          format: date-span
-        deleteOldInactiveAgentsInterval:
-          type: string
-          format: date-span
-        scanQueueCheckInterval:
-          type: string
-          format: date-span
-        schedulingLocked:
+        hasSbom:
           type: boolean
+        hasErrors:
+          type: boolean
+        importMetadata:
+          $ref: '#/components/schemas/ImportMetadataModel'
+        previousScanResultId:
+          type: string
+          format: uuid
+          nullable: true
+        scanLabel:
+          type: string
+          nullable: true
       additionalProperties: false
     ScanScope:
       enum:
@@ -13743,6 +11105,9 @@ components:
               type: number
               format: double
             Solidity:
+              type: number
+              format: double
+            Scala:
               type: number
               format: double
           additionalProperties: false
@@ -13876,29 +11241,6 @@ components:
         - Finished
         - Failed
       type: string
-    ScanTaskModel:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        scanType:
-          $ref: '#/components/schemas/ScanType'
-        scanResultId:
-          type: string
-          format: uuid
-        projectId:
-          type: string
-          format: uuid
-        branchId:
-          type: string
-          format: uuid
-        additionalParameters:
-          type: array
-          items:
-            $ref: '#/components/schemas/StringStringKeyValuePair'
-          nullable: true
-      additionalProperties: false
     ScanType:
       enum:
         - Full
@@ -13922,29 +11264,12 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    SetIssuesAutoApprovalStateModel:
-      type: object
-      properties:
-        issueIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-      additionalProperties: false
-    SettingsScopeModel:
-      type: object
-      properties:
-        databaseSettings:
-          $ref: '#/components/schemas/DatabaseSettings'
-        queueSettings:
-          $ref: '#/components/schemas/MessageQueueSettings'
-        cveFeedSettings:
-          $ref: '#/components/schemas/BaseCveFeedSettings'
-        agentHeartbeatInterval:
-          type: string
-          format: date-span
-      additionalProperties: false
+    SortType:
+      enum:
+        - Unknown
+        - Asc
+        - Desc
+      type: string
     SourceControlConnectionSettingsModel:
       type: object
       properties:
@@ -13971,11 +11296,6 @@ components:
     SourceControlCredentialsModel:
       type: object
       properties:
-        type:
-          $ref: '#/components/schemas/CredentialsType'
-        credentials:
-          type: string
-          nullable: true
         sourceControlCredentialsType:
           $ref: '#/components/schemas/SourceControlCredentialsType'
         login:
@@ -14105,96 +11425,7 @@ components:
             Solidity:
               type: number
               format: double
-          additionalProperties: false
-          nullable: true
-      additionalProperties: false
-    SourcesSettingsUpdateModel:
-      type: object
-      properties:
-        scanTarget:
-          type: string
-          nullable: true
-        scanTargetName:
-          type: string
-          nullable: true
-        localSourceType:
-          $ref: '#/components/schemas/LocalSourceType'
-        vcsBranch:
-          type: string
-          nullable: true
-        langPercentDistribution:
-          type: object
-          properties:
-            None:
-              type: number
-              format: double
-            DotNet:
-              type: number
-              format: double
-            Php:
-              type: number
-              format: double
-            Java:
-              type: number
-              format: double
-            Html:
-              type: number
-              format: double
-            JavaScript:
-              type: number
-              format: double
-            SandBox:
-              type: number
-              format: double
-            Binary:
-              type: number
-              format: double
-            PlSql:
-              type: number
-              format: double
-            TSql:
-              type: number
-              format: double
-            Aspx:
-              type: number
-              format: double
-            C:
-              type: number
-              format: double
-            CPlusPlus:
-              type: number
-              format: double
-            ObjectiveC:
-              type: number
-              format: double
-            Swift:
-              type: number
-              format: double
-            MySql:
-              type: number
-              format: double
-            Python:
-              type: number
-              format: double
-            CSharpWinOnly:
-              type: number
-              format: double
-            Go:
-              type: number
-              format: double
-            Kotlin:
-              type: number
-              format: double
-            TypeScript:
-              type: number
-              format: double
-            Ruby:
-              type: number
-              format: double
-            CSharpCrossPlatform:
-              type: number
-              format: double
-            Solidity:
+            Scala:
               type: number
               format: double
           additionalProperties: false
@@ -14242,49 +11473,9 @@ components:
           items:
             $ref: '#/components/schemas/StringStringKeyValuePair'
           nullable: true
-      additionalProperties: false
-    StatisticByScanResultModel:
-      type: object
-      properties:
-        records:
-          type: array
-          items:
-            $ref: '#/components/schemas/VulnerabilityTimeDistribResultModel'
+        scanLabel:
+          type: string
           nullable: true
-        totalCount:
-          type: integer
-          format: int64
-      additionalProperties: false
-    StatisticVulnStateResultModel:
-      type: object
-      properties:
-        lastState:
-          $ref: '#/components/schemas/StatisticVulnStateRow'
-        prevState:
-          $ref: '#/components/schemas/StatisticVulnStateRow'
-        level:
-          $ref: '#/components/schemas/ThreatLevel'
-      additionalProperties: false
-    StatisticVulnStateRow:
-      type: object
-      properties:
-        total:
-          type: integer
-          format: int32
-        potential:
-          type: integer
-          format: int32
-        low:
-          type: integer
-          format: int32
-        medium:
-          type: integer
-          format: int32
-        high:
-          type: integer
-          format: int32
-        level:
-          $ref: '#/components/schemas/ThreatLevel'
       additionalProperties: false
     StatusType:
       type: object
@@ -14433,33 +11624,6 @@ components:
         - Unknown
         - Jira
       type: string
-    UpdateAgentStatusModel:
-      type: object
-      properties:
-        branchId:
-          type: string
-          format: uuid
-          nullable: true
-        scanResultId:
-          type: string
-          format: uuid
-          nullable: true
-        statusType:
-          $ref: '#/components/schemas/ScanAgentStatusType'
-      additionalProperties: false
-    UpdateIssueExploitModel:
-      type: object
-      properties:
-        exploitUrl:
-          type: string
-          nullable: true
-        exploit:
-          type: string
-          nullable: true
-        comment:
-          type: string
-          nullable: true
-      additionalProperties: false
     UpdateMemberModel:
       type: object
       properties:
@@ -14497,16 +11661,6 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    UpdateStatusType:
-      enum:
-        - None
-        - Started
-        - WaitingForStarted
-        - Finished
-        - Aborted
-        - UploadPackage
-        - UploadPackageFinished
-      type: string
     UploadSessionModel:
       type: object
       properties:
@@ -14519,18 +11673,6 @@ components:
         maxFiles:
           type: integer
           format: int32
-      additionalProperties: false
-    UserLoginModel:
-      type: object
-      properties:
-        login:
-          type: string
-          nullable: true
-        password:
-          type: string
-          nullable: true
-        rememberMe:
-          type: boolean
       additionalProperties: false
     UserMappingFieldType:
       enum:
@@ -14721,55 +11863,6 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    VfsModel:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        scanResultId:
-          type: string
-          format: uuid
-        rootNodePath:
-          type: string
-          nullable: true
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/VfsNodeModel'
-          nullable: true
-      additionalProperties: false
-    VfsNodeModel:
-      type: object
-      properties:
-        physicalPath:
-          type: string
-          nullable: true
-        nodePath:
-          type: string
-          nullable: true
-        maxIssueLevel:
-          $ref: '#/components/schemas/IssueLevel'
-        scanByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        scanningByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        scannedByCores:
-          $ref: '#/components/schemas/ScanAppType'
-        nodeType:
-          $ref: '#/components/schemas/NodeType'
-        includeInScan:
-          type: boolean
-        lifeTimeStatus:
-          $ref: '#/components/schemas/LifeTimeStatus'
-        lastModifiedDate:
-          type: integer
-          format: int64
-        hash:
-          type: string
-          format: byte
-          nullable: true
-      additionalProperties: false
     VulnerabilityFullModel:
       type: object
       properties:
@@ -14788,8 +11881,6 @@ components:
         function:
           type: string
           nullable: true
-        bestPlaceToFix:
-          $ref: '#/components/schemas/CodeChunkModel'
         vulnerableExpression:
           $ref: '#/components/schemas/CodeChunkModel'
         type:
@@ -14817,8 +11908,6 @@ components:
           $ref: '#/components/schemas/VulnerableComponentFullModel'
         vulnerableScaComponent:
           $ref: '#/components/schemas/VulnerableScaComponentModel'
-        yaraMatch:
-          $ref: '#/components/schemas/YaraMatchModel'
         blackBox:
           $ref: '#/components/schemas/BlackboxVulnerabilytyModel'
         jiraTicketLink:
@@ -14873,13 +11962,6 @@ components:
           nullable: true
         scanModule:
           $ref: '#/components/schemas/ScanModuleType'
-        bestPlaceToFixFile:
-          type: string
-          nullable: true
-        bestPlaceToFixLine:
-          type: integer
-          format: int32
-          nullable: true
         entryPointFile:
           type: string
           nullable: true
@@ -14914,30 +11996,6 @@ components:
           type: boolean
         language:
           $ref: '#/components/schemas/ProgrammingLanguageGroup'
-      additionalProperties: false
-    VulnerabilityTimeDistribResultModel:
-      type: object
-      properties:
-        scanDate:
-          type: string
-          format: date-time
-        total:
-          type: integer
-          format: int32
-        potential:
-          type: integer
-          format: int32
-        low:
-          type: integer
-          format: int32
-        medium:
-          type: integer
-          format: int32
-        high:
-          type: integer
-          format: int32
-        level:
-          $ref: '#/components/schemas/ThreatLevel'
       additionalProperties: false
     VulnerableCodeModel:
       type: object
@@ -15019,24 +12077,6 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    VulnTimeDistribFilterModel:
-      type: object
-      properties:
-        projectIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-        from:
-          type: string
-          format: date-time
-          nullable: true
-        to:
-          type: string
-          format: date-time
-          nullable: true
-      additionalProperties: false
     WafPatchGenerateModel:
       type: object
       properties:
@@ -15066,16 +12106,6 @@ components:
           type: boolean
         searchWithScaEnabled:
           type: boolean
-      additionalProperties: false
-    YaraMatchModel:
-      type: object
-      properties:
-        offset:
-          type: integer
-          format: int64
-        ruleName:
-          type: string
-          nullable: true
       additionalProperties: false
   securitySchemes:
     Bearer:

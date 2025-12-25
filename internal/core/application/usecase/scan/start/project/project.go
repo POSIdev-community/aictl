@@ -11,10 +11,11 @@ import (
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
-	StartScanProject(ctx context.Context, projectId uuid.UUID) (uuid.UUID, error)
+	StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error)
 }
 
 type CLI interface {
+	ShowTextf(ctx context.Context, format string, a ...any)
 	ReturnText(ctx context.Context, text string)
 }
 
@@ -36,17 +37,20 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context) error {
+func (u *UseCase) Execute(ctx context.Context, scanLabel string) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	scanResultId, err := u.aiAdapter.StartScanProject(ctx, u.cfg.ProjectId())
+	u.cliAdapter.ShowTextf(ctx, "starting scan, project-id '%v', branch-id '%v'", u.cfg.ProjectId())
+
+	scanResultId, err := u.aiAdapter.StartScanProject(ctx, u.cfg.ProjectId(), scanLabel)
 	if err != nil {
 		return err
 	}
 
+	u.cliAdapter.ShowTextf(ctx, "scan started, scan-id '%v'", scanResultId)
 	u.cliAdapter.ReturnText(ctx, scanResultId.String())
 
 	return nil

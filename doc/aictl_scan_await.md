@@ -3,7 +3,7 @@
 Await scan
 
 ```
-aictl scan await [flags]
+aictl scan await <scan-id> [flags]
 ```
 
 ### Options

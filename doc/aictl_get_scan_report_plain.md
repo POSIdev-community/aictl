@@ -3,7 +3,7 @@
 Get scan report plain
 
 ```
-aictl get scan report plain [flags]
+aictl get scan report plain <scan-id> [flags]
 ```
 
 ### Options

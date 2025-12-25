@@ -222,7 +222,10 @@ func buildScanCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Co
 	}
 	cmdStartProject := scanPresenter.NewScanStartProjectCmd(cfg, projectUC)
 
-	cmdStart := scanPresenter.NewScanStartCmd(cmdStartBranch, cmdStartProject)
+	persistentPreRunEScanCmd := scanPresenter.NewPersistentPreRunEScanCmd(cfg)
+	persistentPreRunEScanStartCmd := scanPresenter.NewPersistentPreRunEScanStartCmd(persistentPreRunEScanCmd)
+
+	cmdStart := scanPresenter.NewScanStartCmd(persistentPreRunEScanStartCmd, cmdStartBranch, cmdStartProject)
 
 	stopUC, err := stop.NewUseCase(aiAdapter, cliAdapter)
 	if err != nil {
@@ -230,7 +233,7 @@ func buildScanCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Co
 	}
 	cmdStop := scanPresenter.NewScanStopCmd(stopUC)
 
-	return scanPresenter.NewScanCmd(cfg, cmdAwait, cmdStart, cmdStop), nil
+	return scanPresenter.NewScanCmd(persistentPreRunEScanCmd, cmdAwait, cmdStart, cmdStop), nil
 }
 
 func buildSetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*setPresenter.CmdSet, error) {

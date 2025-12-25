@@ -39,7 +39,7 @@ func TestUseCase_Execute(t *testing.T) {
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
-		cliAdapter.On("ShowTextf", t.Context(), "getting sarif scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowTextf", t.Context(), "getting sarif scan report, scan-id '%v'", []interface{}{scanID.String()}).Return().Once()
 		cliAdapter.On("ShowText", t.Context(), "sarif scan report got").Return().Once()
 
 		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
@@ -71,7 +71,7 @@ func TestUseCase_Execute(t *testing.T) {
 
 		cliAdapter := mocks.NewCLI(t)
 
-		cliAdapter.On("ShowTextf", t.Context(), "getting sarif scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowTextf", t.Context(), "getting sarif scan report, scan-id '%v'", []interface{}{scanID.String()}).Return().Once()
 		cliAdapter.On("ShowText", t.Context(), "sarif scan report got").Return().Once()
 
 		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())

@@ -6,12 +6,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type PersistentPreRunEScanCmd _utils.RunE
+
 type CmdScan struct {
 	*cobra.Command
 }
 
+func NewPersistentPreRunEScanCmd(cfg *config.Config) PersistentPreRunEScanCmd {
+	return _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg))
+}
+
 func NewScanCmd(
-	cfg *config.Config,
+	persistentPreRunE PersistentPreRunEScanCmd,
 	cmdScanAwait CmdScanAwait,
 	cmdScanStart CmdScanStart,
 	cmdScanStop CmdScanStop) *CmdScan {
@@ -19,7 +25,7 @@ func NewScanCmd(
 	cmd := &cobra.Command{
 		Use:               "scan",
 		Short:             "Scan ",
-		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
+		PersistentPreRunE: persistentPreRunE,
 	}
 
 	cmd.AddCommand(cmdScanAwait.Command)

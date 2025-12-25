@@ -23,7 +23,7 @@ func NewScanStopCmd(uc UseCaseScanStop) CmdScanStop {
 	var scanId uuid.UUID
 
 	cmd := &cobra.Command{
-		Use:   "stop",
+		Use:   "stop <scan-id>",
 		Short: "Stop scan",
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
