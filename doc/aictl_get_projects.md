@@ -3,15 +3,14 @@
 Get AI projects
 
 ```
-aictl get projects [flags]
+aictl get projects <regex> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help          help for projects
-  -n, --name string   Filter projects by name. Support regular expression
-  -q, --quite         Get only ids
+  -h, --help    help for projects
+  -q, --quite   Get only ids
 ```
 
 ### Options inherited from parent commands

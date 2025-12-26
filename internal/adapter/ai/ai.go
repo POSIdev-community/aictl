@@ -432,7 +432,7 @@ func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 
 	log.StdErrf("Send get projects request")
 
-	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
+	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, nil, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get projects request: %w", err)
 	}
@@ -687,10 +687,11 @@ func (a *Adapter) GetScanQueue(ctx context.Context) ([]uuid.UUID, error) {
 	return result, nil
 }
 
-func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid.UUID, error) {
+func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string) (uuid.UUID, error) {
 	scanType := Incremental
 	params := StartScanModel{
-		ScanType: &scanType,
+		ScanType:  &scanType,
+		ScanLabel: &scanLabel,
 	}
 
 	response, err := a.aiClient.PostApiScansBranchesBranchIdStartWithResponse(ctx, branchId, params, a.aiClient.AddJWTToHeader)
@@ -714,10 +715,11 @@ func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid
 	return scanResultId, nil
 }
 
-func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID) (uuid.UUID, error) {
+func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error) {
 	scanType := Incremental
 	params := StartScanModel{
-		ScanType: &scanType,
+		ScanType:  &scanType,
+		ScanLabel: &scanLabel,
 	}
 
 	response, err := a.aiClient.PostApiScansProjectIdStartWithResponse(ctx, projectId, params, a.aiClient.AddJWTToHeader)

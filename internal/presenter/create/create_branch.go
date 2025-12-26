@@ -31,9 +31,9 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 	)
 
 	cmd := &cobra.Command{
-		Use:   "branch",
+		Use:   "branch <branch-name>",
 		Short: "Create branch",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {

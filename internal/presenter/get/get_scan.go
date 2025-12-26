@@ -55,9 +55,10 @@ func NewGetScanCmd(persistentPreRunE PersistentPreRunEGetScanCmd, uc UseCaseGetS
 	cmdGetScanState CmdGetScanState) CmdGetScan {
 
 	cmd := &cobra.Command{
-		Use:               "scan",
+		Use:               "scan <scan-id>",
 		Short:             "Get scan",
 		PersistentPreRunE: persistentPreRunE,
+		Args:              cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

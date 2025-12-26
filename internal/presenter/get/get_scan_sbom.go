@@ -10,8 +10,9 @@ type CmdGetScanSbom struct {
 
 func NewGetScanSbomCmd() CmdGetScanSbom {
 	cmd := &cobra.Command{
+		Use:   "sbom <scan-id>",
 		Short: "Get scan sbom",
-		Use:   "sbom",
+		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},

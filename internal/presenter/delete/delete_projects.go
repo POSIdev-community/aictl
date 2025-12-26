@@ -22,7 +22,7 @@ func NewDeleteProjectsCommand(uc UseCaseDeleteProjects) CmdDeleteProjects {
 	var projectIds []uuid.UUID
 
 	cmd := &cobra.Command{
-		Use:   "projects",
+		Use:   "projects <project-id>...",
 		Short: "Delete AI projects",
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {

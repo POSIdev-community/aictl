@@ -39,8 +39,8 @@ func NewGetScanReportCmd(
 
 	cmd := &cobra.Command{
 		Short: "Get scan report",
-		Use:   "report",
-		Args:  cobra.ExactArgs(1),
+		Use:   "report <scan-id>",
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if destPath == "" {
 				return fmt.Errorf("must specify -o")

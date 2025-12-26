@@ -3,7 +3,7 @@
 Get scan report sarif
 
 ```
-aictl get scan report sarif [flags]
+aictl get scan report sarif <scan-id> [flags]
 ```
 
 ### Options

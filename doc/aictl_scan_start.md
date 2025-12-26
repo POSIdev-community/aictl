@@ -5,7 +5,8 @@ Start scan
 ### Options
 
 ```
-  -h, --help   help for start
+  -h, --help                help for start
+      --scan-label string   scan label for scan
 ```
 
 ### Options inherited from parent commands

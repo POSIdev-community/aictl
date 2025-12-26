@@ -16,7 +16,11 @@ const innerUseCasePath = "internal/core/application/usecase"
 
 // Generate presenter and usecase boilerplate code
 func main() {
-	newCmdPath := []string{"set", "project", "settings"}
+	newCmdPath := []string{}
+
+	if newCmdPath == nil {
+		panic("path is empty")
+	}
 
 	currentDir, err := os.Getwd()
 	if err != nil {

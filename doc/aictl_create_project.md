@@ -3,7 +3,7 @@
 Create project
 
 ```
-aictl create project [flags]
+aictl create project <project-name> [flags]
 ```
 
 ### Options

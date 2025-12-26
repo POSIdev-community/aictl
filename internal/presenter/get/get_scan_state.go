@@ -18,8 +18,8 @@ type UseCaseGetScanState interface {
 
 func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 	cmd := &cobra.Command{
+		Use:   "stage <scan-id>",
 		Short: "Get scan stage",
-		Use:   "stage",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

@@ -3,7 +3,7 @@
 Get scan
 
 ```
-aictl get scan [flags]
+aictl get scan <scan-id> [flags]
 ```
 
 ### Options

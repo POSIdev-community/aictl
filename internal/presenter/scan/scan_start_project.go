@@ -14,12 +14,12 @@ type CmdScanStartProject struct {
 }
 
 type UseCaseScanStartProject interface {
-	Execute(ctx context.Context) error
+	Execute(ctx context.Context, scanLabel string) error
 }
 
 func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdScanStartProject {
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "project <project-id>",
 		Short: "Start project scan",
 		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -38,7 +38,7 @@ func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdS
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx); err != nil {
+			if err := uc.Execute(ctx, scanLabel); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'scan start project' usecase call: %w", err)

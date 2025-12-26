@@ -39,7 +39,7 @@ func TestUseCase_Execute(t *testing.T) {
 
 		cliAdapter := mocks.NewCLI(t)
 		cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
-		cliAdapter.On("ShowTextf", t.Context(), "getting gitlab scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowTextf", t.Context(), "getting gitlab scan report, scan-id '%v'", []interface{}{scanID.String()}).Return().Once()
 		cliAdapter.On("ShowText", t.Context(), "gitlab scan report got").Return().Once()
 
 		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
@@ -70,7 +70,7 @@ func TestUseCase_Execute(t *testing.T) {
 		aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n).Return(reportReader, nil).Once()
 
 		cliAdapter := mocks.NewCLI(t)
-		cliAdapter.On("ShowTextf", t.Context(), "getting gitlab scan report, id '%v'", []interface{}{scanID.String()}).Return().Once()
+		cliAdapter.On("ShowTextf", t.Context(), "getting gitlab scan report, scan-id '%v'", []interface{}{scanID.String()}).Return().Once()
 		cliAdapter.On("ShowText", t.Context(), "gitlab scan report got").Return().Once()
 
 		cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())

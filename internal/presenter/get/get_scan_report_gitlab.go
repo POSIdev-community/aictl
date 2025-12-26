@@ -18,8 +18,9 @@ type UseCaseGetScanReportGitlab interface {
 
 func NewGetScanReportGitlabCmd(uc UseCaseGetScanReportGitlab) CmdGetScanReportGitlab {
 	cmd := &cobra.Command{
+		Use:   "gitlab <scan-id>",
 		Short: "Get scan report gitlab",
-		Use:   "gitlab",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

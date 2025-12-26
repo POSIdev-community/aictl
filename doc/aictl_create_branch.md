@@ -3,7 +3,7 @@
 Create branch
 
 ```
-aictl create branch [flags]
+aictl create branch <branch-name> [flags]
 ```
 
 ### Options

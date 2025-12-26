@@ -3,7 +3,7 @@
 Get scan aiproj
 
 ```
-aictl get scan aiproj [flags]
+aictl get scan aiproj <scan-id> [flags]
 ```
 
 ### Options
