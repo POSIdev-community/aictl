@@ -28,7 +28,6 @@ func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, del
 	rootCmd := &cobra.Command{
 		Use:               "aictl",
 		Short:             "Application Inspector ConTroL tool",
-		Long:              `aictl - api клиент для Application Inspector`,
 		PersistentPreRunE: _utils.InitializeLogger,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if versionFlag {

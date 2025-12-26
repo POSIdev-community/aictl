@@ -3,7 +3,7 @@
 Get scan report
 
 ```
-aictl get scan report <scan-id> [flags]
+aictl get scan report <report-name> <scan-id> [flags]
 ```
 
 ### Options
@@ -31,7 +31,17 @@ aictl get scan report <scan-id> [flags]
 ### SEE ALSO
 
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
+* [aictl get scan report autocheck](aictl_get_scan_report_autocheck.md)	 - Get scan report autocheck
 * [aictl get scan report gitlab](aictl_get_scan_report_gitlab.md)	 - Get scan report gitlab
+* [aictl get scan report json](aictl_get_scan_report_json.md)	 - Get scan report json
+* [aictl get scan report json](aictl_get_scan_report_json.md)	 - Get scan report json
+* [aictl get scan report markdown](aictl_get_scan_report_markdown.md)	 - Get scan report markdown
+* [aictl get scan report markdown](aictl_get_scan_report_markdown.md)	 - Get scan report markdown
+* [aictl get scan report owasp](aictl_get_scan_report_owasp.md)	 - Get scan report owasp
+* [aictl get scan report owaspm](aictl_get_scan_report_owaspm.md)	 - Get scan report owaspm
+* [aictl get scan report pcidss](aictl_get_scan_report_pcidss.md)	 - Get scan report pcidss
 * [aictl get scan report plain](aictl_get_scan_report_plain.md)	 - Get scan report plain
+* [aictl get scan report sans](aictl_get_scan_report_sans.md)	 - Get scan report sans
 * [aictl get scan report sarif](aictl_get_scan_report_sarif.md)	 - Get scan report sarif
+* [aictl get scan report xml](aictl_get_scan_report_xml.md)	 - Get scan report xml
 

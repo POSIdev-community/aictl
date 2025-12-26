@@ -14,9 +14,8 @@ import (
 	getProjects "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/projects"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
-	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/gitlab"
-	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/plain"
-	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/sarif"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report"
+	defaultreport "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/defaultreport"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/state"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/await"
 	startBranch "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/branch"
@@ -166,29 +165,37 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 
 	cmdLogs := get.NewGetScanLogsCmd()
 
-	gitlabUC, err := gitlab.NewUseCase(aiAdapter, cliAdapter, cfg)
+	defaultReportUC, err := defaultreport.NewUseCase(aiAdapter, cliAdapter, cfg)
 	if err != nil {
 		return nil, err
 	}
-	cmdReportGitlab := get.NewGetScanReportGitlabCmd(gitlabUC)
 
-	plainUC, err := plain.NewUseCase(aiAdapter, cliAdapter, cfg)
-	if err != nil {
-		return nil, err
-	}
-	cmdReportPlain := get.NewGetScanReportPlainCmd(plainUC)
-
-	sarifUC, err := sarif.NewUseCase(aiAdapter, cliAdapter, cfg)
-	if err != nil {
-		return nil, err
-	}
-	cmdReportSarif := get.NewGetScanReportSarifCmd(sarifUC)
+	cmdReportAutocheck := get.NewGetScanReportAutocheckCmd(defaultReportUC)
+	cmdReportGitlab := get.NewGetScanReportGitlabCmd(defaultReportUC)
+	cmdReportJson := get.NewGetScanReportJsonCmd(defaultReportUC)
+	cmdReportMarkdown := get.NewGetScanReportMarkdownCmd(defaultReportUC)
+	cmdReportNist := get.NewGetScanReportNistCmd(defaultReportUC)
+	cmdReportOud4 := get.NewGetScanReportOud4Cmd(defaultReportUC)
+	cmdReportOwasp := get.NewGetScanReportOwaspCmd(defaultReportUC)
+	cmdReportOwaspm := get.NewGetScanReportOwaspmCmd(defaultReportUC)
+	cmdReportPcidss := get.NewGetScanReportPcidssCmd(defaultReportUC)
+	cmdReportPlain := get.NewGetScanReportPlainCmd(defaultReportUC)
+	cmdReportSans := get.NewGetScanReportSansCmd(defaultReportUC)
+	cmdReportSarif := get.NewGetScanReportSarifCmd(defaultReportUC)
+	cmdReportXml := get.NewGetScanReportXmlCmd(defaultReportUC)
 
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(cfg)
 	persistentPreRunEGetScanCmd := get.NewPersistentPreRunEGetScanCmd(cfg, persistentPreRunEGetCmd)
 	persistentPreRunEGetScanReportCmd := get.NewPersistentPreRunEGetScanReportCmd(persistentPreRunEGetScanCmd)
 
-	cmdReport := get.NewGetScanReportCmd(persistentPreRunEGetScanReportCmd, cmdReportGitlab, cmdReportPlain, cmdReportSarif)
+	customReportUC, err := report.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cmdReport := get.NewGetScanReportCmd(customReportUC, persistentPreRunEGetScanReportCmd, cmdReportAutocheck, cmdReportGitlab,
+		cmdReportJson, cmdReportMarkdown, cmdReportNist, cmdReportOud4, cmdReportOwasp, cmdReportOwaspm,
+		cmdReportPcidss, cmdReportPlain, cmdReportSans, cmdReportSarif, cmdReportXml)
 
 	cmdSbom := get.NewGetScanSbomCmd()
 

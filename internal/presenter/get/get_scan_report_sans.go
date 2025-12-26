@@ -9,31 +9,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type CmdGetScanReportSarif struct {
+type CmdGetScanReportSans struct {
 	*cobra.Command
 }
 
-type UseCaseGetScanReportSarif interface {
+type UseCaseGetScanReportSans interface {
 	Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
 }
 
-func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSarif {
+func NewGetScanReportSansCmd(uc UseCaseGetScanReportSans) CmdGetScanReportSans {
 	cmd := &cobra.Command{
-		Use:   "sarif <scan-id>",
-		Short: "Get scan report sarif",
+		Use:   "sans <scan-id>",
+		Short: "Get scan report sans",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Sarif, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Sans, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("'get scan report sarif' usecase call: %w", err)
+				return fmt.Errorf("'get scan report sans' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	return CmdGetScanReportSarif{cmd}
+	return CmdGetScanReportSans{cmd}
 }
