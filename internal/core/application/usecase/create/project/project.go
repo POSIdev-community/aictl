@@ -57,7 +57,7 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 	}
 
 	if projectId != nil {
-		u.cliAdapter.ShowTextf(ctx, "project '%v' already exixts, id '%v'", projectName, projectId.String())
+		u.cliAdapter.ShowTextf(ctx, "project '%v' already exists, id '%v'", projectName, projectId.String())
 		u.cliAdapter.ReturnText(ctx, projectId.String())
 		return nil
 	}

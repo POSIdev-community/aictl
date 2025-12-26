@@ -30,7 +30,16 @@ func NewPersistentPreRunEGetScanCmd(cfg *config.Config, prev PersistentPreRunEGe
 			return errs.NewValidationError("missing scan id")
 		}
 
-		scanIdFlag := args[0]
+		if len(args) > 2 {
+			return errs.NewValidationError("too many arguments")
+		}
+
+		scanIdFlag := args[len(args)-1]
+		customReportName = args[0]
+
+		if customReportName == "" {
+			return errs.NewValidationFieldError("custom-report-name", "cannot be empty")
+		}
 
 		scanId, err = uuid.Parse(scanIdFlag)
 		if err != nil {
@@ -46,8 +55,9 @@ type UseCaseGetScan interface {
 }
 
 var (
-	projectIdFlag string
-	scanId        uuid.UUID
+	projectIdFlag    string
+	scanId           uuid.UUID
+	customReportName string
 )
 
 func NewGetScanCmd(persistentPreRunE PersistentPreRunEGetScanCmd, uc UseCaseGetScan, cmdGetScanAiproj CmdGetScanAiproj,
