@@ -56,7 +56,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType repo
 
 	templateId, err := u.aiAdapter.GetDefaultTemplateId(ctx, reportType)
 	if err != nil {
-		return err
+		return fmt.Errorf("get default template id: %w", err)
 	}
 
 	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n)

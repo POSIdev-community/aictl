@@ -1,22 +1,21 @@
-package scan
+package version
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/POSIdev-community/aictl/pkg/errs"
-	"github.com/google/uuid"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
-	GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error)
+	GetVersion(ctx context.Context) (version.Version, error)
 }
 
 type CLI interface {
-	ShowScans(ctx context.Context, scans []scan.Scan)
+	ReturnText(ctx context.Context, text string)
 }
 
 type UseCase struct {
@@ -41,18 +40,18 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
+func (u *UseCase) Execute(ctx context.Context) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	scanStage, err := u.aiAdapter.GetScan(ctx, u.cfg.ProjectId(), scanId)
+	v, err := u.aiAdapter.GetVersion(ctx)
 	if err != nil {
-		return fmt.Errorf("get scan: %w", err)
+		return fmt.Errorf("get version: %w", err)
 	}
 
-	u.cliAdapter.ShowScans(ctx, []scan.Scan{*scanStage})
+	u.cliAdapter.ReturnText(ctx, v.String())
 
 	return nil
 }

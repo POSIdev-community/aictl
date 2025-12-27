@@ -19,7 +19,8 @@ func NewPersistentPreRunEGetCmd(cfg *config.Config) PersistentPreRunEGetCmd {
 func NewGetCmd(
 	persistentPreRunE PersistentPreRunEGetCmd,
 	cmdGetProjects CmdGetProjects,
-	cmdGetScan CmdGetScan) *CmdGet {
+	cmdGetScan CmdGetScan,
+	cmdGetVersion CmdGetVersion) *CmdGet {
 
 	cmd := &cobra.Command{
 		Use:               "get",
@@ -29,6 +30,7 @@ func NewGetCmd(
 
 	cmd.AddCommand(cmdGetProjects.Command)
 	cmd.AddCommand(cmdGetScan.Command)
+	cmd.AddCommand(cmdGetVersion.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 

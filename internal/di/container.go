@@ -17,6 +17,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report"
 	defaultreport "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/defaultreport"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/state"
+	getVersion "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/version"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/await"
 	startBranch "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/branch"
 	startProject "github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/start/project"
@@ -207,7 +208,11 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 
 	cmdScan := get.NewGetScanCmd(persistentPreRunEGetScanCmd, scanUC, cmdAiproj, cmdLogs, cmdReport, cmdSbom, cmdState)
 
-	return get.NewGetCmd(persistentPreRunEGetCmd, cmdProjects, cmdScan), nil
+	versionUC, err := getVersion.NewUseCase(aiAdapter, cliAdapter, cfg)
+
+	cmdVersion := get.NewGetVersionCmd(versionUC)
+
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdProjects, cmdScan, cmdVersion), nil
 }
 
 func buildScanCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*scanPresenter.CmdScan, error) {
