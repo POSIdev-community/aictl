@@ -11,6 +11,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/branch"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/project"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/delete/projects"
+	getHealthchech "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/healthcheck"
 	getProjects "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/projects"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
@@ -145,6 +146,13 @@ func buildDeleteCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.
 }
 
 func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*get.CmdGet, error) {
+	// Healthcheck
+	healthcheckUC, err := getHealthchech.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdHealthcheck := get.NewGetHealthcheckCmd(healthcheckUC)
+
 	// Projects
 	projectsUC, err := getProjects.NewUseCase(aiAdapter, cliAdapter)
 	if err != nil {
@@ -212,7 +220,7 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 
 	cmdVersion := get.NewGetVersionCmd(versionUC)
 
-	return get.NewGetCmd(persistentPreRunEGetCmd, cmdProjects, cmdScan, cmdVersion), nil
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdScan, cmdVersion), nil
 }
 
 func buildScanCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*scanPresenter.CmdScan, error) {

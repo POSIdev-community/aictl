@@ -18,6 +18,7 @@ func NewPersistentPreRunEGetCmd(cfg *config.Config) PersistentPreRunEGetCmd {
 
 func NewGetCmd(
 	persistentPreRunE PersistentPreRunEGetCmd,
+	cmdGetHealthcheck CmdGetHealthcheck,
 	cmdGetProjects CmdGetProjects,
 	cmdGetScan CmdGetScan,
 	cmdGetVersion CmdGetVersion) *CmdGet {
@@ -28,6 +29,7 @@ func NewGetCmd(
 		PersistentPreRunE: persistentPreRunE,
 	}
 
+	cmd.AddCommand(cmdGetHealthcheck.Command)
 	cmd.AddCommand(cmdGetProjects.Command)
 	cmd.AddCommand(cmdGetScan.Command)
 	cmd.AddCommand(cmdGetVersion.Command)
