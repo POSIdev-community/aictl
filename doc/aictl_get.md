@@ -16,6 +16,7 @@ Get resources
 ### SEE ALSO
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
+* [aictl get healthcheck](aictl_get_healthcheck.md)	 - Get aie healthcheck
 * [aictl get projects](aictl_get_projects.md)	 - Get AI projects
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
 * [aictl get version](aictl_get_version.md)	 - Get aie version
