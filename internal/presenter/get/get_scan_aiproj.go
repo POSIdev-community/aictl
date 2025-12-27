@@ -19,7 +19,10 @@ type UseCaseGetScanAiproj interface {
 }
 
 func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
-	var outPath string
+	var (
+		outPath             string
+		forceRewriteOutPath bool
+	)
 
 	cmd := &cobra.Command{
 		Use:   "aiproj <scan-id>",
@@ -27,7 +30,7 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
-				if fshelper.PathExists(outPath) {
+				if fshelper.PathExists(outPath) && !forceRewriteOutPath {
 					return errs.NewValidationError("'output' path exists")
 				}
 			}
@@ -48,6 +51,7 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 	}
 
 	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
 
 	return CmdGetScanAiproj{cmd}
 }

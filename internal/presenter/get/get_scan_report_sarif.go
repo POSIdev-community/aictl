@@ -25,7 +25,7 @@ func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSari
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Sarif, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Sarif, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report sarif' usecase call: %w", err)

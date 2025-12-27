@@ -9,6 +9,7 @@ aictl get scan report <report-name> <scan-id> [flags]
 ### Options
 
 ```
+  -f, --force                 Force rewrite output file
   -h, --help                  help for report
       --include-comments      Include comments in the report file
       --include-dfd           Include dfd in the report file

@@ -17,6 +17,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report"
 	defaultreport "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/defaultreport"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/sbom"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/state"
 	getVersion "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/version"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/scan/await"
@@ -206,7 +207,9 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 		cmdReportJson, cmdReportMarkdown, cmdReportNist, cmdReportOud4, cmdReportOwasp, cmdReportOwaspm,
 		cmdReportPcidss, cmdReportPlain, cmdReportSans, cmdReportSarif, cmdReportXml)
 
-	cmdSbom := get.NewGetScanSbomCmd()
+	getSbomUC, err := sbom.NewUseCase(aiAdapter, cliAdapter, cfg)
+
+	cmdSbom := get.NewGetScanSbomCmd(getSbomUC)
 
 	stateUC, err := state.NewUseCase(aiAdapter, cliAdapter, cfg)
 	if err != nil {

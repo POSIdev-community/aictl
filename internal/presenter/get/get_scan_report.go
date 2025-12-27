@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
+	"github.com/POSIdev-community/aictl/pkg/errs"
+	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -16,11 +18,13 @@ type CmdGetScanReport struct {
 }
 
 type UseCaseGetScanReport interface {
-	Execute(ctx context.Context, scanId uuid.UUID, customReportName string, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
+	Execute(ctx context.Context, scanId uuid.UUID, customReportName string, outPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
 }
 
 var (
-	destPath        string
+	outPath             string
+	forceRewriteOutPath bool
+
 	includeComments bool
 	includeDFD      bool
 	includeGlossary bool
@@ -31,6 +35,12 @@ func NewPersistentPreRunEGetScanReportCmd(prev PersistentPreRunEGetScanCmd) Pers
 	return _utils.ChainRunE(prev, func(cmd *cobra.Command, args []string) error {
 		if l10n == "" || (l10n != "en" && l10n != "ru") {
 			return fmt.Errorf("the localization language '%s' is unknown, but 'en' or 'ru' may be used", l10n)
+		}
+
+		if outPath != "" {
+			if fshelper.PathExists(outPath) && !forceRewriteOutPath {
+				return errs.NewValidationError("'output' path exists")
+			}
 		}
 
 		return nil
@@ -62,7 +72,7 @@ func NewGetScanReportCmd(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, customReportName, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, customReportName, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report' usecase call: %w", err)
@@ -86,7 +96,9 @@ func NewGetScanReportCmd(
 	cmd.AddCommand(cmdGetScanReportSarif.Command)
 	cmd.AddCommand(cmdGetScanReportXml.Command)
 
-	cmd.PersistentFlags().StringVarP(&destPath, "output", "o", "", "Destination path for the report file")
+	cmd.PersistentFlags().StringVarP(&outPath, "output", "o", "", "Destination path for the report file")
+	cmd.PersistentFlags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+
 	cmd.PersistentFlags().BoolVar(&includeComments, "include-comments", false, "Include comments in the report file")
 	cmd.PersistentFlags().BoolVar(&includeDFD, "include-dfd", false, "Include dfd in the report file")
 	cmd.PersistentFlags().BoolVar(&includeGlossary, "include-glossary", false, "Include glossary report")

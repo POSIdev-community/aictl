@@ -25,7 +25,7 @@ func NewGetScanReportPlainCmd(uc UseCaseGetScanReportPlain) CmdGetScanReportPlai
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.PlainReport, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.PlainReport, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report plain' usecase call: %w", err)

@@ -9,6 +9,7 @@ aictl get scan aiproj <scan-id> [flags]
 ### Options
 
 ```
+  -f, --force           Force rewrite output file
   -h, --help            help for aiproj
   -o, --output string   Output path
 ```

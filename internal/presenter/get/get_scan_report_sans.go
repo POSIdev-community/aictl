@@ -25,7 +25,7 @@ func NewGetScanReportSansCmd(uc UseCaseGetScanReportSans) CmdGetScanReportSans {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Sans, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Sans, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report sans' usecase call: %w", err)

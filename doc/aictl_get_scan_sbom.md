@@ -9,7 +9,9 @@ aictl get scan sbom <scan-id> [flags]
 ### Options
 
 ```
-  -h, --help   help for sbom
+  -f, --force           Force rewrite output file
+  -h, --help            help for sbom
+  -o, --output string   Destination path for the report file
 ```
 
 ### Options inherited from parent commands

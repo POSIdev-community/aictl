@@ -25,7 +25,7 @@ func NewGetScanReportOwaspmCmd(uc UseCaseGetScanReportOwaspm) CmdGetScanReportOw
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Owaspm, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Owaspm, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report owaspm' usecase call: %w", err)

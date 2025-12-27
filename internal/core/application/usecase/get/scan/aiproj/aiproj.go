@@ -3,8 +3,9 @@ package aiproj
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 
+	utils "github.com/POSIdev-community/aictl/internal/core/application/usecase/.utils"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/pkg/errs"
@@ -14,11 +15,12 @@ import (
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetScan(ctx context.Context, projectId uuid.UUID, scanId uuid.UUID) (*scan.Scan, error)
-	GetScanAiproj(ctx context.Context, projectId uuid.UUID, settingsId uuid.UUID) (string, error)
+	GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error)
 }
 
 type CLI interface {
-	ReturnText(ctx context.Context, text string)
+	ShowReader(r io.Reader) error
+	ShowTextf(ctx context.Context, format string, args ...any)
 }
 
 type UseCase struct {
@@ -43,31 +45,38 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, outputPath string) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	projectId := u.cfg.ProjectId()
-
-	s, err := u.aiAdapter.GetScan(ctx, projectId, scanId)
+	s, err := u.aiAdapter.GetScan(ctx, u.cfg.ProjectId(), scanId)
 	if err != nil {
 		return err
 	}
 
-	aiproj, err := u.aiAdapter.GetScanAiproj(ctx, projectId, s.SettingsId)
+	r, err := u.aiAdapter.GetScanAiproj(ctx, u.cfg.ProjectId(), s.SettingsId)
 	if err != nil {
 		return err
 	}
 
-	if outputPath == "" {
-		u.cliAdapter.ReturnText(ctx, aiproj)
-	} else {
-		err := os.WriteFile(outputPath, []byte(aiproj), 0644)
-		if err != nil {
-			return err
+	defer func() {
+		_ = r.Close()
+	}()
+
+	u.cliAdapter.ShowTextf(ctx, "aiproj got")
+
+	if fullDestPath != "" {
+		if err := utils.CopyFileToPath(r, fullDestPath); err != nil {
+			return fmt.Errorf("copy aiproj to path %s: %w", fullDestPath, err)
 		}
+
+		return nil
+	}
+
+	if err := u.cliAdapter.ShowReader(r); err != nil {
+		return fmt.Errorf("print aiproj: %w", err)
 	}
 
 	return nil
