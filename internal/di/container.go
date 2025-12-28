@@ -15,6 +15,7 @@ import (
 	getProjects "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/projects"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/aiproj"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/logs"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report"
 	defaultreport "github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/report/defaultreport"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/get/scan/sbom"
@@ -173,7 +174,11 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 	}
 	cmdAiproj := get.NewGetScanAiprojCmd(aiprojUC)
 
-	cmdLogs := get.NewGetScanLogsCmd()
+	logsUC, err := logs.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdLogs := get.NewGetScanLogsCmd(logsUC)
 
 	defaultReportUC, err := defaultreport.NewUseCase(aiAdapter, cliAdapter, cfg)
 	if err != nil {

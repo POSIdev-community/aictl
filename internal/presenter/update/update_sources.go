@@ -68,7 +68,7 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, cmdUpdateS
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
 	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "branch id")
 
-	cmd.AddCommand(cmdUpdateSourcesGit.Command)
+	// cmd.AddCommand(cmdUpdateSourcesGit.Command)
 
 	return CmdUpdateSources{cmd}
 }

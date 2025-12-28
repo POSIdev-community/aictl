@@ -628,6 +628,19 @@ func (a *Adapter) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID
 	return response.Body, nil
 }
 
+func (a *Adapter) GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.aiClient.GetApiStoreProjectIdLogsScanResultId(ctx, projectId, scanResultId, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get scan logs: %w", err)
+	}
+
+	if err = CheckResponse(response, "logs"); err != nil {
+		return nil, fmt.Errorf("ai adapter get scan logs: %w", err)
+	}
+
+	return response.Body, nil
+}
+
 func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
 	getBranchesResponse, err := a.aiClient.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.aiClient.AddJWTToHeader)
 	if err != nil {
