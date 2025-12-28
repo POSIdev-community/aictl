@@ -9,7 +9,9 @@ aictl get scan logs <scan-id> [flags]
 ### Options
 
 ```
-  -h, --help   help for logs
+  -f, --force           Force rewrite output file
+  -h, --help            help for logs
+  -o, --output string   Output path
 ```
 
 ### Options inherited from parent commands
