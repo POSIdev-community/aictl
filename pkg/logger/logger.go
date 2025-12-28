@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -14,17 +15,34 @@ type Logger struct {
 	z *zap.Logger
 }
 
-func NewLogger(verbose bool) (*zap.Logger, error) {
-	cores := make([]zapcore.Core, 0, 2)
+func NewLogger(consoleVerbose bool, logPath string) (*zap.Logger, error) {
+	cores := make([]zapcore.Core, 0, 3)
 	cores = append(cores, newInfoCore())
 
-	if verbose {
+	if consoleVerbose {
 		cores = append(cores, newErrorCore())
+	}
+
+	if logPath != "" {
+		file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open log file %q: %w", logPath, err)
+		}
+
+		fileEncoder := zapcore.NewConsoleEncoder(newErrorConfig())
+
+		fileCore := zapcore.NewCore(
+			fileEncoder,
+			zapcore.AddSync(file),
+			zapcore.DebugLevel,
+		)
+
+		cores = append(cores, fileCore)
 	}
 
 	core := zapcore.NewTee(cores...)
 
-	return zap.New(core, zap.AddCaller()), nil
+	return zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)), nil
 }
 
 func newInfoCore() zapcore.Core {
@@ -45,7 +63,19 @@ func newInfoCore() zapcore.Core {
 }
 
 func newErrorCore() zapcore.Core {
-	errorEncoderConfig := zapcore.EncoderConfig{
+	errorEncoder := zapcore.NewConsoleEncoder(newErrorConfig())
+
+	return zapcore.NewCore(
+		errorEncoder,
+		zapcore.Lock(os.Stderr),
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.ErrorLevel
+		}),
+	)
+}
+
+func newErrorConfig() zapcore.EncoderConfig {
+	return zapcore.EncoderConfig{
 		TimeKey:        "ts",
 		LevelKey:       "",
 		CallerKey:      "",
@@ -57,16 +87,6 @@ func newErrorCore() zapcore.Core {
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-
-	errorEncoder := zapcore.NewConsoleEncoder(errorEncoderConfig)
-
-	return zapcore.NewCore(
-		errorEncoder,
-		zapcore.Lock(os.Stderr),
-		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= zapcore.ErrorLevel
-		}),
-	)
 }
 
 func FromContext(ctx context.Context) *Logger {
