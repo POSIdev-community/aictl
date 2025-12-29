@@ -8,6 +8,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/config/set"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/config/show"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/config/unset"
+	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/agenttoken"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/branch"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/create/project"
 	"github.com/POSIdev-community/aictl/internal/core/application/usecase/delete/projects"
@@ -131,7 +132,13 @@ func buildCreateCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.
 	}
 	cmdProject := create.NewCreateProjectCmd(projectUC)
 
-	return create.NewCreateCmd(cfg, cmdBranch, cmdProject), nil
+	agentTokenUC, err := agenttoken.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdAgentToken := create.NewCreateAgentTokenCmd(cfg, agentTokenUC)
+
+	return create.NewCreateCmd(cfg, cmdBranch, cmdProject, cmdAgentToken), nil
 }
 
 func buildDeleteCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Config) (*deletePresenter.CmdDelete, error) {

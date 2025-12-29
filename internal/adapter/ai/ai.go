@@ -835,3 +835,12 @@ func (a *Adapter) CheckLicense(ctx context.Context) error {
 
 	return nil
 }
+
+func (a *Adapter) CreateAgentToken(ctx context.Context, login, password, agentName string, tlsSkip bool) (string, error) {
+	token, err := a.aiClient.CreateAgentToken(ctx, a.cfg.UriString(), login, password, agentName, tlsSkip)
+	if err != nil {
+		return "", fmt.Errorf("create agent token: %w", err)
+	}
+
+	return token, nil
+}
