@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/spf13/cobra"
 )
 
@@ -34,6 +35,14 @@ configure scan agents.
 Example:
   aictl create agent-token my-agent --login admin --password secret -u https://aie-server:443`,
 		Args: cobra.ExactArgs(1),
+		// Override parent's PersistentPreRunE - agent-token uses login/password, not API token
+		PersistentPreRunE: _utils.ChainRunE(
+			_utils.InitializeLogger,
+			func(cmd *cobra.Command, args []string) error {
+				// Only update connection config without token validation
+				return _utils.UpdateConnectionConfig(cfg)
+			},
+		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			agentName := args[0]
