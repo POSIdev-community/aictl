@@ -23,9 +23,9 @@ func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "project",
+		Use:   "project <project-name>",
 		Short: "Create project",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
 			projectName = args[0]

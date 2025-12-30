@@ -27,9 +27,9 @@ func NewScanAwaitCmd(cfg *config.Config, uc UseCaseScanAwait) CmdScanAwait {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "await",
+		Use:   "await <scan-id>",
 		Short: "Await scan",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {

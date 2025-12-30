@@ -1,4 +1,4 @@
-package plain
+package default_report
 
 import (
 	"context"
@@ -15,14 +15,13 @@ import (
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
-	GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error)
+	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
 }
 
 type CLI interface {
 	ShowReader(r io.Reader) error
 	ShowTextf(ctx context.Context, format string, args ...any)
-	ShowText(ctx context.Context, text string)
 }
 
 type UseCase struct {
@@ -47,15 +46,15 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	u.cliAdapter.ShowTextf(ctx, "getting plain scan report, id '%v'", scanId.String())
+	u.cliAdapter.ShowTextf(ctx, "getting '%s' scan report, scan-id '%v'", reportType.String(), scanId.String())
 
-	templateId, err := u.aiAdapter.GetTemplateId(ctx, report.PlainReportType)
+	templateId, err := u.aiAdapter.GetDefaultTemplateId(ctx, reportType)
 	if err != nil {
 		return err
 	}
@@ -69,7 +68,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, fullDestPath st
 		_ = r.Close()
 	}()
 
-	u.cliAdapter.ShowText(ctx, "plain scan report got")
+	u.cliAdapter.ShowTextf(ctx, "'%s' scan report got", reportType.String())
 
 	if fullDestPath != "" {
 		if err := utils.CopyFileToPath(r, fullDestPath); err != nil {

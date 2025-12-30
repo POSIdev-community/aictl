@@ -3,7 +3,7 @@
 Get scan sbom
 
 ```
-aictl get scan sbom [flags]
+aictl get scan sbom <scan-id> [flags]
 ```
 
 ### Options

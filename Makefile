@@ -61,7 +61,7 @@ install:
 
 bash:
 	@echo -n "⇒ Add bash completion..."
-	@bin/aictl completion bash > /etc/bash_completion.d/aictl
+	@bin/aictl completion bash | sudo tee /etc/bash_completion.d/aictl >/dev/null
 	@echo "✅"
 
 docker:

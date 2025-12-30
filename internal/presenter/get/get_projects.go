@@ -3,6 +3,7 @@ package get
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/spf13/cobra"
@@ -26,11 +27,12 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 	var regexFilter regexfilter.RegexFilter
 
 	cmd := &cobra.Command{
-		Use:   "projects",
+		Use:   "projects <regex>",
 		Short: "Get AI projects",
-		Args:  cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+
+			filter = strings.Join(args, " ")
 
 			regexFilter, err = regexfilter.NewRegexFilter(filter)
 			if err != nil {
@@ -54,7 +56,6 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 		},
 	}
 
-	cmd.Flags().StringVarP(&filter, "name", "n", "", "Filter projects by name. Support regular expression")
 	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Get only ids")
 
 	return CmdGetProjects{cmd}

@@ -432,7 +432,7 @@ func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 
 	log.StdErrf("Send get projects request")
 
-	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, a.aiClient.AddJWTToHeader)
+	response, err := a.aiClient.GetApiProjectsWithResponse(ctx, nil, a.aiClient.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get projects request: %w", err)
 	}
@@ -477,7 +477,7 @@ func (a *Adapter) GetProject(ctx context.Context, projectId uuid.UUID) (*project
 	return &p, nil
 }
 
-func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UUID, error) {
+func (a *Adapter) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
 	localeId := "ru-Ru"
 	params := GetApiReportsTemplatesTypeParams{
 		LocaleId: &localeId,
@@ -485,19 +485,41 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 
 	var aiReportType ReportType
 	switch reportType {
-	case report.SarifReportType:
-		aiReportType = ReportTypeSarif
-	case report.PlainReportType:
-		aiReportType = ReportTypePlainReport
-	case report.GitlabReportType:
+	case report.AutoCheck:
+		aiReportType = ReportTypeAutoCheck
+	case report.Custom:
+		aiReportType = ReportTypeCustom
+	case report.Gitlab:
 		aiReportType = ReportTypeGitlab
+	case report.Json:
+		aiReportType = ReportTypeJson
+	case report.Markdown:
+		aiReportType = ReportTypeMd
+	case report.Nist:
+		aiReportType = ReportTypeNist
+	case report.Oud4:
+		aiReportType = ReportTypeOud4
+	case report.Owasp:
+		aiReportType = ReportTypeOwasp
+	case report.Owaspm:
+		aiReportType = ReportTypeOwaspm
+	case report.Pcidss:
+		aiReportType = ReportTypePcidss
+	case report.PlainReport:
+		aiReportType = ReportTypePlainReport
+	case report.Sans:
+		aiReportType = ReportTypeSans
+	case report.Sarif:
+		aiReportType = ReportTypeSarif
+	case report.Xml:
+		aiReportType = ReportTypeXml
 	default:
 		return uuid.UUID{}, fmt.Errorf("invalid reportType: %s", reportType)
 	}
 
 	response, err := a.aiClient.GetApiReportsTemplatesType(ctx, aiReportType, &params, a.aiClient.AddJWTToHeader)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("ai adapter get template id: %w", err)
+		return uuid.UUID{}, fmt.Errorf("ai adapter get default template id: %w", err)
 	}
 
 	if err = CheckResponse(response, "template"); err != nil {
@@ -524,6 +546,43 @@ func (a *Adapter) GetTemplateId(ctx context.Context, reportType string) (uuid.UU
 	}
 
 	return *dest.Id, nil
+}
+
+func (a *Adapter) GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error) {
+	localeId := "ru-RU"
+	params := GetApiReportsUserTemplatesNameParams{
+		LocaleId: &localeId,
+	}
+
+	response, err := a.aiClient.GetApiReportsUserTemplatesName(ctx, reportName, &params, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get custom template id: %w", err)
+	}
+
+	if err = CheckResponse(response, "template"); err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get template id: %w", err)
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	defer func() { _ = response.Body.Close() }()
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	if !strings.Contains(response.Header.Get("Content-Type"), "json") && response.StatusCode == 200 {
+		return uuid.UUID{}, fmt.Errorf("ai adapter response not 200 and json")
+	}
+
+	type ReportTemplateSimpleModel struct {
+		Id *uuid.UUID `json:"id,omitempty"`
+	}
+
+	var model ReportTemplateSimpleModel
+	if err := json.Unmarshal(bodyBytes, &model); err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return *model.Id, nil
 }
 
 func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
@@ -687,10 +746,11 @@ func (a *Adapter) GetScanQueue(ctx context.Context) ([]uuid.UUID, error) {
 	return result, nil
 }
 
-func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid.UUID, error) {
+func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string) (uuid.UUID, error) {
 	scanType := Incremental
 	params := StartScanModel{
-		ScanType: &scanType,
+		ScanType:  &scanType,
+		ScanLabel: &scanLabel,
 	}
 
 	response, err := a.aiClient.PostApiScansBranchesBranchIdStartWithResponse(ctx, branchId, params, a.aiClient.AddJWTToHeader)
@@ -714,10 +774,11 @@ func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID) (uuid
 	return scanResultId, nil
 }
 
-func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID) (uuid.UUID, error) {
+func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error) {
 	scanType := Incremental
 	params := StartScanModel{
-		ScanType: &scanType,
+		ScanType:  &scanType,
+		ScanLabel: &scanLabel,
 	}
 
 	response, err := a.aiClient.PostApiScansProjectIdStartWithResponse(ctx, projectId, params, a.aiClient.AddJWTToHeader)

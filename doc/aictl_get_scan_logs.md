@@ -3,7 +3,7 @@
 Get scan logs
 
 ```
-aictl get scan logs [flags]
+aictl get scan logs <scan-id> [flags]
 ```
 
 ### Options

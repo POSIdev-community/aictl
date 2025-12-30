@@ -2,10 +2,6 @@
 
 Application Inspector ConTroL tool
 
-### Synopsis
-
-aictl - api клиент для Application Inspector
-
 ```
 aictl [flags]
 ```
