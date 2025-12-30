@@ -9,7 +9,8 @@ import (
 )
 
 type AI interface {
-	CreateAgentToken(ctx context.Context, login, password, agentName string, tlsSkip bool) (string, error)
+	InitializeLikeUserWithRetry(ctx context.Context, username, password string) error
+	CreateAgentToken(ctx context.Context, agentName string) (string, error)
 }
 
 type CLI interface {
@@ -42,7 +43,12 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 func (u *UseCase) Execute(ctx context.Context, login, password, agentName string) error {
 	u.cliAdapter.ShowTextf(ctx, "creating agent token '%v'", agentName)
 
-	token, err := u.aiAdapter.CreateAgentToken(ctx, login, password, agentName, u.cfg.TLSSkip())
+	err := u.aiAdapter.InitializeLikeUserWithRetry(ctx, login, password)
+	if err != nil {
+		return fmt.Errorf("initialize like user: %w", err)
+	}
+
+	token, err := u.aiAdapter.CreateAgentToken(ctx, agentName)
 	if err != nil {
 		return fmt.Errorf("create agent token: %w", err)
 	}
