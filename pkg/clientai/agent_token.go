@@ -1,11 +1,37 @@
 package clientai
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
+
+// userLoginRequest represents the request body for user login
+type userLoginRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+// userLoginResponse represents the response from user login
+type userLoginResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+// createTokenRequest represents the request body for creating access token
+type createTokenRequest struct {
+	Name   string   `json:"name"`
+	Scopes []string `json:"scopes"`
+}
+
+// createTokenResponse represents the response from creating access token
+type createTokenResponse struct {
+	Token string `json:"token"`
+}
 
 // CreateAgentToken authenticates with user credentials and creates an access token
 // for a scan agent. This is a standalone function because it uses a different
@@ -18,58 +44,108 @@ func CreateAgentToken(ctx context.Context, serverURL, login, password, agentName
 		}
 	}
 
-	client, err := NewClientWithResponses(serverURL, WithHTTPClient(httpClient))
-	if err != nil {
-		return "", fmt.Errorf("new client: %w", err)
-	}
-
 	// Step 1: Login with user credentials to get admin access token
-	scopeType := AuthScopeWeb
-	loginParams := &PostApiAuthUserLoginParams{
-		ScopeType: &scopeType,
-	}
-	loginBody := PostApiAuthUserLoginJSONRequestBody{
-		Login:    &login,
-		Password: &password,
-	}
-
-	loginResp, err := client.PostApiAuthUserLoginWithResponse(ctx, loginParams, loginBody)
+	adminToken, err := userLogin(ctx, httpClient, serverURL, login, password)
 	if err != nil {
 		return "", fmt.Errorf("user login: %w", err)
 	}
-
-	if err = CheckResponseByModel(loginResp.StatusCode(), string(loginResp.Body), loginResp.JSON400); err != nil {
-		return "", fmt.Errorf("user login: %w", err)
-	}
-
-	if loginResp.JSON200 == nil || loginResp.JSON200.AccessToken == nil {
-		return "", fmt.Errorf("user login: no access token in response")
-	}
-
-	adminToken := *loginResp.JSON200.AccessToken
 
 	// Step 2: Create agent token with ScanAgent scope
-	scopes := []AccessTokenScopeType{AccessTokenScopeTypeScanAgent}
-	tokenBody := PostApiAuthAccessTokenJSONRequestBody{
-		Name:   &agentName,
-		Scopes: &scopes,
-	}
-
-	tokenResp, err := client.PostApiAuthAccessTokenWithResponse(ctx, tokenBody, func(_ context.Context, req *http.Request) error {
-		req.Header.Add("Authorization", "Bearer "+adminToken)
-		return nil
-	})
+	agentToken, err := createAccessToken(ctx, httpClient, serverURL, adminToken, agentName)
 	if err != nil {
 		return "", fmt.Errorf("create access token: %w", err)
 	}
 
-	if err = CheckResponseByModel(tokenResp.StatusCode(), string(tokenResp.Body), tokenResp.JSON400); err != nil {
-		return "", fmt.Errorf("create access token: %w", err)
+	return agentToken, nil
+}
+
+func userLogin(ctx context.Context, client *http.Client, serverURL, login, password string) (string, error) {
+	body := userLoginRequest{
+		Login:    login,
+		Password: password,
 	}
 
-	if tokenResp.JSON200 == nil || tokenResp.JSON200.Token == nil {
-		return "", fmt.Errorf("create access token: no token in response")
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("marshal request: %w", err)
 	}
 
-	return *tokenResp.JSON200.Token, nil
+	url := serverURL + "/api/auth/userLogin?scopeType=Web"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return "", fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var loginResp userLoginResponse
+	if err := json.Unmarshal(respBody, &loginResp); err != nil {
+		return "", fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	if loginResp.AccessToken == "" {
+		return "", fmt.Errorf("no access token in response")
+	}
+
+	return loginResp.AccessToken, nil
+}
+
+func createAccessToken(ctx context.Context, client *http.Client, serverURL, adminToken, agentName string) (string, error) {
+	body := createTokenRequest{
+		Name:   agentName,
+		Scopes: []string{"ScanAgent"},
+	}
+
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("marshal request: %w", err)
+	}
+
+	url := serverURL + "/api/auth/accessToken"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return "", fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+adminToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("send request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var tokenResp createTokenResponse
+	if err := json.Unmarshal(respBody, &tokenResp); err != nil {
+		return "", fmt.Errorf("unmarshal response: %w", err)
+	}
+
+	if tokenResp.Token == "" {
+		return "", fmt.Errorf("no token in response")
+	}
+
+	return tokenResp.Token, nil
 }
