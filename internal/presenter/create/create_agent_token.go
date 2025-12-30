@@ -19,8 +19,9 @@ type UseCaseCreateAgentToken interface {
 
 func NewCreateAgentTokenCmd(cfg *config.Config, uc UseCaseCreateAgentToken) CmdCreateAgentToken {
 	var (
-		login    string
-		password string
+		login     string
+		password  string
+		agentName string
 	)
 
 	cmd := &cobra.Command{
@@ -34,25 +35,22 @@ configure scan agents.
 
 Example:
   aictl create agent-token my-agent --login admin --password secret -u https://aie-server:443`,
-		Args: cobra.ExactArgs(1),
-		// Override parent's PersistentPreRunE - agent-token uses login/password, not API token
-		PersistentPreRunE: _utils.ChainRunE(
-			_utils.InitializeLogger,
-			func(cmd *cobra.Command, args []string) error {
-				// Only update connection config without token validation
-				return _utils.UpdateConnectionConfig(cfg)
-			},
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context()
-			agentName := args[0]
-
+		Args:              cobra.ExactArgs(1),
+		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if login == "" {
 				return fmt.Errorf("login is required (use --login)")
 			}
 			if password == "" {
 				return fmt.Errorf("password is required (use --password)")
 			}
+
+			agentName = args[0]
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
 
 			if err := uc.Execute(ctx, login, password, agentName); err != nil {
 				cmd.SilenceUsage = true

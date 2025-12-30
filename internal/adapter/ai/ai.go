@@ -71,6 +71,36 @@ func (a *Adapter) InitializeWithRetry(ctx context.Context) error {
 	return nil
 }
 
+func (a *Adapter) InitializeLikeUser(ctx context.Context, username, password string) error {
+	err := a.aiClient.InitializeLikeUser(ctx, a.cfg, username, password)
+	if err != nil {
+		return fmt.Errorf("initialize likeU user: %w", err)
+	}
+
+	err = a.CheckMinVersion(ctx)
+	if err != nil {
+		return fmt.Errorf("check min version: %w", err)
+	}
+
+	err = a.CheckLicense(ctx)
+	if err != nil {
+		return fmt.Errorf("check license: %w", err)
+	}
+
+	return nil
+}
+
+func (a *Adapter) InitializeLikeUserWithRetry(ctx context.Context, username, password string) error {
+	err := a.InitializeLikeUser(ctx, username, password)
+	if err != nil {
+		return fmt.Errorf("initialize like user: %w", err)
+	}
+
+	a.aiClient.AddJwtRetry()
+
+	return nil
+}
+
 func (a *Adapter) CheckMinVersion(ctx context.Context) error {
 	v, err := a.GetVersion(ctx)
 	if err != nil {
@@ -897,11 +927,25 @@ func (a *Adapter) CheckLicense(ctx context.Context) error {
 	return nil
 }
 
-func (a *Adapter) CreateAgentToken(ctx context.Context, login, password, agentName string, tlsSkip bool) (string, error) {
-	token, err := CreateAgentToken(ctx, a.cfg.UriString(), login, password, agentName, tlsSkip)
-	if err != nil {
-		return "", fmt.Errorf("create agent token: %w", err)
+func (a *Adapter) CreateAgentToken(ctx context.Context, agentName string) (string, error) {
+	scope := []AccessTokenScopeType{AccessTokenScopeTypeScanAgent}
+
+	model := PostApiAuthAccessTokenJSONRequestBody{
+		Name:   &agentName,
+		Scopes: &scope,
 	}
 
-	return token, nil
+	response, err := a.aiClient.PostApiAuthAccessTokenWithResponse(ctx, model, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return "", fmt.Errorf("ai adapter create agent token: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return "", fmt.Errorf("ai adapter create agent token: %w", err)
+	}
+
+	return *response.JSON200.Token, nil
 }
