@@ -20,7 +20,7 @@ func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 	cmd := &cobra.Command{
 		Use:   "stage <scan-id>",
 		Short: "Get scan stage",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

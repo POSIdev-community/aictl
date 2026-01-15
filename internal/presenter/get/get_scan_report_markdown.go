@@ -25,7 +25,7 @@ func NewGetScanReportMarkdownCmd(uc UseCaseGetScanReportMarkdown) CmdGetScanRepo
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Markdown, destPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Markdown, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report markdown' usecase call: %w", err)

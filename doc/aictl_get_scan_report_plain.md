@@ -15,6 +15,7 @@ aictl get scan report plain <scan-id> [flags]
 ### Options inherited from parent commands
 
 ```
+  -f, --force                 Force rewrite output file
       --include-comments      Include comments in the report file
       --include-dfd           Include dfd in the report file
       --include-glossary      Include glossary report

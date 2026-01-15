@@ -615,6 +615,19 @@ func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templa
 	return response.Body, nil
 }
 
+func (a *Adapter) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.aiClient.GetApiStoreProjectIdSbomsScanResultId(ctx, projectId, scanResultId, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get sbom: %w", err)
+	}
+
+	if err = CheckResponse(response, "sbom"); err != nil {
+		return nil, fmt.Errorf("ai adapter get sbom: %w", err)
+	}
+
+	return response.Body, nil
+}
+
 func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
 	getBranchesResponse, err := a.aiClient.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.aiClient.AddJWTToHeader)
 	if err != nil {
@@ -679,19 +692,17 @@ func (a *Adapter) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*sc
 	return scan.NewScan(*model.Id, *model.SettingsId), nil
 }
 
-func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (string, error) {
-	response, err := a.aiClient.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiprojWithResponse(ctx, projectId, scanSettingsId, a.aiClient.AddJWTToHeader)
+func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.aiClient.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiproj(ctx, projectId, scanSettingsId, a.aiClient.AddJWTToHeader)
 	if err != nil {
-		return "", errs.NewNotFoundError("get scan aiproj")
+		return nil, errs.NewNotFoundError("get scan aiproj")
 	}
 
-	statusCode := response.StatusCode()
-	body := string(response.Body)
-	if err = CheckResponseByModel(statusCode, body, nil); err != nil {
-		return "", fmt.Errorf("ai adapter get scan aiproj: %w", err)
+	if err = CheckResponse(response, "aiproj"); err != nil {
+		return nil, fmt.Errorf("ai adapter get aiproj: %w", err)
 	}
 
-	return string(response.Body), nil
+	return response.Body, nil
 }
 
 func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
