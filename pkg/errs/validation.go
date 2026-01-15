@@ -37,7 +37,7 @@ type ValidationRequiredError struct {
 }
 
 func (e *ValidationRequiredError) Error() string {
-	return fmt.Sprintf("Validation error on field %s: param is required", e.Field)
+	return fmt.Sprintf("Validation error on field '%s': param is required", e.Field)
 }
 
 func NewValidationRequiredError(field string) *ValidationRequiredError {

@@ -27,5 +27,4 @@ aictl update sources [flags]
 ### SEE ALSO
 
 * [aictl update](aictl_update.md)	 - Update resources
-* [aictl update sources git](aictl_update_sources_git.md)	 - Update sources git
 
