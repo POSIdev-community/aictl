@@ -3,10 +3,9 @@ package _utils
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/pkg/logger"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -77,16 +76,8 @@ func ChainRunE(funcs ...RunE) RunE {
 	}
 }
 
-func InitializeLogger(cmd *cobra.Command, args []string) error {
-	if !verboseFlag && logPath == "" {
-		l, _ := logger.NewLogger(false)
-		ctx := logger.ContextWithLogger(cmd.Context(), l)
-		cmd.SetContext(ctx)
-
-		return nil
-	}
-
-	l, _ := logger.NewLogger(true)
+func InitializeLogger(cmd *cobra.Command, _ []string) error {
+	l, _ := logger.NewLogger(verboseFlag, logPath)
 	ctx := logger.ContextWithLogger(cmd.Context(), l)
 
 	cmd.SetContext(ctx)
