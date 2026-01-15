@@ -22,7 +22,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	. "github.com/POSIdev-community/aictl/pkg/clientai"
+	. "github.com/POSIdev-community/aictl/pkg/clientai" //nolint
 	"github.com/POSIdev-community/aictl/pkg/errs"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
@@ -898,6 +898,9 @@ func (a *Adapter) GetVersion(ctx context.Context) (version.Version, error) {
 	}
 
 	v, err := version.NewVersion(responseBody)
+	if err != nil {
+		return version.Version{}, fmt.Errorf("new version: %w", err)
+	}
 
 	return v, nil
 }

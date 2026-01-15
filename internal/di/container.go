@@ -213,6 +213,9 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 		cmdReportPcidss, cmdReportPlain, cmdReportSans, cmdReportSarif, cmdReportXml)
 
 	getSbomUC, err := sbom.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	cmdSbom := get.NewGetScanSbomCmd(getSbomUC)
 
@@ -225,6 +228,9 @@ func buildGetCmd(aiAdapter *ai.Adapter, cliAdapter *cli.Adapter, cfg *config.Con
 	cmdScan := get.NewGetScanCmd(persistentPreRunEGetScanCmd, scanUC, cmdAiproj, cmdLogs, cmdReport, cmdSbom, cmdState)
 
 	versionUC, err := getVersion.NewUseCase(aiAdapter, cliAdapter, cfg)
+	if err != nil {
+		return nil, err
+	}
 
 	cmdVersion := get.NewGetVersionCmd(versionUC)
 

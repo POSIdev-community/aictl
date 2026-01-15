@@ -24,6 +24,16 @@ pre-commit: generate test doc
 	@go install github.com/dmarkham/enumer@latest >/dev/null 2>&1
 	@echo "✅"
 
+.install_golangci-lint:
+	@echo -n "⇒ Installing golangci-lint... "
+	@go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0 >/dev/null 2>&1
+	@echo "✅"
+
+lint: | .install_golangci-lint
+	@echo -n "⇒ Linting... "
+	@golangci-lint run
+	@echo "✅"
+
 install_tools: .install_mockery .install_enumer
 
 generate: install_tools

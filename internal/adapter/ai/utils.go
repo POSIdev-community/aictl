@@ -41,8 +41,8 @@ func prepareMultipartBody(
 	go func() {
 
 		defer func() {
-			writer.Close()
-			pw.Close()
+			_ = writer.Close()
+			_ = pw.Close()
 		}()
 
 		done := make(chan struct{})
@@ -153,13 +153,17 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}
-	defer tmpFile.Close()
+	defer func() {
+		_ = tmpFile.Close()
+	}()
 
 	archivePath = tmpFile.Name()
 
 	// Создаем ZIP архив
 	zipWriter := zip.NewWriter(tmpFile)
-	defer zipWriter.Close()
+	defer func() {
+		_ = zipWriter.Close()
+	}()
 
 	// Функция для добавления файла в архив
 	addFileToZip := func(filePath string, info os.FileInfo) error {
@@ -168,7 +172,9 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		// Создаем заголовок файла в архиве
 		header, err := zip.FileInfoHeader(info)
@@ -251,7 +257,7 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 		})
 
 		if err != nil {
-			os.Remove(archivePath) // Удаляем временный файл в случае ошибки
+			_ = os.Remove(archivePath) // Удаляем временный файл в случае ошибки
 			return "", fmt.Errorf("walk directory: %w", err)
 		}
 	} else {
@@ -266,26 +272,28 @@ func prepareArchive(sourcePath string) (archivePath string, err error) {
 
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
-			os.Remove(archivePath)
+			_ = os.Remove(archivePath)
 			return "", err
 		}
 
 		file, err := os.Open(sourcePath)
 		if err != nil {
-			os.Remove(archivePath)
+			_ = os.Remove(archivePath)
 			return "", err
 		}
-		defer file.Close()
+		defer func() {
+			_ = file.Close()
+		}()
 
 		if _, err = io.Copy(writer, file); err != nil {
-			os.Remove(archivePath)
+			_ = os.Remove(archivePath)
 			return "", err
 		}
 	}
 
 	// Закрываем writer чтобы записать все данные
 	if err := zipWriter.Close(); err != nil {
-		os.Remove(archivePath)
+		_ = os.Remove(archivePath)
 		return "", fmt.Errorf("failed to close zip writer: %w", err)
 	}
 
