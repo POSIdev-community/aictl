@@ -49,7 +49,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
 
 	scanStage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
 	if err != nil {
-		return err
+		return fmt.Errorf("get scan stage: %w", err)
 	}
 
 	u.cliAdapter.ReturnText(ctx, scanStage.Stage)
