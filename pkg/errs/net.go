@@ -7,7 +7,7 @@ import (
 type NilResponseError struct{}
 
 func (e *NilResponseError) Error() string {
-	return fmt.Sprintf("Response is nil")
+	return "Response is nil"
 }
 func NewNilResponseError() *NilResponseError {
 	return &NilResponseError{}
@@ -16,7 +16,7 @@ func NewNilResponseError() *NilResponseError {
 type AuthenticationError struct{}
 
 func (e *AuthenticationError) Error() string {
-	return fmt.Sprintf("Authentication error")
+	return "Authentication error"
 }
 func NewAuthenticationError() *AuthenticationError {
 	return &AuthenticationError{}
@@ -25,7 +25,7 @@ func NewAuthenticationError() *AuthenticationError {
 type AuthorizationError struct{}
 
 func (e *AuthorizationError) Error() string {
-	return fmt.Sprintf("Authorization error")
+	return "Authorization error"
 }
 func NewAuthorizationError() *AuthorizationError {
 	return &AuthorizationError{}

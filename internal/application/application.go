@@ -38,19 +38,19 @@ func (app *Application) Run(ctx context.Context) {
 
 	exitCode, errorMessage := errs.MapExitCode(err)
 
-	_, err = fmt.Fprintln(os.Stderr, errorMessage)
+	_, _ = fmt.Fprintln(os.Stderr, errorMessage)
 
 	os.Exit(exitCode)
 }
 
 func (app *Application) GenerateDoc(dirPath string) error {
 	if err := os.RemoveAll(dirPath); err != nil {
-		return fmt.Errorf("Error removing directory: %v\n", err)
+		return fmt.Errorf("error removing directory: %v", err)
 	}
 	fmt.Printf("Directory %s removed.\n", dirPath)
 
 	if err := os.MkdirAll(dirPath, os.ModePerm); err != nil {
-		return fmt.Errorf("Error recreating directory: %v\n", err)
+		return fmt.Errorf("error recreating directory: %v", err)
 	}
 
 	if err := doc.GenMarkdownTree(app.cmd.Command, dirPath); err != nil {
