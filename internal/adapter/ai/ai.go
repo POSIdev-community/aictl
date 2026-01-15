@@ -878,6 +878,26 @@ func (a *Adapter) GetVersion(ctx context.Context) (version.Version, error) {
 	return v, nil
 }
 
+func (a *Adapter) GetHealthcheck(ctx context.Context) (bool, error) {
+	response, err := a.aiClient.GetHealthSummaryWithResponse(ctx, a.aiClient.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai get version: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return false, fmt.Errorf("ai get version: %w", err)
+	}
+
+	health := true
+	for _, service := range *response.JSON200.Services {
+		health = health && *service.Status == "Healthy"
+	}
+
+	return health, nil
+}
+
 func (a *Adapter) CheckLicense(ctx context.Context) error {
 	response, err := a.aiClient.GetApiLicenseWithResponse(ctx, a.aiClient.AddJWTToHeader)
 	if err != nil {
