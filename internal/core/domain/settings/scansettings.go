@@ -1,12 +1,35 @@
 package settings
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
 )
 
-func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
+func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) error {
+	if aiproj.ScanModules != nil {
+		for _, module := range aiproj.ScanModules {
+			switch module {
+			case "Configuration":
+				s.WhiteBoxSettings.SearchForConfigurationFlawsEnabled = true
+			case "Components":
+				s.WhiteBoxSettings.SearchForVulnerableComponentsEnabled = true
+			case "PatternMatching":
+				s.WhiteBoxSettings.PatternMatchingEnabled = true
+			case "StaticCodeAnalysis":
+				s.WhiteBoxSettings.StaticCodeAnalysisEnabled = true
+			case "SoftwareCompositionAnalysis":
+				s.WhiteBoxSettings.SearchWithScaEnabled = true
+			case "BlackBox":
+				// TODO: add black box settings
+				return fmt.Errorf("''blackBox' is unimplemented")
+			default:
+				return fmt.Errorf("unsupported module: %s", module)
+			}
+		}
+	}
+
 	if aiproj.ProjectName != "" {
 		s.ProjectName = aiproj.ProjectName
 	}
@@ -187,7 +210,7 @@ func (s *ScanSettings) UpdateFromAIProj(aiproj *aiproj.AIProj) *ScanSettings {
 		}
 	}
 
-	return s
+	return nil
 }
 
 func (s *ScanSettings) IsEmpty() bool {

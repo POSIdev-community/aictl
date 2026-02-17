@@ -50,7 +50,10 @@ func (u *UseCase) Execute(ctx context.Context, aiProj *aiproj.AIProj) error {
 		return fmt.Errorf("get default settings: %w", err)
 	}
 
-	scanSettings.UpdateFromAIProj(aiProj)
+	err = scanSettings.UpdateFromAIProj(aiProj)
+	if err != nil {
+		return fmt.Errorf("update scan settings from aiproj: %w", err)
+	}
 
 	if err := u.aiAdapter.SetProjectSettings(ctx, u.cfg.ProjectId(), &scanSettings); err != nil {
 		return fmt.Errorf("set project settings: %w", err)
