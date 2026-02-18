@@ -17,6 +17,7 @@ Create resource
 ### SEE ALSO
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
+* [aictl create agent-token](aictl_create_agent-token.md)	 - Create access token for scan agent
 * [aictl create branch](aictl_create_branch.md)	 - Create branch
 * [aictl create project](aictl_create_project.md)	 - Create project
 

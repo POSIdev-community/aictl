@@ -15,7 +15,8 @@ var safeFlag bool
 func NewCreateCmd(
 	cfg *config.Config,
 	cmdCreateBranch CmdCreateBranch,
-	cmdCreateProject CmdCreateProject) *CmdCreate {
+	cmdCreateProject CmdCreateProject,
+	cmdCreateAgentToken CmdCreateAgentToken) *CmdCreate {
 
 	cmd := &cobra.Command{
 		Use:               "create",
@@ -25,6 +26,7 @@ func NewCreateCmd(
 
 	cmd.AddCommand(cmdCreateProject.Command)
 	cmd.AddCommand(cmdCreateBranch.Command)
+	cmd.AddCommand(cmdCreateAgentToken.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 
