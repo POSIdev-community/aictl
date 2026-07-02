@@ -36,10 +36,13 @@ lint: | .install_golangci-lint
 
 install_tools: .install_mockery .install_enumer
 
-generate: install_tools
+.PHONY: generate-mocks generate
+generate-mocks: .install_mockery
 	@echo -n "⇒ Generating mocks... "
 	@mockery --log-level error
 	@echo "✅"
+
+generate: install_tools generate-mocks
 	@echo -n "⇒ Running go generate... "
 	@go generate ./...
 	@echo "✅"

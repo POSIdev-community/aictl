@@ -27,7 +27,7 @@ jobs:
           go mod download
 
       - name: Generate mocks
-        run: make generate
+        run: make generate-mocks
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9

@@ -30,8 +30,8 @@ jobs:
           go mod verify
           go mod download
 
-      - name: Generate mocks and run go generate
-        run: make generate
+      - name: Generate mocks
+        run: make generate-mocks
 
       - name: Run tests with version injection
         run: |

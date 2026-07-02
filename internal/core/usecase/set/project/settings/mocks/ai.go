@@ -123,7 +123,6 @@ func (_mock *AI) GetVersion(ctx context.Context) (version.Version, error) {
 	} else {
 		r1 = ret.Error(1)
 	}
-
 	return r0, r1
 }
 
@@ -144,14 +143,15 @@ func (_c *AI_GetVersion_Call) Run(run func(ctx context.Context)) *AI_GetVersion_
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		run(arg0)
+		run(
+			arg0,
+		)
 	})
-
 	return _c
 }
 
-func (_c *AI_GetVersion_Call) Return(serverVersion version.Version, err error) *AI_GetVersion_Call {
-	_c.Call.Return(serverVersion, err)
+func (_c *AI_GetVersion_Call) Return(version1 version.Version, err error) *AI_GetVersion_Call {
+	_c.Call.Return(version1, err)
 	return _c
 }
 
