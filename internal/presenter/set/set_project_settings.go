@@ -2,14 +2,13 @@ package set
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/spf13/cobra"
-
-	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
 )
 
 type CmdSetProjectSettings struct {
@@ -17,13 +16,13 @@ type CmdSetProjectSettings struct {
 }
 
 type UseCaseSetProjectSettings interface {
-	Execute(ctx context.Context, aiProj *aiproj.AIProj) error
+	Execute(ctx context.Context, rawAiproj []byte) error
 }
 
 func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSettings {
 	var (
-		filePath   string
-		aiprojData aiproj.AIProj
+		filePath  string
+		rawAiproj []byte
 	)
 
 	cmd := &cobra.Command{
@@ -31,15 +30,13 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 		Short: "Set project settings",
 		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			var aiprojString string
 			if filePath == "" {
 				args = _utils.ReadArgsFromStdin(args)
 				if len(args) == 0 {
 					return fmt.Errorf("aiproj data required")
 				}
 
-				aiprojString = args[0]
-
+				rawAiproj = []byte(args[0])
 			} else {
 				if !fshelper.PathExists(filePath) {
 					return fmt.Errorf("file %s does not exist", filePath)
@@ -54,13 +51,11 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 					return fmt.Errorf("read aiproj file: %w", err)
 				}
 
-				aiprojString = string(content)
+				rawAiproj = content
 			}
 
-			var err error
-			aiprojData, err = aiproj.FromString(aiprojString)
-			if err != nil {
-				return fmt.Errorf("invalid aiproj data: %w", err)
+			if !json.Valid(rawAiproj) {
+				return fmt.Errorf("invalid aiproj data: not valid json")
 			}
 
 			return nil
@@ -68,7 +63,7 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, &aiprojData); err != nil {
+			if err := uc.Execute(ctx, rawAiproj); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'set project settings' usecase call: %w", err)
