@@ -3,10 +3,12 @@
 package e2e
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -31,13 +33,9 @@ func TestBasePipeline(t *testing.T) {
 	root, err := RepoRoot()
 	require.NoError(t, err)
 
-	aictlBin := os.Getenv("AICTL_BIN")
-	if aictlBin == "" {
-		aictlBin = filepath.Join(root, "bin", "aictl")
-	}
-	if _, err := os.Stat(aictlBin); err != nil {
-		t.Fatalf("aictl binary not found at %q: run make build-e2e", aictlBin)
-	}
+	aictlBin, err := ResolveAictlBin(root)
+	require.NoError(t, err, "build aictl for e2e")
+	t.Logf("using aictl binary: %s", aictlBin)
 
 	e2eDir := filepath.Join(root, "tests", "e2e")
 	scriptPath := filepath.Join(e2eDir, "run-pipeline.sh")
@@ -64,10 +62,51 @@ func TestBasePipeline(t *testing.T) {
 				"AIPROJ_FIXTURE="+AiprojFixturePath(fixturesDir, aiprojVersion),
 			)
 
-			out, runErr := cmd.CombinedOutput()
-			require.NoError(t, runErr, "pipeline failed:\n%s", out)
+			logWriter := &testLogWriter{t: t}
+			cmd.Stdout = logWriter
+			cmd.Stderr = logWriter
+
+			runErr := cmd.Run()
+			logWriter.Flush()
+			require.NoError(t, runErr, "pipeline failed")
 
 			AssertPipelineArtifacts(t, workDir, standName)
 		})
 	}
+}
+
+// testLogWriter streams command output into t.Log line by line.
+type testLogWriter struct {
+	t   *testing.T
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (w *testLogWriter) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.t.Helper()
+	w.buf.Write(p)
+	for {
+		line, err := w.buf.ReadString('\n')
+		if err != nil {
+			w.buf.WriteString(line)
+			break
+		}
+		w.t.Log(string(bytes.TrimRight([]byte(line), "\r\n")))
+	}
+	return len(p), nil
+}
+
+func (w *testLogWriter) Flush() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.t.Helper()
+	if w.buf.Len() == 0 {
+		return
+	}
+	w.t.Log(w.buf.String())
+	w.buf.Reset()
 }

@@ -110,7 +110,17 @@ func (a *ClientAI60) getJWT(ctx context.Context, cfg *config.Config) error {
 }
 
 func (a *ClientAI60) refreshJWT(ctx context.Context, req *http.Request) error {
-	err := a.DoJWTRefresh(func() error {
+	if err := a.RefreshAccessToken(ctx); err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+a.AccessToken)
+
+	return nil
+}
+
+func (a *ClientAI60) RefreshAccessToken(ctx context.Context) error {
+	return a.DoJWTRefresh(func() error {
 		log := logger.FromContext(ctx)
 
 		response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
@@ -136,13 +146,6 @@ func (a *ClientAI60) refreshJWT(ctx context.Context, req *http.Request) error {
 
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+a.AccessToken)
-
-	return nil
 }
 
 func (a *ClientAI60) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {

@@ -23,9 +23,9 @@ make test-e2e
 **Run one stand:**
 
 ```bash
-go test -tags=e2e -v -run 'AIE_5\.4' ./tests/e2e/...
+go test -tags=e2e -v -timeout=45m -run 'AIE_5\.4' ./tests/e2e/...
 ```
 
-Config path override: `AICTL_E2E_CONFIG=/path/to/stands.yaml`. Binary override: `AICTL_BIN=/path/to/aictl`.
+The test builds `bin/aictl` before the pipeline (same as `make build-e2e`). Override with `AICTL_BIN=/path/to/aictl` to skip the build. Config path: `AICTL_E2E_CONFIG=/path/to/stands.yaml`.
 
 Without `stands.local.yaml`, e2e tests are skipped; `go test ./...` does not run them (build tag `e2e`).
