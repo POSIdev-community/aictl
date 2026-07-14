@@ -109,28 +109,35 @@ func (a *ClientAI5x) getJWT(ctx context.Context, cfg *config.Config) error {
 }
 
 func (a *ClientAI5x) refreshJWT(ctx context.Context, req *http.Request) error {
-	log := logger.FromContext(ctx)
+	err := a.DoJWTRefresh(func() error {
+		log := logger.FromContext(ctx)
 
-	response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
-		req.Header.Add("Authorization", "Bearer "+a.RefreshToken)
+		response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Authorization", "Bearer "+a.RefreshToken)
+
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("get api auth refresh token: %w", err)
+		}
+
+		if err = CheckResponse(response.HTTPResponse, "jwt refresh"); err != nil {
+			return err
+		}
+
+		if response.JSON200 == nil || response.JSON200.AccessToken == nil {
+			log.StdErrf("Got empty access token")
+
+			return fmt.Errorf("no access token")
+		}
+
+		a.AccessToken = *response.JSON200.AccessToken
 
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("get api auth signin: %w", err)
-	}
-
-	if err = CheckResponse(response.HTTPResponse, "jwt refresh"); err != nil {
 		return err
 	}
-
-	if response.JSON200.AccessToken == nil {
-		log.StdErrf("Got empty access token")
-
-		return fmt.Errorf("no access token")
-	}
-
-	a.AccessToken = *response.JSON200.AccessToken
 
 	req.Header.Set("Authorization", "Bearer "+a.AccessToken)
 
