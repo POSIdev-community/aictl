@@ -3,9 +3,10 @@ package settings_test
 import (
 	"testing"
 
-	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 )
 
 func TestScanSettings_Patch(t *testing.T) {

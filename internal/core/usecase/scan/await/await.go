@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-	"github.com/google/uuid"
 )
 
 const (

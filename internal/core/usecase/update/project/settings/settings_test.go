@@ -4,13 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/require"
 )
 
 type fakeAI struct {

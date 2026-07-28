@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common/notify"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/pkg/logger"
-	"github.com/google/uuid"
 )
 
 type accessTokenRefresher interface {

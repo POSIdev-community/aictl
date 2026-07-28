@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 )
 
 type CmdGetScanReportJson struct {

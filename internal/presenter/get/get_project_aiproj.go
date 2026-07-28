@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"github.com/spf13/cobra"
 )
 
 type CmdGetProjectAiproj struct {

@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/report"
-	defaultreport "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/report/defaultreport"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	defaultreport "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/report/defaultreport"
 )
 
 func TestUseCase_Execute(t *testing.T) {

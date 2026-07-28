@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+
+	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 )
 
 type CmdDeleteProjects struct {

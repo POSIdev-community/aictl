@@ -1,8 +1,9 @@
 package aiproj
 
 import (
-	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/POSIdev-community/aiproj/versions"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 )
 
 var (

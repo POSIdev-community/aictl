@@ -1,9 +1,10 @@
 package unset
 
 import (
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-	"github.com/google/uuid"
 )
 
 type CFG interface {

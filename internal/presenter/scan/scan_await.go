@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 )
 
 type CmdScanAwait struct {

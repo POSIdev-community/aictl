@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/spf13/cobra"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 )
 
 type CmdGetProjects struct {

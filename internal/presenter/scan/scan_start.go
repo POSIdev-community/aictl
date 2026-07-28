@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/scantype"
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/spf13/cobra"
 )
 
 type PersistentPreRunEScanStartCmd _utils.RunE

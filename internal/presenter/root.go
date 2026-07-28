@@ -3,6 +3,8 @@ package presenter
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/internal/presenter/context"
 	"github.com/POSIdev-community/aictl/internal/presenter/create"
@@ -13,7 +15,6 @@ import (
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/POSIdev-community/aictl/pkg/version"
-	"github.com/spf13/cobra"
 )
 
 type CmdRoot struct {

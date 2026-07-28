@@ -3,12 +3,13 @@ package settings
 import (
 	"testing"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 )
 
 var okAIProj = []byte(`{

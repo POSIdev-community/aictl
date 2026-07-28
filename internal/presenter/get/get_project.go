@@ -1,9 +1,10 @@
 package get
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/spf13/cobra"
 )
 
 type PersistentPreRunEGetProjectCmd _utils.RunE

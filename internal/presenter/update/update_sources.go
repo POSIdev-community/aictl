@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
-	"github.com/spf13/cobra"
 )
 
 type CmdUpdateSources struct {

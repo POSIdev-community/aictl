@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
@@ -15,7 +17,6 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
-	"github.com/google/uuid"
 )
 
 type ClientAi interface {

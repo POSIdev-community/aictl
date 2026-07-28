@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/POSIdev-community/aictl/pkg/gitignore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
 
 func TestMatcher_multiplePatterns(t *testing.T) {

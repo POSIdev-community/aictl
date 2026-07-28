@@ -8,10 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
-	"github.com/POSIdev-community/aictl/pkg/gitignore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
+	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
 
 func TestPrepareArchive_excludesPatterns(t *testing.T) {

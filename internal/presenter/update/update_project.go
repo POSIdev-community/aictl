@@ -1,9 +1,10 @@
 package update
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/spf13/cobra"
 )
 
 type PersistentPreRunEUpdateProjectCmd _utils.RunE

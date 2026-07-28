@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
-	"github.com/spf13/cobra"
 )
 
 type CmdGetScans struct {

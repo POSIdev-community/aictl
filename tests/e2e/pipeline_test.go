@@ -22,7 +22,7 @@ func TestBasePipeline(t *testing.T) {
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		t.Skip("e2e: create tests/e2e/stands.local.yaml (make e2e-config)")
+		t.Skip("e2e: create tests/e2e/stands.local.yaml (task e2e-config)")
 	}
 
 	stands, err := LoadStands(configPath)

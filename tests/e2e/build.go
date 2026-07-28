@@ -23,7 +23,7 @@ func ResolveAictlBin(root string) (string, error) {
 	return BuildAictl(root)
 }
 
-// BuildAictl compiles cmd/run into bin/aictl (same as make build-e2e).
+// BuildAictl compiles cmd/run into bin/aictl (same as task build-e2e).
 func BuildAictl(root string) (string, error) {
 	out := filepath.Join(root, "bin", "aictl")
 	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {

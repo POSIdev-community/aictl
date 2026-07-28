@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/POSIdev-community/aictl/internal/di"
-	"github.com/POSIdev-community/aictl/internal/presenter"
 	"github.com/spf13/cobra/doc"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/config"
+	"github.com/POSIdev-community/aictl/internal/di"
+	"github.com/POSIdev-community/aictl/internal/presenter"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 

@@ -18,7 +18,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := app.GenerateDoc("./doc"); err != nil {
+	outDir := "./doc/gen"
+	if len(os.Args) > 1 {
+		outDir = os.Args[1]
+	}
+
+	if err := app.GenerateDoc(outDir); err != nil {
 		log.Fatal(err)
 	}
 }

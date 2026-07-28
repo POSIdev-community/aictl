@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
-	"github.com/google/uuid"
 )
 
 type AI interface {

@@ -7,14 +7,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
-	"github.com/POSIdev-community/aictl/pkg/logger"
-
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
+	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
 type Adapter struct {

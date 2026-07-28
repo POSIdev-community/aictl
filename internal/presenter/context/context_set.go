@@ -3,9 +3,10 @@ package context
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-	"github.com/spf13/cobra"
 )
 
 type CmdConfigSet struct {

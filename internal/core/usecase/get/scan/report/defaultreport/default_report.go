@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )

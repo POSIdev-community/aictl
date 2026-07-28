@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
-	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 )
 
 const testPollInterval = 20 * time.Millisecond

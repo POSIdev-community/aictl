@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
-	"github.com/spf13/cobra"
 )
 
 type CmdSetProjectSettings struct {

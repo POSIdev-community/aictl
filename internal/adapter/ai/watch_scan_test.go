@@ -3,9 +3,10 @@ package ai
 import (
 	"testing"
 
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/common/notify"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/common/notify"
 )
 
 func TestScanStageFromNotificationProgress(t *testing.T) {

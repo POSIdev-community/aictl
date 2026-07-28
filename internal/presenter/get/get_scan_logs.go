@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-	"github.com/POSIdev-community/aictl/pkg/fshelper"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	"github.com/POSIdev-community/aictl/pkg/fshelper"
 )
 
 type CmdGetScanLogs struct {

@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/google/uuid"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 )
 
 func ParseUUIDs(args []string) ([]uuid.UUID, error) {

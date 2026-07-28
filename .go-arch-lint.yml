@@ -4,6 +4,11 @@ allow:
   depOnAnyVendor: true
   deepScan: false
 
+exclude:
+  - .devenv
+  - .direnv
+  - bin
+
 components:
   pkg_clientai:
     in: pkg/clientai/**

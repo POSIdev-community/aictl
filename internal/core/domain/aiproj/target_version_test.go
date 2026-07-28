@@ -3,8 +3,9 @@ package aiproj
 import (
 	"testing"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/stretchr/testify/require"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 )
 
 func TestTargetForServer(t *testing.T) {

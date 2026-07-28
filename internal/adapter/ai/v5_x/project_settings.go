@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/client"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	"github.com/google/uuid"
 )
 
 func (a *ClientAI5x) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error) {

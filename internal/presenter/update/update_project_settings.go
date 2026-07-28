@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/spf13/cobra"
+
+	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 )
 
 type CmdUpdateProjectSettings struct {

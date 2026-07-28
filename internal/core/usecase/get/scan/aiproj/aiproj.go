@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	utils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
-	"github.com/google/uuid"
 )
 
 type AI interface {

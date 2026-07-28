@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/google/uuid"
 	"gopkg.in/yaml.v3"
+
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
 
 type fileConfig struct {

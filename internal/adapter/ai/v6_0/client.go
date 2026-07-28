@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
@@ -30,7 +32,6 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_0"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 	"github.com/POSIdev-community/aictl/pkg/logger"
-	"github.com/google/uuid"
 )
 
 type ClientAI60 struct {
