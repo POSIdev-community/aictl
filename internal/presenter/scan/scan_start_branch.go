@@ -25,7 +25,10 @@ func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdSca
 	cmd := &cobra.Command{
 		Use:   "branch <branch-id>",
 		Short: "Start branch scan",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.`,
+		Example: `  aictl scan start branch <branch-id> -p <project-id>
+  aictl scan start branch --scan-label nightly --full-scan`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
@@ -57,7 +60,7 @@ func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdSca
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
 
 	return CmdScanStartBranch{cmd}
 }

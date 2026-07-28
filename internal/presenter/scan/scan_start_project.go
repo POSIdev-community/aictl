@@ -23,7 +23,10 @@ func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdS
 	cmd := &cobra.Command{
 		Use:   "project <project-id>",
 		Short: "Start project scan",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Start a scan on an entire project. Project id comes from the argument or context.`,
+		Example: `  aictl scan start project <project-id>
+  aictl scan start project --scan-label release --full-scan`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
 			var projectIdFlag string

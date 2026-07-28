@@ -15,6 +15,7 @@ func NewDeleteCmd(cfg *config.Config, cmdDeleteProjects CmdDeleteProjects) *CmdD
 	cmd := &cobra.Command{
 		Use:               "delete",
 		Short:             "Delete resources",
+		Long:              `Delete AI resources on the server.`,
 		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 

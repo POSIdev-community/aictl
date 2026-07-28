@@ -1,6 +1,10 @@
 ## aictl ctx
 
-aictl context
+Manage local aictl context
+
+### Synopsis
+
+Read and write the local aictl context (URI, token, TLS skip, project/branch ids) stored under ~/.config/aictl/.
 
 ### Options
 
@@ -14,5 +18,5 @@ aictl context
 * [aictl ctx clear](aictl_ctx_clear.md)	 - Clear current aictl configuration
 * [aictl ctx set](aictl_ctx_set.md)	 - Set current aictl configuration
 * [aictl ctx show](aictl_ctx_show.md)	 - Show current aictl context
-* [aictl ctx unset](aictl_ctx_unset.md)	 - Unset context params
+* [aictl ctx unset](aictl_ctx_unset.md)	 - Unset context parameters
 

@@ -29,7 +29,10 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Set project settings",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Replace project settings (aiproj.json) from a JSON argument or file. Project id comes from context or -p.`,
+		Example: `  aictl set project settings -f aiproj.json -p <project-id>
+  aictl set project settings '{"Version":"1.0"}' -p <project-id>`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if filePath == "" {
 				args = _utils.ReadArgsFromStdin(args)
@@ -74,7 +77,7 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "path to aiproj.json")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to aiproj.json file")
 
 	return CmdSetProjectSettings{cmd}
 }

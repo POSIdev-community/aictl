@@ -27,8 +27,14 @@ func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, del
 	var versionFlag bool
 
 	rootCmd := &cobra.Command{
-		Use:               "aictl",
-		Short:             "Application Inspector ConTroL tool",
+		Use:   "aictl",
+		Short: "Application Inspector ConTroL tool",
+		Long: `CLI for managing PT Application Inspector: projects, branches, scans, reports, and local context.
+
+Use subcommands to talk to an AI server. Connection settings come from context (~/.config/aictl/context.yaml) or -u/-t/--tls-skip flags.`,
+		Example: `  aictl ctx set -u https://ai.example -t <token>
+  aictl get projects
+  aictl --version`,
 		PersistentPreRunE: _utils.InitializeLogger,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if versionFlag {
@@ -58,7 +64,7 @@ func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, del
 	rootCmd.AddCommand(setCmd.Command)
 	rootCmd.AddCommand(updateCmd.Command)
 
-	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "show version")
+	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "Show aictl version")
 
 	return &CmdRoot{rootCmd}
 }

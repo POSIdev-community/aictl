@@ -2,26 +2,37 @@
 
 Get project settings
 
+### Synopsis
+
+Print project settings. Project id comes from context or parent -p. Use --json for JSON output.
+
 ```
 aictl get project settings [flags]
+```
+
+### Examples
+
+```
+  aictl get project settings -p <project-id>
+  aictl get project settings -p <project-id> --json
 ```
 
 ### Options
 
 ```
   -h, --help   help for settings
-      --json   Json format output
+      --json   Output in JSON format
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -l, --log-path string     log file path
-  -p, --project-id string   project id
-      --tls-skip            Skip certificate verification
-  -t, --token string        AI server access token
-  -u, --uri string          AI server uri
-  -v, --verbose             verbose output
+  -l, --log-path string     Log file path
+  -p, --project-id string   Project id (overrides context)
+      --tls-skip            Skip TLS certificate verification
+  -t, --token string        AI server access token (overrides context)
+  -u, --uri string          AI server URI (overrides context)
+  -v, --verbose             Verbose output
 ```
 
 ### SEE ALSO

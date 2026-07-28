@@ -21,6 +21,9 @@ func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
 	cmd := &cobra.Command{
 		Use:   "agents",
 		Short: "Get agents",
+		Long:  `List scan agents registered on the server.`,
+		Example: `  aictl get agents
+  aictl get agents -q`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
@@ -34,7 +37,7 @@ func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Get only ids")
+	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
 
 	return CmdGetAgents{cmd}
 }

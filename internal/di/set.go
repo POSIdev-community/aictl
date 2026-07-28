@@ -1,6 +1,7 @@
 package di
 
 import (
+	"github.com/POSIdev-community/aictl/internal/core/usecase/set/project/exclusions"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/set/project/policies"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/set/project/settings"
 	setPresenter "github.com/POSIdev-community/aictl/internal/presenter/set"
@@ -17,12 +18,18 @@ func buildSetCmd(a *adapters) (*setPresenter.CmdSet, error) {
 		return nil, err
 	}
 
+	exclusionsUC, err := exclusions.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	persistentPreRunESetCmd := setPresenter.NewPersistentPreRunESetCmd(a.cfg)
 	persistentPreRunESetProjectCmd := setPresenter.NewPersistentPreRunESetProjectCmd(a.cfg, persistentPreRunESetCmd)
 
 	cmdSettings := setPresenter.NewSetProjectSettingsCmd(settingsUC)
 	cmdPolicies := setPresenter.NewSetProjectPoliciesCmd(policiesUC)
-	cmdProject := setPresenter.NewSetProjectCmd(persistentPreRunESetProjectCmd, cmdSettings, cmdPolicies)
+	cmdExclusions := setPresenter.NewSetProjectExclusionsCmd(exclusionsUC)
+	cmdProject := setPresenter.NewSetProjectCmd(persistentPreRunESetProjectCmd, cmdSettings, cmdPolicies, cmdExclusions)
 
 	return setPresenter.NewSetCmd(persistentPreRunESetCmd, cmdProject), nil
 }

@@ -9,6 +9,8 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
@@ -159,6 +161,36 @@ func (cli *Adapter) ShowScanAgentsQuite(ctx context.Context, agents []scanagent.
 
 	for _, a := range agents {
 		log.StdOut(a.Id.String())
+	}
+}
+
+func (cli *Adapter) ShowQueue(ctx context.Context, entries []queue.Entry) {
+	log := logger.FromContext(ctx)
+	const format = "%-36s\t%-36s\t%-36s\t%s"
+
+	log.StdOutf(format, "PROJECT ID", "BRANCH ID", "SCAN ID", "STAGE")
+
+	for _, e := range entries {
+		log.StdOutf(format, e.ProjectId, e.BranchId, e.ScanId, e.Stage)
+	}
+}
+
+func (cli *Adapter) ShowReportTemplates(ctx context.Context, templates []report.Template) {
+	log := logger.FromContext(ctx)
+	const format = "%-36s\t%s"
+
+	log.StdOutf(format, "ID", "NAME")
+
+	for _, t := range templates {
+		log.StdOutf(format, t.Id, t.Name)
+	}
+}
+
+func (cli *Adapter) ShowReportTemplatesQuite(ctx context.Context, templates []report.Template) {
+	log := logger.FromContext(ctx)
+
+	for _, t := range templates {
+		log.StdOut(t.Id.String())
 	}
 }
 

@@ -21,6 +21,9 @@ func NewGetProjectSettingsCmd(uc UseCaseGetProjectSettings) CmdGetProjectSetting
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Get project settings",
+		Long:  `Print project settings. Project id comes from context or parent -p. Use --json for JSON output.`,
+		Example: `  aictl get project settings -p <project-id>
+  aictl get project settings -p <project-id> --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
@@ -34,7 +37,7 @@ func NewGetProjectSettingsCmd(uc UseCaseGetProjectSettings) CmdGetProjectSetting
 		},
 	}
 
-	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Json format output")
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output in JSON format")
 
 	return CmdGetProjectSettings{cmd}
 }

@@ -5,11 +5,15 @@ import (
 	getBranches "github.com/POSIdev-community/aictl/internal/core/usecase/get/branches"
 	getHealthchech "github.com/POSIdev-community/aictl/internal/core/usecase/get/healthcheck"
 	projectAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/aiproj"
+	getProjectExclusions "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/exclusions"
 	getProjectPolicies "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/policies"
 	getProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/settings"
 	getProjects "github.com/POSIdev-community/aictl/internal/core/usecase/get/projects"
+	getQueue "github.com/POSIdev-community/aictl/internal/core/usecase/get/queue"
+	getReportTemplates "github.com/POSIdev-community/aictl/internal/core/usecase/get/reporttemplates"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan"
 	scanAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/aiproj"
+	scanErrors "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/errors"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/logs"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/report"
 	defaultreport "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/report/defaultreport"
@@ -17,6 +21,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/state"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/statistic"
 	getScanAgents "github.com/POSIdev-community/aictl/internal/core/usecase/get/scanagents"
+	getScanning "github.com/POSIdev-community/aictl/internal/core/usecase/get/scanning"
 	getScans "github.com/POSIdev-community/aictl/internal/core/usecase/get/scans"
 	getVersion "github.com/POSIdev-community/aictl/internal/core/usecase/get/version"
 	"github.com/POSIdev-community/aictl/internal/presenter/get"
@@ -74,9 +79,27 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 	}
 	cmdAgents := get.NewGetAgentsCmd(scanAgentsUC)
 
+	queueUC, err := getQueue.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdQueue := get.NewGetQueueCmd(queueUC)
+
+	scanningUC, err := getScanning.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdScanning := get.NewGetScanningCmd(scanningUC)
+
+	reportTemplatesUC, err := getReportTemplates.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdReportTemplates := get.NewGetReportTemplatesCmd(reportTemplatesUC)
+
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 
-	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdBranch, cmdScans, cmdScan, cmdAgents, cmdVersion), nil
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdBranch, cmdScans, cmdScan, cmdAgents, cmdVersion, cmdQueue, cmdScanning, cmdReportTemplates), nil
 }
 
 func buildGetBranchCmd(a *adapters) (get.CmdGetBranch, error) {
@@ -110,10 +133,16 @@ func buildGetProjectCmd(a *adapters) (get.CmdGetProject, error) {
 	}
 	cmdPolicies := get.NewGetProjectPoliciesCmd(projectPoliciesUC)
 
+	projectExclusionsUC, err := getProjectExclusions.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return get.CmdGetProject{}, err
+	}
+	cmdExclusions := get.NewGetProjectExclusionsCmd(projectExclusionsUC)
+
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetProjectCmd := get.NewPersistentPreRunEGetProjectCmd(a.cfg, persistentPreRunEGetCmd)
 
-	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings, cmdPolicies), nil
+	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings, cmdPolicies, cmdExclusions), nil
 }
 
 func buildGetScanCmd(a *adapters) (get.CmdGetScan, error) {
@@ -133,6 +162,12 @@ func buildGetScanCmd(a *adapters) (get.CmdGetScan, error) {
 		return get.CmdGetScan{}, err
 	}
 	cmdLogs := get.NewGetScanLogsCmd(logsUC)
+
+	errorsUC, err := scanErrors.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return get.CmdGetScan{}, err
+	}
+	cmdErrors := get.NewGetScanErrorsCmd(errorsUC)
 
 	cmdReport, err := buildGetScanReportCmd(a)
 	if err != nil {
@@ -160,7 +195,7 @@ func buildGetScanCmd(a *adapters) (get.CmdGetScan, error) {
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetScanCmd := get.NewPersistentPreRunEGetScanCmd(a.cfg, persistentPreRunEGetCmd)
 
-	return get.NewGetScanCmd(persistentPreRunEGetScanCmd, scanUC, cmdAiproj, cmdLogs, cmdReport, cmdSbom, cmdState, cmdStatistic), nil
+	return get.NewGetScanCmd(persistentPreRunEGetScanCmd, scanUC, cmdAiproj, cmdLogs, cmdErrors, cmdReport, cmdSbom, cmdState, cmdStatistic), nil
 }
 
 func buildGetScanReportCmd(a *adapters) (get.CmdGetScanReport, error) {

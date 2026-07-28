@@ -2,8 +2,18 @@
 
 Stop scan
 
+### Synopsis
+
+Stop a running scan by scan id.
+
 ```
 aictl scan stop <scan-id> [flags]
+```
+
+### Examples
+
+```
+  aictl scan stop <scan-id>
 ```
 
 ### Options
@@ -15,14 +25,14 @@ aictl scan stop <scan-id> [flags]
 ### Options inherited from parent commands
 
 ```
-  -l, --log-path string   log file path
-      --tls-skip          Skip certificate verification
-  -t, --token string      AI server access token
-  -u, --uri string        AI server uri
-  -v, --verbose           verbose output
+  -l, --log-path string   Log file path
+      --tls-skip          Skip TLS certificate verification
+  -t, --token string      AI server access token (overrides context)
+  -u, --uri string        AI server URI (overrides context)
+  -v, --verbose           Verbose output
 ```
 
 ### SEE ALSO
 
-* [aictl scan](aictl_scan.md)	 - Scan 
+* [aictl scan](aictl_scan.md)	 - Manage scans
 

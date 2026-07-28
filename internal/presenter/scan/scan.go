@@ -26,7 +26,8 @@ func NewScanCmd(
 
 	cmd := &cobra.Command{
 		Use:               "scan",
-		Short:             "Scan ",
+		Short:             "Manage scans",
+		Long:              `Start, stop, await, and check security scans on the server.`,
 		PersistentPreRunE: persistentPreRunE,
 	}
 

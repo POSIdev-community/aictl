@@ -28,7 +28,10 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 	cmd := &cobra.Command{
 		Use:   "aiproj <scan-id>",
 		Short: "Get scan aiproj",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Download the .aiproj configuration used for the scan. Scan id comes from argument or stdin. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan aiproj <scan-id> -o ./scan.aiproj
+  aictl get scan aiproj <scan-id> -o ./scan.aiproj -f`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
 				if fshelper.PathExists(outPath) && !forceRewriteOutPath {
@@ -51,8 +54,8 @@ func NewGetScanAiprojCmd(uc UseCaseGetScanAiproj) CmdGetScanAiproj {
 		},
 	}
 
-	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output path")
-	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 
 	return CmdGetScanAiproj{cmd}
 }

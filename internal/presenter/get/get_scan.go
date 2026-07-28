@@ -61,12 +61,13 @@ var (
 )
 
 func NewGetScanCmd(persistentPreRunE PersistentPreRunEGetScanCmd, uc UseCaseGetScan, cmdGetScanAiproj CmdGetScanAiproj,
-	cmdGetScanLogs CmdGetScanLogs, cmdGetScanReport CmdGetScanReport, cmdGetScanSbom CmdGetScanSbom,
-	cmdGetScanState CmdGetScanState, cmdGetScanStatistic CmdGetScanStatistic) CmdGetScan {
+	cmdGetScanLogs CmdGetScanLogs, cmdGetScanErrors CmdGetScanErrors, cmdGetScanReport CmdGetScanReport,
+	cmdGetScanSbom CmdGetScanSbom, cmdGetScanState CmdGetScanState, cmdGetScanStatistic CmdGetScanStatistic) CmdGetScan {
 
 	cmd := &cobra.Command{
 		Use:               "scan <scan-id>",
 		Short:             "Get scan",
+		Long:              `Retrieve scan-level data. Scan id may be passed as an argument or via stdin. Project id comes from context or -p.`,
 		PersistentPreRunE: persistentPreRunE,
 		Args:              cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,12 +85,13 @@ func NewGetScanCmd(persistentPreRunE PersistentPreRunEGetScanCmd, uc UseCaseGetS
 
 	cmd.AddCommand(cmdGetScanAiproj.Command)
 	cmd.AddCommand(cmdGetScanLogs.Command)
+	cmd.AddCommand(cmdGetScanErrors.Command)
 	cmd.AddCommand(cmdGetScanReport.Command)
 	cmd.AddCommand(cmdGetScanSbom.Command)
 	cmd.AddCommand(cmdGetScanState.Command)
 	cmd.AddCommand(cmdGetScanStatistic.Command)
 
-	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
+	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
 
 	return CmdGetScan{cmd}
 }

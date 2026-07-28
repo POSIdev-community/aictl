@@ -21,8 +21,11 @@ type UseCaseGetScanReportOwaspm interface {
 func NewGetScanReportOwaspmCmd(uc UseCaseGetScanReportOwaspm) CmdGetScanReportOwaspm {
 	cmd := &cobra.Command{
 		Use:   "owaspm <scan-id>",
-		Short: "Get scan report owaspm",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in OWASP Maturity format",
+		Long:  `Download the scan report in OWASP Maturity format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report owaspm <scan-id> -o ./out.xml
+  aictl get scan report owaspm <scan-id> -o ./out.xml -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

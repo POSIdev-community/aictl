@@ -48,6 +48,8 @@ func NewGetBranchCmd(persistentPreRunE PersistentPreRunEGetBranchCmd, uc UseCase
 	cmd := &cobra.Command{
 		Use:               "branch <branch-id>",
 		Short:             "Get branch",
+		Long:              `Retrieve branch details by id. Branch id may be passed as an argument or via stdin.`,
+		Example:           `  aictl get branch <branch-id>`,
 		PersistentPreRunE: persistentPreRunE,
 		Args:              cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

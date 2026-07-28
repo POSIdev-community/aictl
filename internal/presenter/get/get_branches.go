@@ -29,6 +29,10 @@ func NewGetBranchesCmd(cfg *config.Config, uc UseCaseGetBranches) CmdGetBranches
 	cmd := &cobra.Command{
 		Use:   "branches [<regex>]",
 		Short: "Get AI branches",
+		Long:  `List branches for the current project matching an optional regex filter. Project id comes from context or -p.`,
+		Example: `  aictl get branches -p <project-id>
+  aictl get branches main -p <project-id>
+  aictl get branches -p <project-id> -q`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
@@ -59,8 +63,8 @@ func NewGetBranchesCmd(cfg *config.Config, uc UseCaseGetBranches) CmdGetBranches
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Get only ids")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
+	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
 
 	return CmdGetBranches{cmd}
 }

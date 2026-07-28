@@ -17,8 +17,10 @@ type UseCaseGetVersion interface {
 
 func NewGetVersionCmd(uc UseCaseGetVersion) CmdGetVersion {
 	cmd := &cobra.Command{
-		Use:   "version",
-		Short: "Get aie version",
+		Use:     "version",
+		Short:   "Get server version",
+		Long:    `Print Application Inspector server version.`,
+		Example: `  aictl get version`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

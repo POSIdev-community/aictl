@@ -114,22 +114,29 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				{"get projects", []string{"get", "projects", regexpEscape(projectName)}},
 				{"get project aiproj", []string{"get", "project", "aiproj", "-p", projectID}},
 				{"get project policies", []string{"get", "project", "policies", "-p", projectID}},
+				{"get project exclusions", []string{"get", "project", "exclusions", "-p", projectID}},
 				{"get branches", []string{"get", "branches", "-p", projectID}},
 				{"get branch", []string{"get", "branch", branchID}},
 				{"get scans", []string{"get", "scans", "-b", branchID}},
 				{"get scan", []string{"get", "scan", scanID, "-p", projectID}},
 				{"get scan aiproj", []string{"get", "scan", "aiproj", scanID, "-p", projectID}},
 				{"get scan logs", []string{"get", "scan", "logs", scanID, "-p", projectID, "-o", filepath.Join(reportsDir, "logs.txt")}},
+				{"get scan errors", []string{"get", "scan", "errors", scanID, "-p", projectID}},
 				// get scan sbom omitted: fixture ScanModules is StaticCodeAnalysis only → "sbom not found"
 				{"get scan stage", []string{"get", "scan", "stage", scanID, "-p", projectID}},
 				{"get scan stage --fail-on-scan-failed", []string{"get", "scan", "stage", scanID, "-p", projectID, "--fail-on-scan-failed"}},
 				{"get scan statistic", []string{"get", "scan", "statistic", scanID, "-p", projectID}},
+				{"get queue", []string{"get", "queue"}},
+				{"get queue -p", []string{"get", "queue", "-p", projectID}},
+				{"get scanning", []string{"get", "scanning"}},
+				{"get scanning -p", []string{"get", "scanning", "-p", projectID}},
+				{"get report-templates", []string{"get", "report-templates", "--localization", "en"}},
 
 				{"scan check-policies", []string{"scan", "check-policies", scanID, "-p", projectID}},
 				{"scan await --fail-on-scan-failed", []string{"scan", "await", scanID, "-p", projectID, "--fail-on-scan-failed"}},
 			}
 
-			// priority / preferred-agents settings exist only on AIE 6.0+
+			// priority / preferred-agents / languages settings exist only on AIE 6.0+
 			if standName != standOrder54 {
 				commands = append(commands,
 					struct {
@@ -140,6 +147,10 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 						name string
 						args []string
 					}{"update project settings", []string{"update", "project", "settings", "-p", projectID, "--priority", "Medium"}},
+					struct {
+						name string
+						args []string
+					}{"update project languages", []string{"update", "project", "languages", "-p", projectID}},
 				)
 			}
 
@@ -175,6 +186,22 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 					`{"checkSecurityPoliciesAccordance":false,"securityPolicies":"[]"}`,
 				), 0o644))
 				RunAictl(t, aictlBin, stand, env, "set", "project", "policies", "-p", projectID, "-f", policiesPath)
+			})
+
+			t.Run("set project exclusions", func(t *testing.T) {
+				exclusionsPath := filepath.Join(workDir, "exclusions.gitignore")
+				require.NoError(t, os.WriteFile(exclusionsPath, []byte("*.log\nnode_modules/\n"), 0o644))
+				RunAictl(t, aictlBin, stand, env, "set", "project", "exclusions", "-p", projectID, "-f", exclusionsPath)
+				out := RunAictl(t, aictlBin, stand, env, "get", "project", "exclusions", "-p", projectID)
+				require.Contains(t, out, "*.log")
+			})
+
+			t.Run("update sources --temp-dir", func(t *testing.T) {
+				tempDir := filepath.Join(workDir, "zip-temp")
+				require.NoError(t, os.MkdirAll(tempDir, 0o755))
+				RunAictl(t, aictlBin, stand, env,
+					"update", "sources", filepath.Join(fixturesDir, "project"),
+					"-p", projectID, "-b", branchID, "--temp-dir", tempDir)
 			})
 
 			t.Run("scan check-policies --fail-on-policies-rejected", func(t *testing.T) {

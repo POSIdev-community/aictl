@@ -25,7 +25,10 @@ func NewDeleteProjectsCommand(uc UseCaseDeleteProjects) CmdDeleteProjects {
 	cmd := &cobra.Command{
 		Use:   "projects <project-id>...",
 		Short: "Delete AI projects",
-		Args:  cobra.MinimumNArgs(1),
+		Long:  `Delete one or more projects by id. Ids may be passed as arguments or via stdin.`,
+		Example: `  aictl delete projects <project-id>
+  aictl delete projects <id1> <id2>`,
+		Args: cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 

@@ -21,8 +21,11 @@ type UseCaseGetScanReportSarif interface {
 func NewGetScanReportSarifCmd(uc UseCaseGetScanReportSarif) CmdGetScanReportSarif {
 	cmd := &cobra.Command{
 		Use:   "sarif <scan-id>",
-		Short: "Get scan report sarif",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in SARIF format",
+		Long:  `Download the scan report in SARIF format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report sarif <scan-id> -o ./out.sarif
+  aictl get scan report sarif <scan-id> -o ./out.sarif -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

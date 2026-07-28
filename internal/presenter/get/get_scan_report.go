@@ -67,8 +67,11 @@ func NewGetScanReportCmd(
 	cmdGetScanReportXml CmdGetScanReportXml) CmdGetScanReport {
 
 	cmd := &cobra.Command{
-		Use:               "report <report-name> <scan-id>",
-		Short:             "Get scan report",
+		Use:   "report <report-name> <scan-id>",
+		Short: "Get scan report",
+		Long:  `Download a scan report by custom template name or use a built-in format subcommand. For custom templates, pass report name and scan id. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report MyTemplate <scan-id> -o ./out.html
+  aictl get scan report sarif <scan-id> -o ./out.sarif`,
 		Args:              cobra.ExactArgs(2),
 		PersistentPreRunE: persistentPreRunE,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -99,13 +102,13 @@ func NewGetScanReportCmd(
 	cmd.AddCommand(cmdGetScanReportSarif.Command)
 	cmd.AddCommand(cmdGetScanReportXml.Command)
 
-	cmd.PersistentFlags().StringVarP(&outPath, "output", "o", "", "Destination path for the report file")
-	cmd.PersistentFlags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+	cmd.PersistentFlags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.PersistentFlags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 
-	cmd.PersistentFlags().BoolVar(&includeComments, "include-comments", false, "Include comments in the report file")
-	cmd.PersistentFlags().BoolVar(&includeDFD, "include-dfd", false, "Include dfd in the report file")
-	cmd.PersistentFlags().BoolVar(&includeGlossary, "include-glossary", false, "Include glossary report")
-	cmd.PersistentFlags().StringVar(&l10n, "localization", "en", "Localization language: 'en', 'ru'")
+	cmd.PersistentFlags().BoolVar(&includeComments, "include-comments", false, "Include comments in the report")
+	cmd.PersistentFlags().BoolVar(&includeDFD, "include-dfd", false, "Include data flow diagrams in the report")
+	cmd.PersistentFlags().BoolVar(&includeGlossary, "include-glossary", false, "Include glossary in the report")
+	cmd.PersistentFlags().StringVar(&l10n, "localization", "en", "Report localization language: 'en' or 'ru'")
 
 	return CmdGetScanReport{cmd}
 }

@@ -31,6 +31,10 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Set current aictl configuration",
+		Long:  `Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip.`,
+		Example: `  aictl ctx set -u https://ai.example -t <token>
+  aictl ctx set -p <project-id> -b <branch-id>
+  aictl ctx set --tls-skip`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if uriFlag == "" && tokenFlag == "" && !tlsSkipFlag && !noTlsSkipFlag && projectIdFlag == "" && branchIdFlag == "" {
 				return validation.NewError("Any configs not provided")
@@ -84,13 +88,13 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 		},
 	}
 
-	cmd.Flags().StringVarP(&uriFlag, "uri", "u", "", "AI server uri")
+	cmd.Flags().StringVarP(&uriFlag, "uri", "u", "", "AI server URI")
 	cmd.Flags().StringVarP(&tokenFlag, "token", "t", "", "AI server access token")
-	cmd.Flags().BoolVar(&tlsSkipFlag, "tls-skip", false, "Skip certificate verification")
-	cmd.Flags().BoolVar(&noTlsSkipFlag, "no-tls-skip", false, "Not skip certificate verification")
+	cmd.Flags().BoolVar(&tlsSkipFlag, "tls-skip", false, "Skip TLS certificate verification")
+	cmd.Flags().BoolVar(&noTlsSkipFlag, "no-tls-skip", false, "Require TLS certificate verification")
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id")
-	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Branch id")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Default project id")
+	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Default branch id")
 
 	return CmdConfigSet{cmd}
 }

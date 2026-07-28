@@ -21,8 +21,11 @@ type UseCaseGetScanReportOud4 interface {
 func NewGetScanReportOud4Cmd(uc UseCaseGetScanReportOud4) CmdGetScanReportOud4 {
 	cmd := &cobra.Command{
 		Use:   "oud4 <scan-id>",
-		Short: "Get scan report oud4",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in OUD4 format",
+		Long:  `Download the scan report in OUD4 format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report oud4 <scan-id> -o ./out.xml
+  aictl get scan report oud4 <scan-id> -o ./out.xml -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

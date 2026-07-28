@@ -50,14 +50,15 @@ func NewScanStartCmd(persistentPreRunE PersistentPreRunEScanStartCmd, cmdScanSta
 	cmd := &cobra.Command{
 		Use:               "start",
 		Short:             "Start scan",
+		Long:              `Start a full or incremental scan on a project or branch.`,
 		PersistentPreRunE: persistentPreRunE,
 	}
 
 	cmd.AddCommand(cmdScanStart.Command)
 	cmd.AddCommand(cmdScanStartProject.Command)
 
-	cmd.PersistentFlags().StringVar(&scanLabel, "scan-label", "", "scan label for scan")
-	cmd.PersistentFlags().BoolVar(&fullScan, "full-scan", false, "run full scan instead of incremental")
+	cmd.PersistentFlags().StringVar(&scanLabel, "scan-label", "", "Label for the scan (max 40 chars)")
+	cmd.PersistentFlags().BoolVar(&fullScan, "full-scan", false, "Run a full scan instead of incremental")
 
 	return CmdScanStart{cmd}
 }

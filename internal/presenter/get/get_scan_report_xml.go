@@ -21,8 +21,11 @@ type UseCaseGetScanReportXml interface {
 func NewGetScanReportXmlCmd(uc UseCaseGetScanReportXml) CmdGetScanReportXml {
 	cmd := &cobra.Command{
 		Use:   "xml <scan-id>",
-		Short: "Get scan report xml",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in XML format",
+		Long:  `Download the scan report in XML format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report xml <scan-id> -o ./out.xml
+  aictl get scan report xml <scan-id> -o ./out.xml -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

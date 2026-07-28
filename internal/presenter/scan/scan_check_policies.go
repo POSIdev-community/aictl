@@ -31,7 +31,10 @@ func NewScanCheckPoliciesCmd(cfg *config.Config, uc UseCaseScanCheckPolicies) Cm
 	cmd := &cobra.Command{
 		Use:   "check-policies <scan-id>",
 		Short: "Check scan policy state",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Check the policy state for a scan. Project id comes from context or -p.`,
+		Example: `  aictl scan check-policies <scan-id>
+  aictl scan check-policies <scan-id> --fail-on-policies-rejected`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			if err = cfg.UpdateProjectId(projectIdFlag); err != nil {
@@ -64,8 +67,8 @@ func NewScanCheckPoliciesCmd(cfg *config.Config, uc UseCaseScanCheckPolicies) Cm
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
-	cmd.Flags().BoolVar(&failOnPoliciesRejected, "fail-on-policies-rejected", false, "exit 1 if PolicyState is Rejected")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
+	cmd.Flags().BoolVar(&failOnPoliciesRejected, "fail-on-policies-rejected", false, "Exit 1 if PolicyState is Rejected")
 
 	return CmdScanCheckPolicies{cmd}
 }

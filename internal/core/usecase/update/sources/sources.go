@@ -13,7 +13,7 @@ import (
 
 type AI interface {
 	Initialize(ctx context.Context) error
-	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, sourcePath string, exclusions gitignore.Exclusions) error
+	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, sourcePath string, exclusions gitignore.Exclusions, tempDir string) error
 }
 
 type CLI interface {
@@ -38,7 +38,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions) error {
+func (u *UseCase) Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions, tempDir string) error {
 	err := u.aiAdapter.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize: %w", err)
@@ -46,7 +46,7 @@ func (u *UseCase) Execute(ctx context.Context, sourcePath string, exclusions git
 
 	u.cliAdapter.ShowText(ctx, "start updating sources")
 
-	err = u.aiAdapter.UpdateSources(ctx, u.cfg.ProjectId(), u.cfg.BranchId(), sourcePath, exclusions)
+	err = u.aiAdapter.UpdateSources(ctx, u.cfg.ProjectId(), u.cfg.BranchId(), sourcePath, exclusions, tempDir)
 	if err != nil {
 		return err
 	}

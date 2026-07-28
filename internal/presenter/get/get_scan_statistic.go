@@ -29,7 +29,11 @@ func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
 	cmd := &cobra.Command{
 		Use:   "statistic <scan-id>",
 		Short: "Get scan statistic",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Download or print scan statistics. Scan id comes from argument or stdin. Output path via -o; use -f to overwrite. Use --json for JSON output.`,
+		Example: `  aictl get scan statistic <scan-id>
+  aictl get scan statistic <scan-id> --json
+  aictl get scan statistic <scan-id> -o ./stat.json -f`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
 				if fshelper.PathExists(outPath) && !forceRewriteOutPath {
@@ -52,9 +56,9 @@ func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
 		},
 	}
 
-	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Destination path for the report file")
-	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
-	cmd.Flags().BoolVar(&json, "json", false, "Json format context")
+	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
+	cmd.Flags().BoolVar(&json, "json", false, "Output in JSON format")
 
 	return CmdGetScanStatistic{cmd}
 }

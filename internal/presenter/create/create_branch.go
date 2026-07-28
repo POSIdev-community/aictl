@@ -18,7 +18,7 @@ type CmdCreateBranch struct {
 }
 
 type UseCaseCreateBranch interface {
-	Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool, exclusions gitignore.Exclusions) error
+	Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool, exclusions gitignore.Exclusions, tempDir string) error
 }
 
 func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBranch {
@@ -28,12 +28,17 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 		scanTarget       string
 		excludeFlags     []string
 		excludeFromFlags []string
+		tempDir          string
 	)
 
 	cmd := &cobra.Command{
 		Use:   "branch <branch-name>",
-		Short: "Create branch",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Create a branch",
+		Long:  `Create a branch under a project. Optionally pack and upload sources from --scan-target with gitignore-style exclusions. Project id comes from context or -p.`,
+		Example: `  aictl create branch main -p <project-id>
+  aictl create branch main -p <project-id> -s ./src -e '*.tmp' --exclude-from .aictlignore
+  aictl create branch main --safe`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
@@ -54,6 +59,15 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 				}
 			}
 
+			if tempDir != "" {
+				if !fshelper.PathExists(tempDir) {
+					return validation.NewError(fmt.Sprintf("temp-dir path '%s' does not exist", tempDir))
+				}
+				if !fshelper.IsDirectory(tempDir) {
+					return validation.NewError(fmt.Sprintf("temp-dir path '%s' is not a directory", tempDir))
+				}
+			}
+
 			args = _utils.ReadArgsFromStdin(args)
 			branchName = args[0]
 
@@ -67,7 +81,7 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 				FromFiles: excludeFromFlags,
 			}
 
-			if err := uc.Execute(ctx, cfg, branchName, scanTarget, safeFlag, exclusions); err != nil {
+			if err := uc.Execute(ctx, cfg, branchName, scanTarget, safeFlag, exclusions, tempDir); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'create branch' usecase call: %w", err)
@@ -77,10 +91,11 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
-	cmd.Flags().StringVarP(&scanTarget, "scan-target", "s", "", "scan target path")
-	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "exclude file or directory (gitignore pattern)")
-	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "path to file with exclude patterns in gitignore format")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
+	cmd.Flags().StringVarP(&scanTarget, "scan-target", "s", "", "Path to sources to pack and upload")
+	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "Exclude path (gitignore pattern); repeatable")
+	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "File with gitignore-style exclude patterns")
+	cmd.Flags().StringVar(&tempDir, "temp-dir", "", "Directory for temporary zip when packing sources")
 
 	return CmdCreateBranch{cmd}
 }

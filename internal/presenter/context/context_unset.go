@@ -29,7 +29,10 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 
 	cmd := &cobra.Command{
 		Use:   "unset",
-		Short: "Unset context params",
+		Short: "Unset context parameters",
+		Long:  `Clear selected fields from the local aictl context. At least one flag is required.`,
+		Example: `  aictl ctx unset -p -b
+  aictl ctx unset -u -t`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !uriUnset && !tokenUnset && !tlsUnset && !projectIdUnset && !branchIdUnset {
 				return validation.NewError("Any configs not provided")
@@ -50,9 +53,9 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&uriUnset, "uri", "u", false, "Unset uri")
-	cmd.Flags().BoolVarP(&tokenUnset, "token", "t", false, "Unset token")
-	cmd.Flags().BoolVar(&tlsUnset, "tls-skip", false, "Unset tls-skip")
+	cmd.Flags().BoolVarP(&uriUnset, "uri", "u", false, "Unset URI")
+	cmd.Flags().BoolVarP(&tokenUnset, "token", "t", false, "Unset access token")
+	cmd.Flags().BoolVar(&tlsUnset, "tls-skip", false, "Unset TLS skip setting")
 	cmd.Flags().BoolVarP(&projectIdUnset, "project-id", "p", false, "Unset project id")
 	cmd.Flags().BoolVarP(&branchIdUnset, "branch-id", "b", false, "Unset branch id")
 

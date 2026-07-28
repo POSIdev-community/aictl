@@ -27,6 +27,9 @@ func NewGetProjectAiprojCmd(uc UseCaseGetProjectAiproj) CmdGetProjectAiproj {
 	cmd := &cobra.Command{
 		Use:   "aiproj",
 		Short: "Get project aiproj",
+		Long:  `Download the project .aiproj configuration file. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get project aiproj -p <project-id> -o ./project.aiproj
+  aictl get project aiproj -p <project-id> -o ./project.aiproj -f`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
 				if fshelper.PathExists(outPath) && !forceRewriteOutPath {
@@ -49,8 +52,8 @@ func NewGetProjectAiprojCmd(uc UseCaseGetProjectAiproj) CmdGetProjectAiproj {
 		},
 	}
 
-	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output path")
-	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 
 	return CmdGetProjectAiproj{cmd}
 }

@@ -21,8 +21,11 @@ type UseCaseGetScanReportGitlab interface {
 func NewGetScanReportGitlabCmd(uc UseCaseGetScanReportGitlab) CmdGetScanReportGitlab {
 	cmd := &cobra.Command{
 		Use:   "gitlab <scan-id>",
-		Short: "Get scan report gitlab",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in GitLab format",
+		Long:  `Download the scan report in GitLab format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report gitlab <scan-id> -o ./out.json
+  aictl get scan report gitlab <scan-id> -o ./out.json -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

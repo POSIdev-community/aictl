@@ -2,8 +2,18 @@
 
 Get branch
 
+### Synopsis
+
+Retrieve branch details by id. Branch id may be passed as an argument or via stdin.
+
 ```
 aictl get branch <branch-id> [flags]
+```
+
+### Examples
+
+```
+  aictl get branch <branch-id>
 ```
 
 ### Options
@@ -15,11 +25,11 @@ aictl get branch <branch-id> [flags]
 ### Options inherited from parent commands
 
 ```
-  -l, --log-path string   log file path
-      --tls-skip          Skip certificate verification
-  -t, --token string      AI server access token
-  -u, --uri string        AI server uri
-  -v, --verbose           verbose output
+  -l, --log-path string   Log file path
+      --tls-skip          Skip TLS certificate verification
+  -t, --token string      AI server access token (overrides context)
+  -u, --uri string        AI server URI (overrides context)
+  -v, --verbose           Verbose output
 ```
 
 ### SEE ALSO

@@ -21,8 +21,11 @@ type UseCaseGetScanReportMarkdown interface {
 func NewGetScanReportMarkdownCmd(uc UseCaseGetScanReportMarkdown) CmdGetScanReportMarkdown {
 	cmd := &cobra.Command{
 		Use:   "markdown <scan-id>",
-		Short: "Get scan report markdown",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in Markdown format",
+		Long:  `Download the scan report in Markdown format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report markdown <scan-id> -o ./out.md
+  aictl get scan report markdown <scan-id> -o ./out.md -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

@@ -24,9 +24,11 @@ func NewScanStopCmd(uc UseCaseScanStop) CmdScanStop {
 	var scanId uuid.UUID
 
 	cmd := &cobra.Command{
-		Use:   "stop <scan-id>",
-		Short: "Stop scan",
-		Args:  cobra.ExactArgs(1),
+		Use:     "stop <scan-id>",
+		Short:   "Stop scan",
+		Long:    `Stop a running scan by scan id.`,
+		Example: `  aictl scan stop <scan-id>`,
+		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
 			if len(args) < 1 {

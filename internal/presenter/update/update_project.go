@@ -22,16 +22,19 @@ func NewPersistentPreRunEUpdateProjectCmd(cfg *config.Config, prev PersistentPre
 func NewUpdateProjectCmd(
 	persistentPreRunE PersistentPreRunEUpdateProjectCmd,
 	cmdUpdateProjectSettings CmdUpdateProjectSettings,
+	cmdUpdateProjectLanguages CmdUpdateProjectLanguages,
 ) CmdUpdateProject {
 	cmd := &cobra.Command{
 		Use:               "project",
 		Short:             "Update project",
+		Long:              `Update project settings and metadata on the server. Project id comes from context or -p.`,
 		PersistentPreRunE: persistentPreRunE,
 	}
 
 	cmd.AddCommand(cmdUpdateProjectSettings.Command)
+	cmd.AddCommand(cmdUpdateProjectLanguages.Command)
 
-	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
+	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
 
 	return CmdUpdateProject{cmd}
 }

@@ -123,11 +123,9 @@ aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 # было
 java -jar ptai-cli-plugin.jar list-report-templates -l EN --url … -t …
 
-# станет
-aictl get report-templates --localization en   # планируется
+# стало
+aictl get report-templates --localization en
 ```
-
-Пока команды нет — имя шаблона нужно знать заранее и передать в `get scan report <name>`.
 
 ---
 

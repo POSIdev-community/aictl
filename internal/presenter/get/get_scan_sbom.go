@@ -27,8 +27,11 @@ func NewGetScanSbomCmd(uc UseCaseGetScanSbom) CmdGetScanSbom {
 
 	cmd := &cobra.Command{
 		Use:   "sbom <scan-id>",
-		Short: "Get scan sbom",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan SBOM",
+		Long:  `Download the scan SBOM (Software Bill of Materials). Scan id comes from argument or stdin. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan sbom <scan-id> -o ./sbom.json
+  aictl get scan sbom <scan-id> -o ./sbom.json -f`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath != "" {
 				if fshelper.PathExists(outPath) && !forceRewriteOutPath {
@@ -51,8 +54,8 @@ func NewGetScanSbomCmd(uc UseCaseGetScanSbom) CmdGetScanSbom {
 		},
 	}
 
-	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Destination path for the report file")
-	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 
 	return CmdGetScanSbom{cmd}
 }

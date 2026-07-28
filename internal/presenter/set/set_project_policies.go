@@ -30,7 +30,10 @@ func NewSetProjectPoliciesCmd(uc UseCaseSetProjectPolicies) CmdSetProjectPolicie
 	cmd := &cobra.Command{
 		Use:   "policies [json|-]",
 		Short: "Set project security policies",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Replace project security policies with JSON from an argument, file, or stdin. Project id comes from context or -p.`,
+		Example: `  aictl set project policies -f policies.json -p <project-id>
+  aictl set project policies -`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			rawJSON, err = readPoliciesInput(filePath, args)
@@ -57,7 +60,7 @@ func NewSetProjectPoliciesCmd(uc UseCaseSetProjectPolicies) CmdSetProjectPolicie
 		},
 	}
 
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "path to policies JSON file, or - for stdin")
+	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to policies JSON file, or - for stdin")
 
 	return CmdSetProjectPolicies{cmd}
 }

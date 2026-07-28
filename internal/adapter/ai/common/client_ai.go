@@ -26,8 +26,11 @@ type ClientAi interface {
 	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error
 	GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
 	SetProjectPolicies(ctx context.Context, projectId uuid.UUID, rawJSON []byte) error
+	GetProjectExclusions(ctx context.Context, projectId uuid.UUID) (string, error)
+	SetProjectExclusions(ctx context.Context, projectId uuid.UUID, exclusions string) error
+	UpdateProjectLanguages(ctx context.Context, projectId uuid.UUID) error
 	GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error)
-	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error)
+	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error)
 	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
 	DeleteProject(ctx context.Context, projectId uuid.UUID) error
 	ExistsProject(ctx context.Context, projectName string) (bool, error)
@@ -36,9 +39,11 @@ type ClientAi interface {
 	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)
+	GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error)
 	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
 	GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
 	GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
+	GetScanErrors(ctx context.Context, projectId, scanResultId uuid.UUID) ([]string, error)
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
 	GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error)
 	GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error)
@@ -49,10 +54,12 @@ type ClientAi interface {
 	GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error)
 	GetScanPolicyState(ctx context.Context, projectId, scanId uuid.UUID) (policystate.State, error)
 	GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error)
+	GetScanQueue(ctx context.Context) ([]queue.Entry, error)
+	GetActiveScans(ctx context.Context) ([]queue.Entry, error)
 	StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error)
 	StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error)
 	StopScan(ctx context.Context, scanResultId uuid.UUID) error
-	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions) error
+	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error
 	GetHealthcheck(ctx context.Context) (bool, error)
 	CheckLicense(ctx context.Context) error
 	GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error)

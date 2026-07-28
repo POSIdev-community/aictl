@@ -20,7 +20,8 @@ func NewCreateCmd(
 
 	cmd := &cobra.Command{
 		Use:               "create",
-		Short:             "Create resource",
+		Short:             "Create resources",
+		Long:              `Create AI projects and branches on the server.`,
 		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
@@ -29,7 +30,7 @@ func NewCreateCmd(
 
 	_utils.AddConnectionPersistentFlags(cmd)
 
-	cmd.PersistentFlags().BoolVar(&safeFlag, "safe", false, "if resource exists, return its id without error")
+	cmd.PersistentFlags().BoolVar(&safeFlag, "safe", false, "If the resource already exists, return its id without error")
 
 	return &CmdCreate{cmd}
 }

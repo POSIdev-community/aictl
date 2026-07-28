@@ -26,6 +26,7 @@ func NewUpdateCmd(cfg *config.Config, cmdUpdateSources CmdUpdateSources, cmdUpda
 	cmd := &cobra.Command{
 		Use:               "update",
 		Short:             "Update resources",
+		Long:              `Update project sources and settings on the server.`,
 		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 

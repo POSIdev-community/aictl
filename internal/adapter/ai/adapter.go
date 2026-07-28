@@ -76,12 +76,24 @@ func (a *Adapter) SetProjectPolicies(ctx context.Context, projectId uuid.UUID, r
 	return a.activeClient.SetProjectPolicies(ctx, projectId, rawJSON)
 }
 
+func (a *Adapter) GetProjectExclusions(ctx context.Context, projectId uuid.UUID) (string, error) {
+	return a.activeClient.GetProjectExclusions(ctx, projectId)
+}
+
+func (a *Adapter) SetProjectExclusions(ctx context.Context, projectId uuid.UUID, exclusions string) error {
+	return a.activeClient.SetProjectExclusions(ctx, projectId, exclusions)
+}
+
+func (a *Adapter) UpdateProjectLanguages(ctx context.Context, projectId uuid.UUID) error {
+	return a.activeClient.UpdateProjectLanguages(ctx, projectId)
+}
+
 func (a *Adapter) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
 	return a.activeClient.GetScanAgents(ctx)
 }
 
-func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error) {
-	return a.activeClient.CreateBranch(ctx, projectId, branchName, scanTargetPath, exclusions)
+func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error) {
+	return a.activeClient.CreateBranch(ctx, projectId, branchName, scanTargetPath, exclusions, tempDir)
 }
 
 func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
@@ -116,6 +128,10 @@ func (a *Adapter) GetCustomTemplateId(ctx context.Context, reportName string) (u
 	return a.activeClient.GetCustomTemplateId(ctx, reportName)
 }
 
+func (a *Adapter) GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error) {
+	return a.activeClient.GetReportTemplates(ctx, localization)
+}
+
 func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
 	return a.activeClient.GetReport(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary, l10n)
 }
@@ -126,6 +142,10 @@ func (a *Adapter) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID
 
 func (a *Adapter) GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
 	return a.activeClient.GetScanLogs(ctx, projectId, scanResultId)
+}
+
+func (a *Adapter) GetScanErrors(ctx context.Context, projectId, scanResultId uuid.UUID) ([]string, error) {
+	return a.activeClient.GetScanErrors(ctx, projectId, scanResultId)
 }
 
 func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
@@ -168,6 +188,14 @@ func (a *Adapter) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, er
 	return a.activeClient.GetScanItem(ctx, id)
 }
 
+func (a *Adapter) GetScanQueue(ctx context.Context) ([]queue.Entry, error) {
+	return a.activeClient.GetScanQueue(ctx)
+}
+
+func (a *Adapter) GetActiveScans(ctx context.Context) ([]queue.Entry, error) {
+	return a.activeClient.GetActiveScans(ctx)
+}
+
 func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
 	return a.activeClient.StartScanBranch(ctx, branchId, scanLabel, scanType)
 }
@@ -180,8 +208,8 @@ func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 	return a.activeClient.StopScan(ctx, scanResultId)
 }
 
-func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions) error {
-	return a.activeClient.UpdateSources(ctx, projectId, branchId, scanTargetPath, exclusions)
+func (a *Adapter) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error {
+	return a.activeClient.UpdateSources(ctx, projectId, branchId, scanTargetPath, exclusions, tempDir)
 }
 
 func (a *Adapter) GetVersion(ctx context.Context) (version.Version, error) {

@@ -26,18 +26,20 @@ func NewPersistentPreRunESetProjectCmd(cfg *config.Config, prev PersistentPreRun
 var projectIdFlag string
 
 func NewSetProjectCmd(persistentPreRunESetProjectCmd PersistentPreRunESetProjectCmd,
-	setProjectSettingsCmd CmdSetProjectSettings, setProjectPoliciesCmd CmdSetProjectPolicies) CmdSetProject {
+	setProjectSettingsCmd CmdSetProjectSettings, setProjectPoliciesCmd CmdSetProjectPolicies,
+	setProjectExclusionsCmd CmdSetProjectExclusions) CmdSetProject {
 	cmd := &cobra.Command{
 		Use:               "project",
-		Short:             "Project",
-		Long:              "Set project parameters",
+		Short:             "Set project configuration",
+		Long:              `Set project-level configuration on the server. Project id comes from context or -p.`,
 		PersistentPreRunE: persistentPreRunESetProjectCmd,
 	}
 
 	cmd.AddCommand(setProjectSettingsCmd.Command)
 	cmd.AddCommand(setProjectPoliciesCmd.Command)
+	cmd.AddCommand(setProjectExclusionsCmd.Command)
 
-	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
+	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
 
 	return CmdSetProject{cmd}
 }

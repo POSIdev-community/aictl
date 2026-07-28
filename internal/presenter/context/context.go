@@ -16,7 +16,8 @@ func NewContextCmd(
 
 	cmd := &cobra.Command{
 		Use:   "ctx",
-		Short: "aictl context",
+		Short: "Manage local aictl context",
+		Long:  `Read and write the local aictl context (URI, token, TLS skip, project/branch ids) stored under ~/.config/aictl/.`,
 	}
 
 	cmd.AddCommand(cmdConfigClear.Command)

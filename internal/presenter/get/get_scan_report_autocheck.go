@@ -21,8 +21,11 @@ type UseCaseGetScanReportAutocheck interface {
 func NewGetScanReportAutocheckCmd(uc UseCaseGetScanReportAutocheck) CmdGetScanReportAutocheck {
 	cmd := &cobra.Command{
 		Use:   "autocheck <scan-id>",
-		Short: "Get scan report autocheck",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in AutoCheck format",
+		Long:  `Download the scan report in AutoCheck format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report autocheck <scan-id> -o ./out.xml
+  aictl get scan report autocheck <scan-id> -o ./out.xml -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

@@ -22,7 +22,10 @@ func NewConfigClearCommand(uc UseCaseConfigClear) CmdConfigClear {
 	cmd := &cobra.Command{
 		Use:   "clear",
 		Short: "Clear current aictl configuration",
-		Args:  cobra.NoArgs,
+		Long:  `Remove the entire local aictl context. Prompts for confirmation unless -y/--yes is set.`,
+		Example: `  aictl ctx clear
+  aictl ctx clear -y`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

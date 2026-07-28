@@ -22,7 +22,10 @@ func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 	cmd := &cobra.Command{
 		Use:   "stage <scan-id>",
 		Short: "Get scan stage",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Print the current scan stage. Scan id comes from argument or stdin. Use --fail-on-scan-failed to exit with code 1 when stage is Failed or Aborted.`,
+		Example: `  aictl get scan stage <scan-id>
+  aictl get scan stage <scan-id> --fail-on-scan-failed`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
@@ -36,7 +39,7 @@ func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 		},
 	}
 
-	cmd.Flags().BoolVar(&failOnScanFailed, "fail-on-scan-failed", false, "exit 1 if scan stage is Failed or Aborted")
+	cmd.Flags().BoolVar(&failOnScanFailed, "fail-on-scan-failed", false, "Exit with code 1 when scan stage is Failed or Aborted")
 
 	return CmdGetScanState{cmd}
 }

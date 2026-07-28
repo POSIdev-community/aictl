@@ -1,6 +1,7 @@
 package di
 
 import (
+	updateProjectLanguages "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/languages"
 	updateProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources"
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
@@ -29,8 +30,14 @@ func buildUpdateProjectCmd(a *adapters) (update.CmdUpdateProject, error) {
 	}
 	cmdSettings := update.NewUpdateProjectSettingsCmd(settingsUC)
 
+	languagesUC, err := updateProjectLanguages.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return update.CmdUpdateProject{}, err
+	}
+	cmdLanguages := update.NewUpdateProjectLanguagesCmd(languagesUC)
+
 	persistentPreRunEUpdateCmd := update.NewPersistentPreRunEUpdateCmd(a.cfg)
 	persistentPreRunEUpdateProjectCmd := update.NewPersistentPreRunEUpdateProjectCmd(a.cfg, persistentPreRunEUpdateCmd)
 
-	return update.NewUpdateProjectCmd(persistentPreRunEUpdateProjectCmd, cmdSettings), nil
+	return update.NewUpdateProjectCmd(persistentPreRunEUpdateProjectCmd, cmdSettings, cmdLanguages), nil
 }

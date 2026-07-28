@@ -25,8 +25,12 @@ func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 
 	cmd := &cobra.Command{
 		Use:   "project <project-name>",
-		Short: "Create project",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Create a project",
+		Long:  `Create a new AI project by name. The name may be passed as an argument or via stdin. With --safe, an existing project id is returned instead of an error.`,
+		Example: `  aictl create project my-app
+  aictl create project my-app --safe
+  echo my-app | aictl create project`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
 			projectName = args[0]

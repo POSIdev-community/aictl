@@ -18,11 +18,11 @@ var (
 )
 
 func AddConnectionPersistentFlags(cmd *cobra.Command) {
-	cmd.PersistentFlags().StringVarP(&uri, "uri", "u", "", "AI server uri")
-	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token")
-	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip certificate verification")
-	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "verbose output")
-	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "log file path")
+	cmd.PersistentFlags().StringVarP(&uri, "uri", "u", "", "AI server URI (overrides context)")
+	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token (overrides context)")
+	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip TLS certificate verification")
+	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output")
+	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "Log file path")
 }
 
 func UpdateConnectionConfig(cfg *config.Config) error {

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,7 +25,7 @@ func TestPrepareArchive_excludesPatterns(t *testing.T) {
 	require.NoError(t, os.Mkdir(filepath.Join(root, "src"), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "src", "main.go"), []byte("package main"), 0o644))
 
-	archivePath, err := common.PrepareArchive(context.Background(), root, gitignore.Exclusions{Patterns: []string{".git"}})
+	archivePath, err := common.PrepareArchive(context.Background(), root, gitignore.Exclusions{Patterns: []string{".git"}}, "")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.Remove(archivePath)
@@ -60,7 +61,7 @@ func TestPrepareArchive_multipleExcludeFromFiles(t *testing.T) {
 	require.NoError(t, os.WriteFile(first, []byte("*.tmp\n"), 0o644))
 	require.NoError(t, os.WriteFile(second, []byte("build/\n"), 0o644))
 
-	archivePath, err := common.PrepareArchive(context.Background(), root, gitignore.Exclusions{FromFiles: []string{first, second}})
+	archivePath, err := common.PrepareArchive(context.Background(), root, gitignore.Exclusions{FromFiles: []string{first, second}}, "")
 	require.NoError(t, err)
 	defer func() {
 		_ = os.Remove(archivePath)
@@ -98,7 +99,24 @@ func TestPrepareArchive_zipSourceUnchanged(t *testing.T) {
 	require.NoError(t, writer.Close())
 	require.NoError(t, zipFile.Close())
 
-	archivePath, err := common.PrepareArchive(context.Background(), zipPath, gitignore.Exclusions{Patterns: []string{".git"}})
+	archivePath, err := common.PrepareArchive(context.Background(), zipPath, gitignore.Exclusions{Patterns: []string{".git"}}, "")
 	require.NoError(t, err)
 	assert.Equal(t, zipPath, archivePath)
+}
+
+func TestPrepareArchive_tempDir(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "main.go"), []byte("package main"), 0o644))
+
+	tempDir := t.TempDir()
+	archivePath, err := common.PrepareArchive(context.Background(), root, gitignore.Exclusions{}, tempDir)
+	require.NoError(t, err)
+	defer func() {
+		_ = os.Remove(archivePath)
+	}()
+
+	assert.Equal(t, tempDir, filepath.Dir(archivePath))
+	assert.True(t, strings.HasSuffix(archivePath, ".zip"))
 }

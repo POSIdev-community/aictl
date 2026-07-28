@@ -28,7 +28,10 @@ func NewGetScanLogsCmd(uc UseCaseGetScanLogs) CmdGetScanLogs {
 	cmd := &cobra.Command{
 		Use:   "logs <scan-id>",
 		Short: "Get scan logs",
-		Args:  cobra.MaximumNArgs(1),
+		Long:  `Download scan logs to a file. Scan id comes from argument or stdin. Output path -o is required; use -f to overwrite.`,
+		Example: `  aictl get scan logs <scan-id> -o ./scan.log
+  aictl get scan logs <scan-id> -o ./scan.log -f`,
+		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if outPath == "" {
 				return validation.NewRequiredError("output")
@@ -53,8 +56,8 @@ func NewGetScanLogsCmd(uc UseCaseGetScanLogs) CmdGetScanLogs {
 		},
 	}
 
-	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output path")
-	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Force rewrite output file")
+	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
+	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 
 	return CmdGetScanLogs{cmd}
 }

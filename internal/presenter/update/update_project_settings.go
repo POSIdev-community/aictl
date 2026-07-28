@@ -28,6 +28,9 @@ func NewUpdateProjectSettingsCmd(uc UseCaseUpdateProjectSettings) CmdUpdateProje
 	cmd := &cobra.Command{
 		Use:   "settings",
 		Short: "Update project settings",
+		Long:  `Patch project scan settings (priority, preferred agents). At least one of --priority, --agents, --preferred-agents-only, or --no-preferred-agents-only is required. Project id comes from context or -p.`,
+		Example: `  aictl update project settings --priority High -p <project-id>
+  aictl update project settings --agents agent1,agent2 --preferred-agents-only`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if !cmd.Flags().Changed("priority") &&
 				!cmd.Flags().Changed("agents") &&
@@ -96,10 +99,10 @@ func NewUpdateProjectSettingsCmd(uc UseCaseUpdateProjectSettings) CmdUpdateProje
 		},
 	}
 
-	cmd.Flags().StringVar(&priorityFlag, "priority", "", "scan priority: None, Low, Medium, High, Critical")
-	cmd.Flags().StringVar(&agentsFlag, "agents", "", "comma-separated scan agent ids")
-	cmd.Flags().BoolVar(&preferredAgentsOnlyFlag, "preferred-agents-only", false, "use only selected scan agents")
-	cmd.Flags().BoolVar(&noPreferredAgentsOnlyFlag, "no-preferred-agents-only", false, "allow all agents, not only selected ones")
+	cmd.Flags().StringVar(&priorityFlag, "priority", "", "Scan priority: None, Low, Medium, High, or Critical")
+	cmd.Flags().StringVar(&agentsFlag, "agents", "", "Comma-separated preferred scan agent ids")
+	cmd.Flags().BoolVar(&preferredAgentsOnlyFlag, "preferred-agents-only", false, "Use only the selected scan agents")
+	cmd.Flags().BoolVar(&noPreferredAgentsOnlyFlag, "no-preferred-agents-only", false, "Allow all scan agents, not only selected ones")
 
 	return CmdUpdateProjectSettings{cmd}
 }

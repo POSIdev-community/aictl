@@ -22,7 +22,8 @@ func NewSetCmd(
 	setProjectCmd CmdSetProject) *CmdSet {
 	cmd := &cobra.Command{
 		Use:               "set",
-		Short:             "Set",
+		Short:             "Set resource configuration",
+		Long:              `Replace or upload project configuration on the server (settings, policies, exclusions).`,
 		PersistentPreRunE: persistentPreRunESetCmd,
 	}
 

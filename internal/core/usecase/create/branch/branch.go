@@ -15,7 +15,7 @@ import (
 type AI interface {
 	Initialize(ctx context.Context) error
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
-	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string, exclusions gitignore.Exclusions) (*uuid.UUID, error)
+	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error)
 }
 
 type CLI interface {
@@ -40,7 +40,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool, exclusions gitignore.Exclusions) error {
+func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, scanTarget string, safe bool, exclusions gitignore.Exclusions, tempDir string) error {
 	err := u.aiAdapter.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -64,7 +64,7 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 		}
 	}
 
-	branchId, err := u.aiAdapter.CreateBranch(ctx, cfg.ProjectId(), branchName, scanTarget, exclusions)
+	branchId, err := u.aiAdapter.CreateBranch(ctx, cfg.ProjectId(), branchName, scanTarget, exclusions, tempDir)
 	if err != nil {
 		return fmt.Errorf("create branch: %w", err)
 	}

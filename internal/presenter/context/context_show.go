@@ -25,7 +25,11 @@ func NewConfigShowCommand(uc UseCaseConfigShow) CmdConfigShow {
 	cmd := &cobra.Command{
 		Use:   "show",
 		Short: "Show current aictl context",
-		Args:  cobra.NoArgs,
+		Long:  `Print the local aictl context. Default output is human-readable; use --json or --yaml for machine-readable formats (mutually exclusive).`,
+		Example: `  aictl ctx show
+  aictl ctx show --json
+  aictl ctx show --yaml`,
+		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if json && yaml {
 				return fmt.Errorf("cannot use both json and yaml flags")
@@ -45,8 +49,8 @@ func NewConfigShowCommand(uc UseCaseConfigShow) CmdConfigShow {
 		},
 	}
 
-	cmd.Flags().BoolVar(&json, "json", false, "Json format context")
-	cmd.Flags().BoolVar(&yaml, "yaml", false, "Yaml format context")
+	cmd.Flags().BoolVar(&json, "json", false, "Print context as JSON")
+	cmd.Flags().BoolVar(&yaml, "yaml", false, "Print context as YAML")
 
 	return CmdConfigShow{cmd}
 }

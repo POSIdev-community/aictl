@@ -21,8 +21,11 @@ type UseCaseGetScanReportJson interface {
 func NewGetScanReportJsonCmd(uc UseCaseGetScanReportJson) CmdGetScanReportJson {
 	cmd := &cobra.Command{
 		Use:   "json <scan-id>",
-		Short: "Get scan report json",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in JSON format",
+		Long:  `Download the scan report in JSON format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report json <scan-id> -o ./out.json
+  aictl get scan report json <scan-id> -o ./out.json -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

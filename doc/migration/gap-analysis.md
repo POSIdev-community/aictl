@@ -57,13 +57,13 @@
 
 | Gap | Источник | Предлагаемое API aictl | Workaround сейчас | Статус |
 |-----|----------|------------------------|-------------------|--------|
-| Список шаблонов отчётов | ptai `list-report-templates` | `get report-templates [<regex>] [-q]` (id+имя) | Знать имя заранее | Планируется |
-| Ошибки скана | — | `get scan errors` (построчный текст) | Нет | Планируется |
-| Актуализация языков | — | `update project languages` (detect по загруженным sources) | Settings вручную | Планируется |
-| Исключения проекта | — | `get`/`set project exclusions` (set: gitignore-текст, полная замена) | Upload `-e` на клиенте | Планируется |
-| Очередь сканов | — | `get queue` [`-p`]; без `-p` ctx не фильтрует; таблица | Нет | Планируется |
-| Активные сканы | — | `get scanning` [`-p`]; таблица | Нет | Планируется |
-| Каталог temp-архива | — | `--temp-dir` на `update sources` / `create branch`; удалить zip после upload | Системный temp | Планируется |
+| Список шаблонов отчётов | ptai `list-report-templates` | `get report-templates [<regex>] [-q]` (id+имя) | Знать имя заранее | Есть |
+| Ошибки скана | — | `get scan errors` (построчный текст) | Нет | Есть |
+| Актуализация языков | — | `update project languages` (detect по загруженным sources) | Settings вручную | Есть |
+| Исключения проекта | — | `get`/`set project exclusions` (get/set: gitignore-текст; set — полная замена) | Upload `-e` на клиенте | Есть |
+| Очередь сканов | — | `get queue` [`-p`]; без `-p` ctx не фильтрует; таблица | Нет | Есть |
+| Активные сканы | — | `get scanning` [`-p`]; таблица | Нет | Есть |
+| Каталог temp-архива | — | `--temp-dir` на `update sources` / `create branch`; удалить zip после upload | Системный temp | Есть |
 
 **Поведение fail-флагов:** по умолчанию выключены. `--fail-on-scan-failed` и `--fail-on-policies-rejected` — разные команды; policy gate **не** вешается на `scan await`.
 
@@ -129,7 +129,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 ## Порядок доработок
 
 1. ~~Fail-флаги (`apperror`); `scan check-policies`; get/set policies~~ **готово**
-2. get/set exclusions (gitignore-текст); `get scan errors`; `get queue`; `get scanning`
-3. `update project languages`; `--temp-dir`; `get report-templates` (id+имя, regex, `-q`)
+2. ~~get/set exclusions (gitignore-текст); `get scan errors`; `get queue`; `get scanning`~~ **готово**
+3. ~~`update project languages`; `--temp-dir`; `get report-templates` (id+имя, regex, `-q`)~~ **готово**
 4. ~~Багфикс nist/oud4~~ **готово**
 5. ~~E2E под новые команды~~ **готово**

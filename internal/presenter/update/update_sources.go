@@ -18,7 +18,7 @@ type CmdUpdateSources struct {
 }
 
 type UseCaseUpdateSources interface {
-	Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions) error
+	Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions, tempDir string) error
 }
 
 func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateSources {
@@ -27,12 +27,16 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 		path             string
 		excludeFlags     []string
 		excludeFromFlags []string
+		tempDir          string
 	)
 
 	cmd := &cobra.Command{
-		Use:   "sources",
+		Use:   "sources <path>",
 		Short: "Update sources",
-		Args:  cobra.ExactArgs(1),
+		Long:  `Upload or update sources for a project/branch with optional gitignore-style exclusions. Project and branch ids come from context or -p/-b.`,
+		Example: `  aictl update sources ./src -p <project-id> -b <branch-id>
+  aictl update sources ./src -e '*.tmp' --exclude-from .aictlignore`,
+		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 
 			var err error
@@ -63,6 +67,15 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 				}
 			}
 
+			if tempDir != "" {
+				if !fshelper.PathExists(tempDir) {
+					return validation.NewError(fmt.Sprintf("temp-dir path '%s' does not exist", tempDir))
+				}
+				if !fshelper.IsDirectory(tempDir) {
+					return validation.NewError(fmt.Sprintf("temp-dir path '%s' is not a directory", tempDir))
+				}
+			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -73,7 +86,7 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 				FromFiles: excludeFromFlags,
 			}
 
-			if err := uc.Execute(ctx, path, exclusions); err != nil {
+			if err := uc.Execute(ctx, path, exclusions, tempDir); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'update sources' usecase call: %w", err)
@@ -83,10 +96,11 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 		},
 	}
 
-	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
-	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "branch id")
-	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "exclude file or directory (gitignore pattern)")
-	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "path to file with exclude patterns in gitignore format")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
+	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Branch id (overrides context)")
+	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "Exclude path (gitignore pattern); repeatable")
+	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "File with gitignore-style exclude patterns")
+	cmd.Flags().StringVar(&tempDir, "temp-dir", "", "Directory for temporary zip when packing sources")
 
 	return CmdUpdateSources{cmd}
 }

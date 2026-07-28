@@ -27,11 +27,15 @@ func NewGetCmd(
 	cmdGetScans CmdGetScans,
 	cmdGetScan CmdGetScan,
 	cmdGetAgents CmdGetAgents,
-	cmdGetVersion CmdGetVersion) *CmdGet {
+	cmdGetVersion CmdGetVersion,
+	cmdGetQueue CmdGetQueue,
+	cmdGetScanning CmdGetScanning,
+	cmdGetReportTemplates CmdGetReportTemplates) *CmdGet {
 
 	cmd := &cobra.Command{
 		Use:               "get",
 		Short:             "Get resources",
+		Long:              `Retrieve AI resources from the server: projects, branches, scans, reports, agents, and server status.`,
 		PersistentPreRunE: persistentPreRunE,
 	}
 
@@ -44,6 +48,9 @@ func NewGetCmd(
 	cmd.AddCommand(cmdGetScan.Command)
 	cmd.AddCommand(cmdGetAgents.Command)
 	cmd.AddCommand(cmdGetVersion.Command)
+	cmd.AddCommand(cmdGetQueue.Command)
+	cmd.AddCommand(cmdGetScanning.Command)
+	cmd.AddCommand(cmdGetReportTemplates.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 

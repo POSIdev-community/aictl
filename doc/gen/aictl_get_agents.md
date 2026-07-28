@@ -2,25 +2,36 @@
 
 Get agents
 
+### Synopsis
+
+List scan agents registered on the server.
+
 ```
 aictl get agents [flags]
+```
+
+### Examples
+
+```
+  aictl get agents
+  aictl get agents -q
 ```
 
 ### Options
 
 ```
   -h, --help    help for agents
-  -q, --quite   Get only ids
+  -q, --quite   Print only ids
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -l, --log-path string   log file path
-      --tls-skip          Skip certificate verification
-  -t, --token string      AI server access token
-  -u, --uri string        AI server uri
-  -v, --verbose           verbose output
+  -l, --log-path string   Log file path
+      --tls-skip          Skip TLS certificate verification
+  -t, --token string      AI server access token (overrides context)
+  -u, --uri string        AI server URI (overrides context)
+  -v, --verbose           Verbose output
 ```
 
 ### SEE ALSO

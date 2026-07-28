@@ -25,3 +25,12 @@ packages:
   github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/state:
     config:
       all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/project/exclusions:
+    config:
+      all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/queue:
+    config:
+      all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/reporttemplates:
+    config:
+      all: true

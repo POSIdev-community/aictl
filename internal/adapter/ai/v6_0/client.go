@@ -344,7 +344,7 @@ func (a *ClientAI60) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 	return nil
 }
 
-func (a *ClientAI60) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error) {
+func (a *ClientAI60) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error) {
 	useStubSources := scanTargetPath == ""
 	if useStubSources {
 		var err error
@@ -354,7 +354,7 @@ func (a *ClientAI60) CreateBranch(ctx context.Context, projectId uuid.UUID, bran
 		}
 	}
 
-	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions)
+	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions, tempDir)
 	if archivePath != scanTargetPath {
 		defer func() {
 			_ = os.Remove(archivePath)
@@ -1108,10 +1108,10 @@ func (a *ClientAI60) StopScan(ctx context.Context, scanResultId uuid.UUID) error
 	return nil
 }
 
-func (a *ClientAI60) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions) error {
+func (a *ClientAI60) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error {
 	log := logger.FromContext(ctx)
 
-	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions)
+	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions, tempDir)
 	if archivePath != scanTargetPath {
 		defer func() {
 			_ = os.Remove(archivePath)

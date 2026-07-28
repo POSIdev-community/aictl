@@ -2,25 +2,37 @@
 
 Get AI projects
 
+### Synopsis
+
+List projects matching an optional regex filter. Filter may be passed as an argument or via stdin.
+
 ```
 aictl get projects <regex> [flags]
+```
+
+### Examples
+
+```
+  aictl get projects
+  aictl get projects my-.*
+  aictl get projects -q
 ```
 
 ### Options
 
 ```
   -h, --help    help for projects
-  -q, --quite   Get only ids
+  -q, --quite   Print only ids
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -l, --log-path string   log file path
-      --tls-skip          Skip certificate verification
-  -t, --token string      AI server access token
-  -u, --uri string        AI server uri
-  -v, --verbose           verbose output
+  -l, --log-path string   Log file path
+      --tls-skip          Skip TLS certificate verification
+  -t, --token string      AI server access token (overrides context)
+  -u, --uri string        AI server URI (overrides context)
+  -v, --verbose           Verbose output
 ```
 
 ### SEE ALSO

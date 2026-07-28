@@ -17,8 +17,10 @@ type UseCaseGetHealthcheck interface {
 
 func NewGetHealthcheckCmd(uc UseCaseGetHealthcheck) CmdGetHealthcheck {
 	cmd := &cobra.Command{
-		Use:   "healthcheck",
-		Short: "Get aie healthcheck",
+		Use:     "healthcheck",
+		Short:   "Get server healthcheck",
+		Long:    `Check Application Inspector server health and connectivity.`,
+		Example: `  aictl get healthcheck`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

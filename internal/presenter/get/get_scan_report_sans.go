@@ -21,8 +21,11 @@ type UseCaseGetScanReportSans interface {
 func NewGetScanReportSansCmd(uc UseCaseGetScanReportSans) CmdGetScanReportSans {
 	cmd := &cobra.Command{
 		Use:   "sans <scan-id>",
-		Short: "Get scan report sans",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Get scan report in SANS format",
+		Long:  `Download the scan report in SANS format for the given scan id. Project id comes from context or parent -p. Output path via -o; use -f to overwrite.`,
+		Example: `  aictl get scan report sans <scan-id> -o ./out.xml
+  aictl get scan report sans <scan-id> -o ./out.xml -f`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 

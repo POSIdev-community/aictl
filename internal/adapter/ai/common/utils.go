@@ -137,7 +137,7 @@ func (mrc *multipartReadCloser) Close() error {
 	return mrc.file.Close()
 }
 
-func PrepareArchive(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions) (archivePath string, err error) {
+func PrepareArchive(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions, tempDir string) (archivePath string, err error) {
 	// Проверяем существование пути
 	info, err := os.Stat(sourcePath)
 	if err != nil {
@@ -157,7 +157,12 @@ func PrepareArchive(ctx context.Context, sourcePath string, exclusions gitignore
 	logger.FromContext(ctx).StdErrf("preparing sources")
 
 	// Создаем временный файл для архива
-	tmpFile, err := os.CreateTemp("", "archive_*.zip")
+	var tmpFile *os.File
+	if tempDir != "" {
+		tmpFile, err = os.CreateTemp(tempDir, "archive_*.zip")
+	} else {
+		tmpFile, err = os.CreateTemp("", "archive_*.zip")
+	}
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}
