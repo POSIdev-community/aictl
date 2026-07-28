@@ -21,7 +21,7 @@ type UseCaseUpdateSources interface {
 	Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions) error
 }
 
-func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, cmdUpdateSourcesGit CmdUpdateSourcesGit) CmdUpdateSources {
+func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateSources {
 
 	var (
 		path             string
@@ -87,8 +87,6 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, cmdUpdateS
 	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "branch id")
 	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "exclude file or directory (gitignore pattern)")
 	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "path to file with exclude patterns in gitignore format")
-
-	// cmd.AddCommand(cmdUpdateSourcesGit.Command)
 
 	return CmdUpdateSources{cmd}
 }

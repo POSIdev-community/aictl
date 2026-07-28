@@ -5,6 +5,7 @@ import (
 	getBranches "github.com/POSIdev-community/aictl/internal/core/usecase/get/branches"
 	getHealthchech "github.com/POSIdev-community/aictl/internal/core/usecase/get/healthcheck"
 	projectAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/aiproj"
+	getProjectPolicies "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/policies"
 	getProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/settings"
 	getProjects "github.com/POSIdev-community/aictl/internal/core/usecase/get/projects"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan"
@@ -103,10 +104,16 @@ func buildGetProjectCmd(a *adapters) (get.CmdGetProject, error) {
 	}
 	cmdSettings := get.NewGetProjectSettingsCmd(projectSettingsUC)
 
+	projectPoliciesUC, err := getProjectPolicies.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return get.CmdGetProject{}, err
+	}
+	cmdPolicies := get.NewGetProjectPoliciesCmd(projectPoliciesUC)
+
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetProjectCmd := get.NewPersistentPreRunEGetProjectCmd(a.cfg, persistentPreRunEGetCmd)
 
-	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings), nil
+	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings, cmdPolicies), nil
 }
 
 func buildGetScanCmd(a *adapters) (get.CmdGetScan, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
@@ -47,17 +48,17 @@ func TestUseCase_Execute_SilenceFallbackDone(t *testing.T) {
 	).Once()
 	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), nil).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
-		scanstage.ScanStage{Stage: Done}, nil,
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
 	).Once()
 
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
-	cli.On("ReturnText", ctx, Done).Return().Once()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
 	require.NoError(t, err)
-	require.NoError(t, uc.Execute(ctx, scanID))
+	require.NoError(t, uc.Execute(ctx, scanID, false))
 }
 
 func TestUseCase_Execute_SilenceFallbackStillRunningThenDone(t *testing.T) {
@@ -80,17 +81,17 @@ func TestUseCase_Execute_SilenceFallbackStillRunningThenDone(t *testing.T) {
 		scanstage.ScanStage{Stage: "Scanning", Value: 50}, nil,
 	).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
-		scanstage.ScanStage{Stage: Done}, nil,
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
 	).Once()
 
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
-	cli.On("ReturnText", ctx, Done).Return().Once()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
 	require.NoError(t, err)
-	require.NoError(t, uc.Execute(ctx, scanID))
+	require.NoError(t, uc.Execute(ctx, scanID, false))
 }
 
 func TestUseCase_Execute_NotificationCompletesBeforeSilence(t *testing.T) {
@@ -102,7 +103,7 @@ func TestUseCase_Execute_NotificationCompletesBeforeSilence(t *testing.T) {
 	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
 
 	updates := make(chan scanstage.ScanStage, 1)
-	updates <- scanstage.ScanStage{Stage: Done}
+	updates <- scanstage.ScanStage{Stage: scanstage.Done}
 
 	ai := NewMockAI(t)
 	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
@@ -114,11 +115,11 @@ func TestUseCase_Execute_NotificationCompletesBeforeSilence(t *testing.T) {
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
-	cli.On("ReturnText", ctx, Done).Return().Once()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, time.Hour)
 	require.NoError(t, err)
-	require.NoError(t, uc.Execute(ctx, scanID))
+	require.NoError(t, uc.Execute(ctx, scanID, false))
 }
 
 func TestUseCase_Execute_SilenceFallbackErrorThenDone(t *testing.T) {
@@ -141,17 +142,17 @@ func TestUseCase_Execute_SilenceFallbackErrorThenDone(t *testing.T) {
 		scanstage.ScanStage{}, errors.New("temporary"),
 	).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
-		scanstage.ScanStage{Stage: Done}, nil,
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
 	).Once()
 
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
-	cli.On("ReturnText", ctx, Done).Return().Once()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
 	require.NoError(t, err)
-	require.NoError(t, uc.Execute(ctx, scanID))
+	require.NoError(t, uc.Execute(ctx, scanID, false))
 }
 
 func TestUseCase_Execute_AlreadyComplete(t *testing.T) {
@@ -165,17 +166,46 @@ func TestUseCase_Execute_AlreadyComplete(t *testing.T) {
 	ai := NewMockAI(t)
 	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
-		scanstage.ScanStage{Stage: Done}, nil,
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
 	).Once()
 
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
-	cli.On("ReturnText", ctx, Done).Return().Once()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
 	require.NoError(t, err)
-	require.NoError(t, uc.Execute(ctx, scanID))
+	require.NoError(t, uc.Execute(ctx, scanID, false))
+}
+
+func TestUseCase_Execute_FailOnScanFailed(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{Stage: scanstage.Failed}, nil,
+	).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ReturnText", ctx, scanstage.Failed).Return().Once()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+
+	err = uc.Execute(ctx, scanID, true)
+	require.Error(t, err)
+
+	var failErr *apperror.FailError
+	require.ErrorAs(t, err, &failErr)
 }
 
 func TestNewUseCase_InvalidPollInterval(t *testing.T) {

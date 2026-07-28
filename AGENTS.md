@@ -169,15 +169,6 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`.
 - Root: `PersistentPreRunE: _utils.InitializeLogger` — logger в context (`pkg/logger`).
 - При ошибке use case: `cmd.SilenceUsage = true`, wrap с именем команды.
 
-## Незавершённый функционал
-
-Команды доступны в CLI, но use case содержит `panic("not implemented")`:
-
-- `internal/core/usecase/get/scan/result/result.go`
-- `internal/core/usecase/update/sources/git/git.go`
-
-Не подключать к production-сценариям без реализации; при работе с этими командами — реализовать или скрыть из CLI.
-
 ## Тестирование
 
 Покрытие минимальное (4 test-файла на ~190 hand-written Go в `internal/`):

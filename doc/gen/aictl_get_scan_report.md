@@ -35,10 +35,10 @@ aictl get scan report <report-name> <scan-id> [flags]
 * [aictl get scan report autocheck](aictl_get_scan_report_autocheck.md)	 - Get scan report autocheck
 * [aictl get scan report gitlab](aictl_get_scan_report_gitlab.md)	 - Get scan report gitlab
 * [aictl get scan report json](aictl_get_scan_report_json.md)	 - Get scan report json
-* [aictl get scan report json](aictl_get_scan_report_json.md)	 - Get scan report json
 * [aictl get scan report json-v2](aictl_get_scan_report_json-v2.md)	 - Get scan report json v2
 * [aictl get scan report markdown](aictl_get_scan_report_markdown.md)	 - Get scan report markdown
-* [aictl get scan report markdown](aictl_get_scan_report_markdown.md)	 - Get scan report markdown
+* [aictl get scan report nist](aictl_get_scan_report_nist.md)	 - Get scan report nist
+* [aictl get scan report oud4](aictl_get_scan_report_oud4.md)	 - Get scan report oud4
 * [aictl get scan report owasp](aictl_get_scan_report_owasp.md)	 - Get scan report owasp
 * [aictl get scan report owaspm](aictl_get_scan_report_owaspm.md)	 - Get scan report owaspm
 * [aictl get scan report pcidss](aictl_get_scan_report_pcidss.md)	 - Get scan report pcidss

@@ -29,6 +29,10 @@ func NewScanStopCmd(uc UseCaseScanStop) CmdScanStop {
 		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 {
+				return validation.NewError("missing scan id")
+			}
+
 			scanIdFlag := args[0]
 
 			var err error

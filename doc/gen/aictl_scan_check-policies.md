@@ -1,17 +1,17 @@
-## aictl scan await
+## aictl scan check-policies
 
-Await scan
+Check scan policy state
 
 ```
-aictl scan await <scan-id> [flags]
+aictl scan check-policies <scan-id> [flags]
 ```
 
 ### Options
 
 ```
-      --fail-on-scan-failed   exit 1 if scan stage is Failed or Aborted
-  -h, --help                  help for await
-  -p, --project-id string     project id
+      --fail-on-policies-rejected   exit 1 if PolicyState is Rejected
+  -h, --help                        help for check-policies
+  -p, --project-id string           project id
 ```
 
 ### Options inherited from parent commands

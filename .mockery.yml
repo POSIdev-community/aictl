@@ -19,3 +19,9 @@ packages:
   github.com/POSIdev-community/aictl/internal/core/usecase/scan/await:
     config:
       all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/scan/checkpolicies:
+    config:
+      all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/state:
+    config:
+      all: true

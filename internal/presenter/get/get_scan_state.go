@@ -13,10 +13,12 @@ type CmdGetScanState struct {
 }
 
 type UseCaseGetScanState interface {
-	Execute(ctx context.Context, scanId uuid.UUID) error
+	Execute(ctx context.Context, scanId uuid.UUID, failOnScanFailed bool) error
 }
 
 func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
+	var failOnScanFailed bool
+
 	cmd := &cobra.Command{
 		Use:   "stage <scan-id>",
 		Short: "Get scan stage",
@@ -24,15 +26,17 @@ func NewGetScanStateCmd(uc UseCaseGetScanState) CmdGetScanState {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId); err != nil {
+			if err := uc.Execute(ctx, scanId, failOnScanFailed); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("'get scan state' usecase call: %w", err)
+				return fmt.Errorf("'get scan stage' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&failOnScanFailed, "fail-on-scan-failed", false, "exit 1 if scan stage is Failed or Aborted")
 
 	return CmdGetScanState{cmd}
 }

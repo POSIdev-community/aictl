@@ -9,31 +9,30 @@
 - Exit codes: **0** / **1** / **2**
 - Fail-флаги — **opt-in**; при срабатывании — exit **1** через **отдельный `apperror`** (не `validation.Error`)
 - `--fail-on-scan-failed`: стадии **Failed** и **Aborted**
-- `--fail-on-policy`: exit **1**, если `PolicyState` ∈ {**`Confirmed`**, **`None`**} (enum: `None` \| `Rejected` \| `Confirmed`)
-- `get scan policy` без флага: в stdout — **сырое** значение `PolicyState`
+- `--fail-on-policies-rejected`: exit **1**, если `PolicyState` = **`Rejected`** (enum: `None` \| `Rejected` \| `Confirmed`)
+- `scan check-policies` без флага: в stdout — **сырое** значение `PolicyState`
 - Get policies / exclusions: stdout — **сырой** ответ API
 - Set policies: JSON; ввод: `-f <file>`, `-f -` / аргумент `-` = stdin, позиционный аргумент = текст
 - Set exclusions: **gitignore-like текст** (не JSON); тот же контракт поля `exclusions` API; ввод: `-f` / stdin `-` / позиционный аргумент; **полная замена**
 - Табличный вывод (где указано «таблица»): только таблица, без JSON-режима
-- Реализацию кода **не** начинать, пока backlog не согласован отдельно; этот документ — спецификация
 
 ---
 
 ## P0
 
-1. **`scan await --fail-on-scan-failed`**  
+1. ~~**`scan await --fail-on-scan-failed`**~~ **готово**  
    Failed/Aborted → отдельный `apperror`, exit 1.
 
-2. **`get scan stage --fail-on-scan-failed`**  
+2. ~~**`get scan stage --fail-on-scan-failed`**~~ **готово**  
    То же для однократной проверки стадии.
 
-3. **`get scan policy <scan-id> [--fail-on-policy]`**  
-   Печатает сырой `PolicyState`. С `--fail-on-policy`: exit 1 при `Confirmed` или `None`.
+3. ~~**`scan check-policies <scan-id> [--fail-on-policies-rejected]`**~~ **готово**  
+   Печатает сырой `PolicyState`. С `--fail-on-policies-rejected`: exit 1 при `Rejected`.
 
-4. **`get project policies`**  
+4. ~~**`get project policies`**~~ **готово**  
    Сырой ответ API (правила политик проекта).
 
-5. **`set project policies`**  
+5. ~~**`set project policies`**~~ **готово**  
    JSON правил политик. Ввод: `-f <file>` | `-f -` / `-` (stdin) | позиционный аргумент (текст JSON). Как `set project settings`.
 
 6. **`get report-templates [<regex>] [-q|--quite] [--localization en|ru]`**  
@@ -69,8 +68,8 @@
 
 ## P1
 
-14. **Багфикс `get scan report nist` / `oud4`**  
-    Исправить cobra `Use` (сейчас дублируют markdown/json).
+14. ~~**Багфикс `get scan report nist` / `oud4`**~~ **готово**  
+    Cobra `Use` больше не дублирует markdown/json.
 
 ---
 
@@ -80,10 +79,10 @@
 - Auth user/password
 - Truststore PEM (достаточно `--tls-skip` / системный trust)
 - Расширение exit codes под legacy-схемы (10, 60, 1000, …)
-- `get scan result` (stub без потребителей)
+- `get scan result` — удалено (stub без потребителей)
 - `delete projects` по имени / regexp — достаточно `get projects <regex>` → `delete projects <uuid>…`
 - `get project --name` — достаточно `get projects <regex>`
-- `update sources git` — обновление sources из VCS выполняет агент сканирования
+- `update sources git` — удалено; обновление sources из VCS выполняет агент сканирования
 - Retry при занятой ветке в CLI — скрипт [`pipeline-with-retry.sh`](../../examples/pipeline-with-retry.sh), пока AIE не поддержит множественные сканы на разных ветках
 - `get scan report raw` / `giif` — форматов нет в AIE
 - `--priority` на `scan start` — нельзя; есть `update project settings --priority`
@@ -92,10 +91,10 @@
 
 ---
 
-## Порядок реализации (когда начнётся код)
+## Порядок реализации
 
-1. Fail-флаги + `apperror`; `get scan policy`; get/set project policies
+1. ~~Fail-флаги + `apperror`; `scan check-policies`; get/set project policies~~ **готово**
 2. get/set project exclusions; `get scan errors`; `get queue`; `get scanning`
 3. `update project languages`; `--temp-dir`; `get report-templates`
-4. Багфикс nist/oud4
-5. E2E под новые команды
+4. ~~Багфикс nist/oud4~~ **готово**
+5. ~~E2E под новые команды~~ **готово** (leaf вне smoke: `TestLeafCommandsOutsideSmoke`)

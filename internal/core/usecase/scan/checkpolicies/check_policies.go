@@ -1,4 +1,4 @@
-package state
+package checkpolicies
 
 import (
 	"context"
@@ -8,18 +8,13 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
+	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-)
-
-const (
-	Aborted = "Aborted"
-	Failed  = "Failed"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
-	GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error)
+	GetScanPolicyState(ctx context.Context, projectId, scanId uuid.UUID) (policystate.State, error)
 }
 
 type CLI interface {
@@ -48,21 +43,21 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, failOnScanFailed bool) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, failOnPoliciesRejected bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	scanStage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
+	state, err := u.aiAdapter.GetScanPolicyState(ctx, u.cfg.ProjectId(), scanId)
 	if err != nil {
-		return fmt.Errorf("get scan stage: %w", err)
+		return fmt.Errorf("check scan policies: %w", err)
 	}
 
-	u.cliAdapter.ReturnText(ctx, scanStage.Stage)
+	u.cliAdapter.ReturnText(ctx, state.String())
 
-	if failOnScanFailed && (scanStage.Stage == Failed || scanStage.Stage == Aborted) {
-		return apperror.NewScanFailedError(scanStage.Stage)
+	if failOnPoliciesRejected && state.IsRejected() {
+		return apperror.NewPolicyFailError(state.String())
 	}
 
 	return nil

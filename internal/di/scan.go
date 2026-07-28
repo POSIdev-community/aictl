@@ -2,6 +2,7 @@ package di
 
 import (
 	"github.com/POSIdev-community/aictl/internal/core/usecase/scan/await"
+	"github.com/POSIdev-community/aictl/internal/core/usecase/scan/checkpolicies"
 	startBranch "github.com/POSIdev-community/aictl/internal/core/usecase/scan/start/branch"
 	startProject "github.com/POSIdev-community/aictl/internal/core/usecase/scan/start/project"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/scan/stop"
@@ -14,6 +15,12 @@ func buildScanCmd(a *adapters) (*scanPresenter.CmdScan, error) {
 		return nil, err
 	}
 	cmdAwait := scanPresenter.NewScanAwaitCmd(a.cfg, awaitUC)
+
+	checkPoliciesUC, err := checkpolicies.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdCheckPolicies := scanPresenter.NewScanCheckPoliciesCmd(a.cfg, checkPoliciesUC)
 
 	branchUC, err := startBranch.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
@@ -38,5 +45,5 @@ func buildScanCmd(a *adapters) (*scanPresenter.CmdScan, error) {
 	}
 	cmdStop := scanPresenter.NewScanStopCmd(stopUC)
 
-	return scanPresenter.NewScanCmd(persistentPreRunEScanCmd, cmdAwait, cmdStart, cmdStop), nil
+	return scanPresenter.NewScanCmd(persistentPreRunEScanCmd, cmdAwait, cmdCheckPolicies, cmdStart, cmdStop), nil
 }

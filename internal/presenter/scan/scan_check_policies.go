@@ -12,25 +12,25 @@ import (
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 )
 
-type CmdScanAwait struct {
+type CmdScanCheckPolicies struct {
 	*cobra.Command
 }
 
-type UseCaseScanAwait interface {
-	Execute(ctx context.Context, scanId uuid.UUID, failOnScanFailed bool) error
+type UseCaseScanCheckPolicies interface {
+	Execute(ctx context.Context, scanId uuid.UUID, failOnPoliciesRejected bool) error
 }
 
-func NewScanAwaitCmd(cfg *config.Config, uc UseCaseScanAwait) CmdScanAwait {
+func NewScanCheckPoliciesCmd(cfg *config.Config, uc UseCaseScanCheckPolicies) CmdScanCheckPolicies {
 	var (
-		projectIdFlag    string
-		scanIdFlag       string
-		scanId           uuid.UUID
-		failOnScanFailed bool
+		projectIdFlag          string
+		scanIdFlag             string
+		scanId                 uuid.UUID
+		failOnPoliciesRejected bool
 	)
 
 	cmd := &cobra.Command{
-		Use:   "await <scan-id>",
-		Short: "Await scan",
+		Use:   "check-policies <scan-id>",
+		Short: "Check scan policy state",
 		Args:  cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
@@ -54,10 +54,10 @@ func NewScanAwaitCmd(cfg *config.Config, uc UseCaseScanAwait) CmdScanAwait {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, failOnScanFailed); err != nil {
+			if err := uc.Execute(ctx, scanId, failOnPoliciesRejected); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("'scan await' usecase call: %w", err)
+				return fmt.Errorf("'scan check-policies' usecase call: %w", err)
 			}
 
 			return nil
@@ -65,7 +65,7 @@ func NewScanAwaitCmd(cfg *config.Config, uc UseCaseScanAwait) CmdScanAwait {
 	}
 
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "project id")
-	cmd.Flags().BoolVar(&failOnScanFailed, "fail-on-scan-failed", false, "exit 1 if scan stage is Failed or Aborted")
+	cmd.Flags().BoolVar(&failOnPoliciesRejected, "fail-on-policies-rejected", false, "exit 1 if PolicyState is Rejected")
 
-	return CmdScanAwait{cmd}
+	return CmdScanCheckPolicies{cmd}
 }

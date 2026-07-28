@@ -26,5 +26,6 @@ Set project parameters
 ### SEE ALSO
 
 * [aictl set](aictl_set.md)	 - Set
+* [aictl set project policies](aictl_set_project_policies.md)	 - Set project security policies
 * [aictl set project settings](aictl_set_project_settings.md)	 - Set project settings
 

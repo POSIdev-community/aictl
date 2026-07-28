@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
+	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -23,6 +24,8 @@ type ClientAi interface {
 	GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error)
 	GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error)
 	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error
+	GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
+	SetProjectPolicies(ctx context.Context, projectId uuid.UUID, rawJSON []byte) error
 	GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error)
 	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error)
 	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
@@ -44,6 +47,7 @@ type ClientAi interface {
 	GetProjectAiproj(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
 	GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error)
 	GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error)
+	GetScanPolicyState(ctx context.Context, projectId, scanId uuid.UUID) (policystate.State, error)
 	GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error)
 	StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error)
 	StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error)

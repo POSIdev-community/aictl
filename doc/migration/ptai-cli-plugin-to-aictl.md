@@ -68,8 +68,8 @@ aictl update sources ./src
 # aictl update project settings --priority High
 
 scan_id=$(aictl scan start branch "$branch_id" --full-scan --scan-label ci-1)
-aictl scan await "$scan_id" --fail-on-scan-failed     # --fail-on-scan-failed: планируется
-aictl get scan policy "$scan_id" --fail-on-policy     # планируется (≈ --fail-if-failed)
+aictl scan await "$scan_id" --fail-on-scan-failed
+aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 ```
 
@@ -85,7 +85,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | `-i` / `--includes` | staging dir или `update sources --include` | `--include` — **планируется**; сейчас — подготовить дерево файлов |
 | `-e` / `--excludes` | `-e` / `--exclude-from` | **gitignore**, не Ant |
 | `--use-default-excludes` | — | Эмулировать списком excludes |
-| `--fail-if-failed` | `get scan policy --fail-on-policy` | **Планируется** |
+| `--fail-if-failed` | `scan check-policies --fail-on-policies-rejected` | |
 | `--fail-if-unstable` | — | Нет прямого аналога; смотреть statistic / policy |
 | `--async` | не вызывать `scan await` | |
 | `--full-scan` | `scan start --full-scan` | |
@@ -100,17 +100,17 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 
 ```bash
 aictl set project settings -f ./settings.json     # --settings-json
-# aictl set project policies -f ./policy.json     # --policy-json; планируется
+aictl set project policies -f ./policy.json       # --policy-json
 aictl update sources ./src
 scan_id=$(aictl scan start branch "$branch_id")
-aictl scan await "$scan_id" --fail-on-scan-failed   # планируется
-aictl get scan policy "$scan_id" --fail-on-policy   # планируется
+aictl scan await "$scan_id" --fail-on-scan-failed
+aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 ```
 
 | ptai | aictl |
 |------|-------|
 | `--settings-json` | `set project settings -f` |
-| `--policy-json` | `set project policies -f` (**планируется**); `[]` для очистки — уточнится при реализации |
+| `--policy-json` | `set project policies -f`; `[]` для очистки — уточнится при использовании |
 | остальные флаги | как у `ui-ast` |
 
 Создание проекта при отсутствии: `create project` + `set project settings -f` (в ptai `json-ast` создаёт/обновляет из AIPROJ).
@@ -200,7 +200,7 @@ aictl delete projects --regexp 'e2e-.*' -y         # планируется
 | ptai | aictl |
 |------|-------|
 | 0 | 0 |
-| 1 (в т.ч. fail-if-*) | 1 при `--fail-on-scan-failed` / `--fail-on-policy` (**планируется**); иначе смотреть stage вручную |
+| 1 (в т.ч. fail-if-*) | 1 при `--fail-on-scan-failed` / `--fail-on-policies-rejected`; иначе смотреть stage вручную |
 | 1000 (bad args) | 1 (validation) |
 
 Схема aictl: **0 / 1 / 2** (без кода 1000).
@@ -222,5 +222,5 @@ aictl delete projects --regexp 'e2e-.*' -y         # планируется
 2. Вынести `-u`/`-t` в `aictl ctx set` в начале job.
 3. `ui-ast` / `json-ast` разбить на: settings (если json) → sources → start → await → policy check → reports.
 4. `--async` → не вызывать await; сохранить `scan_id` в артефакт.
-5. `--fail-if-failed` → после реализации: `get scan policy --fail-on-policy`.
+5. `--fail-if-failed` → `scan check-policies --fail-on-policies-rejected`.
 6. Удаление тестовых проектов: UUID сейчас; `--name`/`--regexp` — после P0.

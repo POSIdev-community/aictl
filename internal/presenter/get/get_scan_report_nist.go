@@ -20,8 +20,8 @@ type UseCaseGetScanReportNist interface {
 
 func NewGetScanReportNistCmd(uc UseCaseGetScanReportNist) CmdGetScanReportNist {
 	cmd := &cobra.Command{
-		Use:   "markdown <scan-id>",
-		Short: "Get scan report markdown",
+		Use:   "nist <scan-id>",
+		Short: "Get scan report nist",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

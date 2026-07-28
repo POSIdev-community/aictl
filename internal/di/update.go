@@ -3,7 +3,6 @@ package di
 import (
 	updateProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources"
-	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources/git"
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
 )
 
@@ -13,13 +12,7 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 		return nil, err
 	}
 
-	gitUC, err := git.NewUseCase(a.ai, a.cli)
-	if err != nil {
-		return nil, err
-	}
-	cmdGit := update.NewUpdateSourcesGitCmd(gitUC)
-
-	cmdSources := update.NewUpdateSourcesCmd(a.cfg, sourcesUC, cmdGit)
+	cmdSources := update.NewUpdateSourcesCmd(a.cfg, sourcesUC)
 
 	cmdProject, err := buildUpdateProjectCmd(a)
 	if err != nil {

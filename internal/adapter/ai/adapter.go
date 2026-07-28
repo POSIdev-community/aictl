@@ -10,6 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -65,6 +66,14 @@ func (a *Adapter) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (
 
 func (a *Adapter) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error {
 	return a.activeClient.SetProjectSettings(ctx, projectId, settings)
+}
+
+func (a *Adapter) GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error) {
+	return a.activeClient.GetProjectPolicies(ctx, projectId)
+}
+
+func (a *Adapter) SetProjectPolicies(ctx context.Context, projectId uuid.UUID, rawJSON []byte) error {
+	return a.activeClient.SetProjectPolicies(ctx, projectId, rawJSON)
 }
 
 func (a *Adapter) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
@@ -149,6 +158,10 @@ func (a *Adapter) GetScanAiproj(ctx context.Context, projectId, scanSettingsId u
 
 func (a *Adapter) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
 	return a.activeClient.GetScanStage(ctx, projectId, scanId)
+}
+
+func (a *Adapter) GetScanPolicyState(ctx context.Context, projectId, scanId uuid.UUID) (policystate.State, error) {
+	return a.activeClient.GetScanPolicyState(ctx, projectId, scanId)
 }
 
 func (a *Adapter) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error) {

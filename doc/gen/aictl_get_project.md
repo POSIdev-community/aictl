@@ -23,5 +23,6 @@ Get project
 
 * [aictl get](aictl_get.md)	 - Get resources
 * [aictl get project aiproj](aictl_get_project_aiproj.md)	 - Get project aiproj
+* [aictl get project policies](aictl_get_project_policies.md)	 - Get project security policies
 * [aictl get project settings](aictl_get_project_settings.md)	 - Get project settings
 

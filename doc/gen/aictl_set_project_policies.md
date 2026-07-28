@@ -1,16 +1,16 @@
-## aictl get scan stage
+## aictl set project policies
 
-Get scan stage
+Set project security policies
 
 ```
-aictl get scan stage <scan-id> [flags]
+aictl set project policies [json|-] [flags]
 ```
 
 ### Options
 
 ```
-      --fail-on-scan-failed   exit 1 if scan stage is Failed or Aborted
-  -h, --help                  help for stage
+  -f, --file string   path to policies JSON file, or - for stdin
+  -h, --help          help for policies
 ```
 
 ### Options inherited from parent commands
@@ -26,5 +26,5 @@ aictl get scan stage <scan-id> [flags]
 
 ### SEE ALSO
 
-* [aictl get scan](aictl_get_scan.md)	 - Get scan
+* [aictl set project](aictl_set_project.md)	 - Project
 

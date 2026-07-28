@@ -17,6 +17,7 @@ Scan
 
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
 * [aictl scan await](aictl_scan_await.md)	 - Await scan
+* [aictl scan check-policies](aictl_scan_check-policies.md)	 - Check scan policy state
 * [aictl scan start](aictl_scan_start.md)	 - Start scan
 * [aictl scan stop](aictl_scan_stop.md)	 - Stop scan
 

@@ -1,29 +1,23 @@
-package state
+package policies
 
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 
-	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-)
-
-const (
-	Aborted = "Aborted"
-	Failed  = "Failed"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
-	GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error)
+	GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
 }
 
 type CLI interface {
-	ReturnText(ctx context.Context, text string)
+	ShowReader(r io.Reader) error
 }
 
 type UseCase struct {
@@ -48,21 +42,22 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, failOnScanFailed bool) error {
+func (u *UseCase) Execute(ctx context.Context) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	scanStage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
+	r, err := u.aiAdapter.GetProjectPolicies(ctx, u.cfg.ProjectId())
 	if err != nil {
-		return fmt.Errorf("get scan stage: %w", err)
+		return fmt.Errorf("get project policies: %w", err)
 	}
+	defer func() {
+		_ = r.Close()
+	}()
 
-	u.cliAdapter.ReturnText(ctx, scanStage.Stage)
-
-	if failOnScanFailed && (scanStage.Stage == Failed || scanStage.Stage == Aborted) {
-		return apperror.NewScanFailedError(scanStage.Stage)
+	if err := u.cliAdapter.ShowReader(r); err != nil {
+		return fmt.Errorf("print project policies: %w", err)
 	}
 
 	return nil

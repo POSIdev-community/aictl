@@ -47,6 +47,9 @@
 | Удаление проекта | `delete-project` | `delete projects <uuid>…`; по имени: `get projects <regex>` → UUID |
 | Поиск проекта по имени | `-p` / `--project-name` | `get projects <regex>` |
 | Агенты, SBOM, логи, статистика | — / частично | `get agents`, `get scan sbom` / `logs` / `statistic` / `stage` |
+| Fail при Failed/Aborted | ненулевой exit / `--fail-if-*` | `scan await --fail-on-scan-failed`; `get scan stage --fail-on-scan-failed` |
+| Проверка политики скана | aisa exit 10 / `--fail-if-failed` | `scan check-policies [--fail-on-policies-rejected]` |
+| Правила политик проекта | `--policies-path` / `--policy-json` | `get` / `set project policies` |
 
 ---
 
@@ -54,9 +57,6 @@
 
 | Gap | Источник | Предлагаемое API aictl | Workaround сейчас | Статус |
 |-----|----------|------------------------|-------------------|--------|
-| Fail при Failed/Aborted | aisa (ненулевой exit), ptai `--fail-if-*` (частично) | `scan await --fail-on-scan-failed`; `get scan stage --fail-on-scan-failed` (opt-in; Failed/Aborted → exit **1**) | Смотреть stdout stage (`Done`/`Failed`/`Aborted`) в скрипте | Планируется |
-| Проверка политики скана | aisa exit **10**, ptai `--fail-if-failed` | `get scan policy <scan-id> [--fail-on-policy]` (с флагом → exit **1**) | Нет надёжного аналога | Планируется |
-| Правила политик проекта | aisa `--policies-path`, `--policy-settings-file`; ptai `--policy-json` | `get project policies`; `set project policies` (`-f <file>`, `-f -` / `-` = stdin, аргумент = JSON-текст) | UI / API вручную | Планируется |
 | Список шаблонов отчётов | ptai `list-report-templates` | `get report-templates [<regex>] [-q]` (id+имя) | Знать имя заранее | Планируется |
 | Ошибки скана | — | `get scan errors` (построчный текст) | Нет | Планируется |
 | Актуализация языков | — | `update project languages` (detect по загруженным sources) | Settings вручную | Планируется |
@@ -65,14 +65,14 @@
 | Активные сканы | — | `get scanning` [`-p`]; таблица | Нет | Планируется |
 | Каталог temp-архива | — | `--temp-dir` на `update sources` / `create branch`; удалить zip после upload | Системный temp | Планируется |
 
-**Поведение fail-флагов (план):** по умолчанию выключены. `--fail-on-scan-failed` и `--fail-on-policy` — разные команды; policy gate **не** вешается на `scan await`.
+**Поведение fail-флагов:** по умолчанию выключены. `--fail-on-scan-failed` и `--fail-on-policies-rejected` — разные команды; policy gate **не** вешается на `scan await`.
 
 Пример целевого CI:
 
 ```bash
 sid=$(aictl scan start branch "$bid")
-aictl scan await "$sid" --fail-on-scan-failed          # планируется
-aictl get scan policy "$sid" --fail-on-policy          # планируется
+aictl scan await "$sid" --fail-on-scan-failed
+aictl scan check-policies "$sid" --fail-on-policies-rejected
 aictl get scan report sarif "$sid" -o out/sarif.json
 ```
 
@@ -82,7 +82,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 
 | Gap | Источник | Предлагаемое API aictl | Workaround сейчас | Статус |
 |-----|----------|------------------------|-------------------|--------|
-| Баги `nist` / `oud4` | aictl | Исправить cobra `Use` у существующих команд | Вызывать другие типы отчётов | Планируется (багфикс) |
+| Баги `nist` / `oud4` | aictl | Исправить cobra `Use` у существующих команд | Вызывать другие типы отчётов | **готово** |
 
 ---
 
@@ -98,7 +98,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 | Priority на `scan start` | ptai | Задать нельзя при старте; `update project settings --priority` | Не планируется |
 | Include при upload | ptai `-i` | Достаточно excludes (`-e` / `--exclude-from`) | Не планируется |
 | Пакетная генерация отчётов | ptai `--report-json` | Несколько вызовов `get scan report` | Не планируется |
-| `get scan result` | stub | — | Не для миграции |
+| `get scan result` | удалено | — | Не для миграции |
 | Rich exit codes aisa (2…43) | aisa | Справочник в [aisa-to-aictl.md](aisa-to-aictl.md); схема aictl остаётся **0 / 1 / 2** | Не планируется |
 | One-shot meta-команда | aisa / `ui-ast` | — | Не планируется |
 | Скрытые/мёртвые флаги aisa | `--list-results`, `--restore-sources`, … | — | Не планируется |
@@ -109,7 +109,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 
 | Инструмент | Схема |
 |------------|-------|
-| aictl (сейчас и план) | **0** успех, **1** validation / бизнес-gate (в т.ч. будущие fail-флаги), **2** API/сеть, **-1** неизвестная ошибка |
+| aictl (сейчас и план) | **0** успех, **1** validation / бизнес-gate (в т.ч. fail-флаги), **2** API/сеть, **-1** неизвестная ошибка |
 | aisa | Детальные коды (10 — policy, 4 — project not found, 29 — token, …) |
 | ptai-cli-plugin | **0** / **1** / **1000** (невалидный ввод) |
 
@@ -126,10 +126,10 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 
 ---
 
-## Порядок доработок (после согласования docs)
+## Порядок доработок
 
-1. Fail-флаги (`apperror`); `get scan policy` (сырой PolicyState; fail на Confirmed|None); get/set policies
+1. ~~Fail-флаги (`apperror`); `scan check-policies`; get/set policies~~ **готово**
 2. get/set exclusions (gitignore-текст); `get scan errors`; `get queue`; `get scanning`
 3. `update project languages`; `--temp-dir`; `get report-templates` (id+имя, regex, `-q`)
-4. Багфикс nist/oud4
-5. E2E под новые команды
+4. ~~Багфикс nist/oud4~~ **готово**
+5. ~~E2E под новые команды~~ **готово**

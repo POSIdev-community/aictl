@@ -43,8 +43,8 @@ aictl update sources ./src
 # aictl update sources ./src --exclude-from .aisaignore
 
 scan_id=$(aictl scan start branch "$branch_id")
-aictl scan await "$scan_id" --fail-on-scan-failed          # --fail-on-scan-failed: планируется
-# aictl get scan policy "$scan_id" --fail-on-policy        # планируется (аналог exit 10)
+aictl scan await "$scan_id" --fail-on-scan-failed
+aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json --include-glossary --localization en
 
@@ -81,8 +81,8 @@ aictl ctx clear -y
 | `--file-exclusions` | `update sources -e` / `--exclude-from` | Синтаксис gitignore |
 | `--project-settings-file` | `set project settings -f` | `.aiproj` / JSON |
 | `--scan-off` | Не вызывать `scan start` | Upload/settings без скана |
-| `--policy-settings-file` | `set project policies -f` | **Планируется** |
-| `--policies-path` | `set project policies -f` | **Планируется** |
+| `--policy-settings-file` | `set project policies -f` | |
+| `--policies-path` | `set project policies -f` | |
 
 ### Скан
 
@@ -95,9 +95,9 @@ aictl ctx clear -y
 | `--status` + `--project-id` + `--scan-result-id` | `get scan stage` / `scan await` | |
 | `--scan-result-id` | аргумент `<scan-id>` | |
 | `--retry` / `--retry-time` | Скрипт retry | См. [`pipeline-with-retry.sh`](../../examples/pipeline-with-retry.sh); нативный флаг не планируется как P0 |
-| (ожидание до Done) | `scan await` | Сейчас exit 0 и на Failed |
-| (fail при ошибке скана) | `scan await --fail-on-scan-failed` | **Планируется** (Failed/Aborted → exit 1); также на `get scan stage` |
-| (policy violated → exit 10) | `get scan policy --fail-on-policy` | **Планируется** (exit 1) |
+| (ожидание до Done) | `scan await` | Без `--fail-on-scan-failed` exit 0 и на Failed/Aborted |
+| (fail при ошибке скана) | `scan await --fail-on-scan-failed` | Failed/Aborted → exit 1; также на `get scan stage` |
+| (policy violated → exit 10) | `scan check-policies --fail-on-policies-rejected` | exit 1 при Rejected |
 
 ### Отчёты и артефакты
 
@@ -110,7 +110,7 @@ aictl ctx clear -y
 | `--report Gitlab` | `get scan report gitlab` | |
 | `--report MD` | `get scan report markdown` | |
 | `--report AutoCheck` | `get scan report autocheck` | |
-| `--report Owasp` / `Owaspm` / `Pcidss` / `Sans` / `Nist` / `Oud4` | соответствующие subcommands | `nist`/`oud4`: известный баг `Use` в aictl — **планируется** исправление |
+| `--report Owasp` / `Owaspm` / `Pcidss` / `Sans` / `Nist` / `Oud4` | соответствующие subcommands | |
 | `--report <CustomName>` | `get scan report <name> <scan-id>` | Пользовательский шаблон |
 | `--waf-patch` | `get scan waf-patch <scan-id> -o …` | **Планируется** |
 | (список шаблонов) | `get report-templates` | **Планируется** (из ptai) |
@@ -135,7 +135,7 @@ aisa использует детальные коды. aictl сохраняет 
 | Код aisa (примеры) | Смысл | В aictl |
 |--------------------|-------|---------|
 | 0 | OK | 0 |
-| 10 | Policy violated | `get scan policy --fail-on-policy` → **1** (**планируется**) |
+| 10 | Policy violated | `scan check-policies --fail-on-policies-rejected` → **1** |
 | 60 | Policy + non-critical | То же / смотреть stderr |
 | 2 | Scan target not found | **1** (validation) |
 | 4 | Project not found | **2** (API) / **1** |
@@ -173,5 +173,5 @@ aictl scan start branch "$branch_id" --full-scan --scan-label "ci-$CI_COMMIT_SHA
 ```bash
 aictl get scan stage "$scan_id"
 # позже:
-aictl scan await "$scan_id" --fail-on-scan-failed   # планируется
+aictl scan await "$scan_id" --fail-on-scan-failed
 ```

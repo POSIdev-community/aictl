@@ -3,12 +3,10 @@
 package e2e
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
@@ -73,40 +71,4 @@ func TestBasePipeline(t *testing.T) {
 			AssertPipelineArtifacts(t, workDir, standName)
 		})
 	}
-}
-
-// testLogWriter streams command output into t.Log line by line.
-type testLogWriter struct {
-	t   *testing.T
-	mu  sync.Mutex
-	buf bytes.Buffer
-}
-
-func (w *testLogWriter) Write(p []byte) (int, error) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	w.t.Helper()
-	w.buf.Write(p)
-	for {
-		line, err := w.buf.ReadString('\n')
-		if err != nil {
-			w.buf.WriteString(line)
-			break
-		}
-		w.t.Log(string(bytes.TrimRight([]byte(line), "\r\n")))
-	}
-	return len(p), nil
-}
-
-func (w *testLogWriter) Flush() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	w.t.Helper()
-	if w.buf.Len() == 0 {
-		return
-	}
-	w.t.Log(w.buf.String())
-	w.buf.Reset()
 }

@@ -20,8 +20,8 @@ type UseCaseGetScanReportOud4 interface {
 
 func NewGetScanReportOud4Cmd(uc UseCaseGetScanReportOud4) CmdGetScanReportOud4 {
 	cmd := &cobra.Command{
-		Use:   "json <scan-id>",
-		Short: "Get scan report json",
+		Use:   "oud4 <scan-id>",
+		Short: "Get scan report oud4",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

@@ -20,6 +20,7 @@ func NewPersistentPreRunEScanCmd(cfg *config.Config) PersistentPreRunEScanCmd {
 func NewScanCmd(
 	persistentPreRunE PersistentPreRunEScanCmd,
 	cmdScanAwait CmdScanAwait,
+	cmdScanCheckPolicies CmdScanCheckPolicies,
 	cmdScanStart CmdScanStart,
 	cmdScanStop CmdScanStop) *CmdScan {
 
@@ -30,6 +31,7 @@ func NewScanCmd(
 	}
 
 	cmd.AddCommand(cmdScanAwait.Command)
+	cmd.AddCommand(cmdScanCheckPolicies.Command)
 	cmd.AddCommand(cmdScanStart.Command)
 	cmd.AddCommand(cmdScanStop.Command)
 
