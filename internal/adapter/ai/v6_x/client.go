@@ -1079,7 +1079,8 @@ func (a *ClientAI61) StartScanProject(ctx context.Context, projectId uuid.UUID, 
 		}
 	}
 
-	return a.createScanQueueItem(ctx, branchId, scanLabel, scanType)
+	// Resolve queue task id → scan result id (same as StartScanBranch).
+	return a.StartScanBranch(ctx, branchId, scanLabel, scanType)
 }
 
 func toScope(scanType scantype.Type) (v6_x.Scope, error) {
@@ -1094,6 +1095,42 @@ func toScope(scanType scantype.Type) (v6_x.Scope, error) {
 }
 
 func (a *ClientAI61) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
+	if err := a.stopScanOnce(ctx, scanResultId); err != nil {
+		if !isScanStopFallbackError(err) {
+			return err
+		}
+
+		// Queue task id may differ from scan result id — resolve and retry.
+		if resolved, ok := a.resolveScanResultId(ctx, scanResultId); ok && resolved != scanResultId {
+			if err := a.stopScanOnce(ctx, resolved); err == nil {
+				return nil
+			} else if !isScanStopFallbackError(err) {
+				return err
+			}
+			scanResultId = resolved
+		}
+
+		cancelled, cancelErr := a.cancelActiveScan(ctx, scanResultId)
+		if cancelErr != nil {
+			return cancelErr
+		}
+		if cancelled {
+			return nil
+		}
+
+		// Left the queue and not running — already stopped.
+		if apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+			apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (a *ClientAI61) stopScanOnce(ctx context.Context, scanResultId uuid.UUID) error {
 	response, err := a.StopScanWithResponse(ctx, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter stop scan request: %w", err)
@@ -1106,6 +1143,31 @@ func (a *ClientAI61) StopScan(ctx context.Context, scanResultId uuid.UUID) error
 	}
 
 	return nil
+}
+
+func isScanStopFallbackError(err error) bool {
+	return apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+		apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) ||
+		apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeSCANNOTFOUND))
+}
+
+// resolveScanResultId maps a queue task id to scan result id when still available.
+func (a *ClientAI61) resolveScanResultId(ctx context.Context, id uuid.UUID) (uuid.UUID, bool) {
+	if item, found, err := a.findScanQueueItem(ctx, id); err == nil && found && item.ScanId != uuid.Nil {
+		return item.ScanId, true
+	}
+
+	active, err := a.GetActiveScans(ctx)
+	if err != nil {
+		return uuid.Nil, false
+	}
+	for _, e := range active {
+		if e.ScanId == id {
+			return id, true
+		}
+	}
+
+	return uuid.Nil, false
 }
 
 func (a *ClientAI61) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error {

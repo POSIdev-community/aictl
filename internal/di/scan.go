@@ -39,7 +39,7 @@ func buildScanCmd(a *adapters) (*scanPresenter.CmdScan, error) {
 
 	cmdStart := scanPresenter.NewScanStartCmd(persistentPreRunEScanStartCmd, cmdStartBranch, cmdStartProject)
 
-	stopUC, err := stop.NewUseCase(a.ai, a.cli)
+	stopUC, err := stop.NewUseCase(a.ai)
 	if err != nil {
 		return nil, err
 	}

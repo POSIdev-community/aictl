@@ -75,3 +75,71 @@ func (a *ClientAI61) GetActiveScans(ctx context.Context) ([]queue.Entry, error) 
 
 	return entries, nil
 }
+
+// cancelActiveScan stops a scan that already left the queue and is running on an agent.
+// Returns cancelled=true when an agent cancel was issued.
+func (a *ClientAI61) cancelActiveScan(ctx context.Context, scanResultId uuid.UUID) (bool, error) {
+	active, err := a.GetActiveScans(ctx)
+	if err != nil {
+		return false, fmt.Errorf("ai adapter cancel active scan: %w", err)
+	}
+
+	var projectId, branchId uuid.UUID
+	found := false
+	for _, e := range active {
+		if e.ScanId == scanResultId {
+			projectId = e.ProjectId
+			branchId = e.BranchId
+			found = true
+			break
+		}
+	}
+	if !found {
+		return false, nil
+	}
+
+	response, err := a.GetAllWithScanInfoWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai adapter get agents with scans request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
+		return false, fmt.Errorf("ai adapter get agents with scans: %w", err)
+	}
+	if response.JSON200 == nil {
+		return false, nil
+	}
+
+	for _, item := range *response.JSON200 {
+		if item.Scan == nil {
+			continue
+		}
+		if item.Scan.Object.ProjectId == projectId && item.Scan.Object.BranchId == branchId {
+			if err := a.cancelScanOnAgent(ctx, item.Agent.Id); err != nil {
+				return false, err
+			}
+
+			return true, nil
+		}
+	}
+
+	// Active entry exists but agent already released it.
+	return true, nil
+}
+
+func (a *ClientAI61) cancelScanOnAgent(ctx context.Context, agentId uuid.UUID) error {
+	response, err := a.CancelScanWithResponse(ctx, agentId, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai adapter cancel scan on agent request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
+		return fmt.Errorf("ai adapter cancel scan on agent: %w", err)
+	}
+
+	return nil
+}

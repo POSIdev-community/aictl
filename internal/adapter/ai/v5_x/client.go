@@ -1002,6 +1002,31 @@ func toScanType(scanType scantype.Type) (v5_x.ScanType, error) {
 }
 
 func (a *ClientAI5x) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
+	if err := a.stopScanOnce(ctx, scanResultId); err != nil {
+		if !isScanStopFallbackError(err) {
+			return err
+		}
+
+		cancelled, cancelErr := a.cancelActiveScan(ctx, scanResultId)
+		if cancelErr != nil {
+			return cancelErr
+		}
+		if cancelled {
+			return nil
+		}
+
+		if apperror.IsApiErrorCode(err, "QUEUE_ITEM_NOT_FOUND") ||
+			apperror.IsApiErrorCode(err, "QUEUE_ITEM_ALREADY_ASSIGNED_TO_AGENT") {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (a *ClientAI5x) stopScanOnce(ctx context.Context, scanResultId uuid.UUID) error {
 	response, err := a.PostApiScansScanResultIdStopWithResponse(ctx, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter stop scan request: %w", err)
@@ -1009,12 +1034,17 @@ func (a *ClientAI5x) StopScan(ctx context.Context, scanResultId uuid.UUID) error
 
 	statusCode := response.StatusCode()
 	responseBody := string(response.Body)
-	errorModel := response.JSON400
-	if err = CheckResponseByModel(statusCode, responseBody, errorModel); err != nil {
-		return fmt.Errorf("ai update sources post sources: %w", err)
+	if err = CheckResponseByModel(statusCode, responseBody, response.JSON400); err != nil {
+		return fmt.Errorf("ai adapter stop scan: %w", err)
 	}
 
 	return nil
+}
+
+func isScanStopFallbackError(err error) bool {
+	return apperror.IsApiErrorCode(err, "QUEUE_ITEM_NOT_FOUND") ||
+		apperror.IsApiErrorCode(err, "QUEUE_ITEM_ALREADY_ASSIGNED_TO_AGENT") ||
+		apperror.IsApiErrorCode(err, "SCAN_NOT_FOUND")
 }
 
 func (a *ClientAI5x) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error {

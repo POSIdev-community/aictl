@@ -85,6 +85,58 @@ func (a *ClientAI5x) GetActiveScans(ctx context.Context) ([]queue.Entry, error) 
 	return entries, nil
 }
 
+// cancelActiveScan stops a scan that already left the queue and is running on an agent.
+// Returns cancelled=true when an agent pause/stop was issued.
+func (a *ClientAI5x) cancelActiveScan(ctx context.Context, scanResultId uuid.UUID) (bool, error) {
+	response, err := a.GetApiScanAgentsWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai adapter get scan agents request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, nil); err != nil {
+		return false, fmt.Errorf("ai adapter get scan agents: %w", err)
+	}
+	if response.JSON200 == nil {
+		return false, nil
+	}
+
+	for _, agent := range *response.JSON200 {
+		if agent.ScanResultId == nil || uuid.UUID(*agent.ScanResultId) != scanResultId {
+			continue
+		}
+		if agent.Id == nil {
+			continue
+		}
+
+		if err := a.cancelScanOnAgent(ctx, uuid.UUID(*agent.Id)); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (a *ClientAI5x) cancelScanOnAgent(ctx context.Context, agentId uuid.UUID) error {
+	stopScan := true
+	params := &v5_x.PostApiScanAgentsScanAgentIdPauseParams{StopScan: &stopScan}
+	response, err := a.PostApiScanAgentsScanAgentIdPauseWithResponse(ctx, agentId, params, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai adapter cancel scan on agent request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
+		return fmt.Errorf("ai adapter cancel scan on agent: %w", err)
+	}
+
+	return nil
+}
+
 func mapScanStatusType(status v5_x.ScanStatusType) string {
 	switch status {
 	case v5_x.ScanStatusTypePending, v5_x.ScanStatusTypeScheduled:

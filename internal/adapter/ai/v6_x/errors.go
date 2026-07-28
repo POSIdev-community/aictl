@@ -30,10 +30,13 @@ func CheckResponse(rsp *http.Response, resourceName string) error {
 }
 
 func CheckResponseByModel(statusCode int, body string, model *v6_x.ApiErrorModel) error {
-	if model != nil && model.ErrorCode != nil && model.Details != nil {
-		var errorCode = string(*model.ErrorCode)
+	if model != nil && model.ErrorCode != nil {
+		details := map[string]*string{}
+		if model.Details != nil {
+			details = *model.Details
+		}
 
-		return apperror.CheckApiErrorModel(statusCode, errorCode, *model.Details)
+		return apperror.CheckApiErrorModel(statusCode, string(*model.ErrorCode), details)
 	}
 
 	return checkResponseCommon(statusCode, body, nil, "")

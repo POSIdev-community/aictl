@@ -14,25 +14,16 @@ type AI interface {
 	StopScan(ctx context.Context, scanResultId uuid.UUID) error
 }
 
-type CLI interface {
-	ReturnText(ctx context.Context, text string)
-}
-
 type UseCase struct {
-	aiAdapter  AI
-	cliAdapter CLI
+	aiAdapter AI
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
+func NewUseCase(aiAdapter AI) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, validation.NewRequiredError("aiAdapter")
 	}
 
-	if cliAdapter == nil {
-		return nil, validation.NewRequiredError("cliAdapter")
-	}
-
-	return &UseCase{aiAdapter, cliAdapter}, nil
+	return &UseCase{aiAdapter}, nil
 }
 
 func (u *UseCase) Execute(ctx context.Context, scanResultId uuid.UUID) error {
@@ -45,8 +36,6 @@ func (u *UseCase) Execute(ctx context.Context, scanResultId uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-
-	u.cliAdapter.ReturnText(ctx, scanResultId.String())
 
 	return nil
 }
