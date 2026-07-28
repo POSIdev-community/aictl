@@ -16,3 +16,6 @@ packages:
   github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/report/defaultreport:
     config:
       all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/scan/await:
+    config:
+      all: true

@@ -20,7 +20,7 @@ const (
 	Done     = "Done"
 	Failed   = "Failed"
 
-	pollInterval = 10 * time.Second
+	DefaultPollInterval = 10 * time.Second
 )
 
 type AI interface {
@@ -37,12 +37,13 @@ type CLI interface {
 }
 
 type UseCase struct {
-	aiAdapter  AI
-	cliAdapter CLI
-	cfg        *config.Config
+	aiAdapter    AI
+	cliAdapter   CLI
+	cfg          *config.Config
+	pollInterval time.Duration
 }
 
-func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, error) {
+func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config, pollInterval time.Duration) (*UseCase, error) {
 	if aiAdapter == nil {
 		return nil, validation.NewRequiredError("aiAdapter")
 	}
@@ -51,7 +52,11 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 		return nil, validation.NewRequiredError("cliAdapter")
 	}
 
-	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
+	if pollInterval <= 0 {
+		return nil, validation.NewInvalidError("pollInterval")
+	}
+
+	return &UseCase{aiAdapter, cliAdapter, cfg, pollInterval}, nil
 }
 
 func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
@@ -62,14 +67,11 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
 
 	u.cliAdapter.ShowTextf(ctx, "awating scan, id '%v'", scanId.String())
 
-	stage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
+	done, err := u.checkStage(ctx, scanId)
 	if err != nil {
 		return fmt.Errorf("get scan stage: %w", err)
 	}
-	u.showStage(ctx, scanId, stage)
-	if scanComplete(stage) {
-		u.finish(ctx, stage)
-
+	if done {
 		return nil
 	}
 
@@ -77,6 +79,13 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
 	if err != nil {
 		return u.pollUntilDone(ctx, scanId)
 	}
+
+	return u.watchUntilDone(ctx, scanId, updates)
+}
+
+func (u *UseCase) watchUntilDone(ctx context.Context, scanId uuid.UUID, updates <-chan scanstage.ScanStage) error {
+	timer := time.NewTimer(u.pollInterval)
+	defer timer.Stop()
 
 	for {
 		select {
@@ -86,12 +95,35 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID) error {
 			if !ok {
 				return u.pollUntilDone(ctx, scanId)
 			}
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+			timer.Reset(u.pollInterval)
+
 			u.showStage(ctx, scanId, stage)
 			if scanComplete(stage) {
 				u.finish(ctx, stage)
 
 				return nil
 			}
+		case <-timer.C:
+			done, err := u.checkStage(ctx, scanId)
+			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					return err
+				}
+				u.cliAdapter.ShowTextf(ctx, "error getting scan stage: %v", err.Error())
+				timer.Reset(u.pollInterval)
+
+				continue
+			}
+			if done {
+				return nil
+			}
+			timer.Reset(u.pollInterval)
 		}
 	}
 }
@@ -102,27 +134,41 @@ func (u *UseCase) pollUntilDone(ctx context.Context, scanId uuid.UUID) error {
 			return err
 		}
 
-		stage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
+		done, err := u.checkStage(ctx, scanId)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				return err
 			}
 			u.cliAdapter.ShowTextf(ctx, "error getting scan stage: %v", err.Error())
-			time.Sleep(pollInterval)
+			time.Sleep(u.pollInterval)
 			u.cliAdapter.ShowText(ctx, "...")
 
 			continue
 		}
-
-		u.showStage(ctx, scanId, stage)
-		if scanComplete(stage) {
-			u.finish(ctx, stage)
-
+		if done {
 			return nil
 		}
 
-		time.Sleep(pollInterval)
+		time.Sleep(u.pollInterval)
 	}
+}
+
+// checkStage fetches current scan stage, prints it, and finishes if complete.
+// Returns (true, nil) when the scan is done.
+func (u *UseCase) checkStage(ctx context.Context, scanId uuid.UUID) (bool, error) {
+	stage, err := u.aiAdapter.GetScanStage(ctx, u.cfg.ProjectId(), scanId)
+	if err != nil {
+		return false, err
+	}
+
+	u.showStage(ctx, scanId, stage)
+	if scanComplete(stage) {
+		u.finish(ctx, stage)
+
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (u *UseCase) showStage(ctx context.Context, scanId uuid.UUID, stage scanstage.ScanStage) {

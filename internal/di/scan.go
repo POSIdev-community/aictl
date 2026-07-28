@@ -9,7 +9,7 @@ import (
 )
 
 func buildScanCmd(a *adapters) (*scanPresenter.CmdScan, error) {
-	awaitUC, err := await.NewUseCase(a.ai, a.cli, a.cfg)
+	awaitUC, err := await.NewUseCase(a.ai, a.cli, a.cfg, await.DefaultPollInterval)
 	if err != nil {
 		return nil, err
 	}
