@@ -1,4 +1,4 @@
-package v5_4
+package v5_x
 
 import (
 	"context"
@@ -26,15 +26,15 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
-	"github.com/POSIdev-community/aictl/pkg/clientai/v5_4"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v5_x"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/google/uuid"
 )
 
 type ClientAI5x struct {
-	*v5_4.ClientWithResponses
-	jwtClient *v5_4.ClientWithResponses
+	*v5_x.ClientWithResponses
+	jwtClient *v5_x.ClientWithResponses
 
 	*common.BaseClient
 }
@@ -46,13 +46,13 @@ func NewAiClient(base *common.BaseClient) *ClientAI5x {
 }
 
 func (a *ClientAI5x) Initialize(ctx context.Context, cfg *config.Config) error {
-	client, err := v5_4.NewClientWithResponses(cfg.UriString(), v5_4.WithHTTPClient(a.HttpClient))
+	client, err := v5_x.NewClientWithResponses(cfg.UriString(), v5_x.WithHTTPClient(a.HttpClient))
 	if err != nil {
 		return fmt.Errorf("new client: %w", err)
 	}
 	a.ClientWithResponses = client
 
-	a.jwtClient, err = v5_4.NewClientWithResponses(cfg.UriString(), v5_4.WithHTTPClient(a.JwtHttpClient))
+	a.jwtClient, err = v5_x.NewClientWithResponses(cfg.UriString(), v5_x.WithHTTPClient(a.JwtHttpClient))
 	if err != nil {
 		return fmt.Errorf("new jwt client: %w", err)
 	}
@@ -246,78 +246,78 @@ func (a *ClientAI5x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 		return nil
 	}
 
-	projectSettings := v5_4.PutApiProjectsProjectIdSettingsJSONRequestBody{
+	projectSettings := v5_x.PutApiProjectsProjectIdSettingsJSONRequestBody{
 		ProjectName: &settings.ProjectName,
-		Languages: func() *[]v5_4.LegacyProgrammingLanguageGroup {
+		Languages: func() *[]v5_x.LegacyProgrammingLanguageGroup {
 			if settings.Languages == nil {
 				return nil
 			}
-			res := make([]v5_4.LegacyProgrammingLanguageGroup, len(settings.Languages))
+			res := make([]v5_x.LegacyProgrammingLanguageGroup, len(settings.Languages))
 			for i := range settings.Languages {
-				res[i] = v5_4.LegacyProgrammingLanguageGroup(settings.Languages[i])
+				res[i] = v5_x.LegacyProgrammingLanguageGroup(settings.Languages[i])
 			}
 			return &res
 		}(),
-		WhiteBoxSettings: &v5_4.WhiteBoxSettingsModel{
+		WhiteBoxSettings: &v5_x.WhiteBoxSettingsModel{
 			StaticCodeAnalysisEnabled:            &settings.WhiteBoxSettings.StaticCodeAnalysisEnabled,
 			PatternMatchingEnabled:               &settings.WhiteBoxSettings.PatternMatchingEnabled,
 			SearchForVulnerableComponentsEnabled: &settings.WhiteBoxSettings.SearchForVulnerableComponentsEnabled,
 			SearchForConfigurationFlawsEnabled:   &settings.WhiteBoxSettings.SearchForConfigurationFlawsEnabled,
 			SearchWithScaEnabled:                 &settings.WhiteBoxSettings.SearchWithScaEnabled,
 		},
-		DotNetSettings: &v5_4.DotNetSettingsModel{
-			ProjectType:                           common.Reference(v5_4.DotNetProjectType(settings.DotNetSettings.ProjectType)),
+		DotNetSettings: &v5_x.DotNetSettingsModel{
+			ProjectType:                           common.Reference(v5_x.DotNetProjectType(settings.DotNetSettings.ProjectType)),
 			SolutionFile:                          &settings.DotNetSettings.SolutionFile,
 			WebSiteFolder:                         &settings.DotNetSettings.WebSiteFolder,
 			LaunchParameters:                      &settings.DotNetSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.DotNetSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.DotNetSettings.DownloadDependencies,
 		},
-		GoSettings: &v5_4.GoSettingsModel{
+		GoSettings: &v5_x.GoSettingsModel{
 			LaunchParameters:                      &settings.GoSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.GoSettings.UseAvailablePublicAndProtectedMethods,
 		},
-		JavaScriptSettings: &v5_4.JavaScriptSettingsModel{
+		JavaScriptSettings: &v5_x.JavaScriptSettingsModel{
 			LaunchParameters:                      &settings.JavaScriptSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.JavaScriptSettings.DownloadDependencies,
 			UseTaintAnalysis:                      &settings.JavaScriptSettings.UseTaintAnalysis,
 			UseJsaAnalysis:                        &settings.JavaScriptSettings.UseJsaAnalysis,
 		},
-		JavaSettings: &v5_4.JavaSettingsModel{
+		JavaSettings: &v5_x.JavaSettingsModel{
 			Parameters:                            &settings.JavaSettings.Parameters,
 			UnpackUserPackages:                    &settings.JavaSettings.UnpackUserPackages,
 			UserPackagePrefixes:                   &settings.JavaSettings.UserPackagePrefixes,
-			Version:                               common.Reference(v5_4.JavaVersions(settings.JavaSettings.Version)),
+			Version:                               common.Reference(v5_x.JavaVersions(settings.JavaSettings.Version)),
 			LaunchParameters:                      &settings.JavaSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.JavaSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.JavaSettings.DownloadDependencies,
 			DependenciesPath:                      &settings.JavaSettings.DependenciesPath,
 		},
-		PhpSettings: &v5_4.PhpSettingsModel{
+		PhpSettings: &v5_x.PhpSettingsModel{
 			LaunchParameters:                      &settings.PhpSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PhpSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.PhpSettings.DownloadDependencies,
 		},
-		PmTaintSettings: &v5_4.PmTaintBaseSettingsModel{
+		PmTaintSettings: &v5_x.PmTaintBaseSettingsModel{
 			LaunchParameters:                      &settings.PmTaintSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PmTaintSettings.UseAvailablePublicAndProtectedMethods,
 		},
-		PythonSettings: &v5_4.PythonSettingsModel{
+		PythonSettings: &v5_x.PythonSettingsModel{
 			LaunchParameters:                      &settings.PythonSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PythonSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.PythonSettings.DownloadDependencies,
 			DependenciesPath:                      &settings.PythonSettings.DependenciesPath,
 		},
-		RubySettings: &v5_4.RubySettingsModel{
+		RubySettings: &v5_x.RubySettingsModel{
 			LaunchParameters:                      &settings.RubySettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.RubySettings.UseAvailablePublicAndProtectedMethods,
 		},
-		PygrepSettings: &v5_4.PygrepSettingsModel{
+		PygrepSettings: &v5_x.PygrepSettingsModel{
 			RulesDirPath:     &settings.PygrepSettings.RulesDirPath,
 			LaunchParameters: &settings.PygrepSettings.LaunchParameters,
 		},
-		ScaSettings: &v5_4.ScaSettingsModel{
+		ScaSettings: &v5_x.ScaSettingsModel{
 			LaunchParameters:       &settings.ScaSettings.LaunchParameters,
 			BuildDependenciesGraph: &settings.ScaSettings.BuildDependenciesGraph,
 		},
@@ -403,10 +403,10 @@ func (a *ClientAI5x) CreateProject(ctx context.Context, projectName string) (*uu
 	searchWithScaEnabled := false
 	staticCodeAnalysisEnabled := true
 
-	projectBaseModel := v5_4.PostApiProjectsBaseJSONRequestBody{
+	projectBaseModel := v5_x.PostApiProjectsBaseJSONRequestBody{
 		Name:       &projectName,
 		ProjectUrl: &projectUrl,
-		WhiteBox: &v5_4.WhiteBoxSettingsModel{
+		WhiteBox: &v5_x.WhiteBoxSettingsModel{
 			PatternMatchingEnabled:               &patternMatchingEnabled,
 			SearchForConfigurationFlawsEnabled:   &searchForConfigurationFlawsEnabled,
 			SearchForVulnerableComponentsEnabled: &searchForVulnerableComponentsEnabled,
@@ -414,8 +414,8 @@ func (a *ClientAI5x) CreateProject(ctx context.Context, projectName string) (*uu
 			StaticCodeAnalysisEnabled:            &staticCodeAnalysisEnabled,
 		},
 		Id: &uuid.UUID{},
-		Languages: &[]v5_4.LegacyProgrammingLanguageGroup{
-			v5_4.LegacyProgrammingLanguageGroupGo,
+		Languages: &[]v5_x.LegacyProgrammingLanguageGroup{
+			v5_x.LegacyProgrammingLanguageGroupGo,
 		},
 	}
 
@@ -483,7 +483,7 @@ func (a *ClientAI5x) GetProjectId(ctx context.Context, projectName string) (*uui
 	body := string(response.Body)
 	errorModel := response.JSON400
 
-	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v5_4.ApiErrorTypePROJECTNOTFOUND {
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v5_x.ApiErrorTypePROJECTNOTFOUND {
 		return nil, nil
 	}
 
@@ -519,7 +519,7 @@ func (a *ClientAI5x) GetProjects(ctx context.Context) ([]project.Project, error)
 	projects := make([]project.Project, 0, len(models))
 
 	for _, model := range models {
-		if *model.ProjectType != v5_4.Permanent {
+		if *model.ProjectType != v5_x.Permanent {
 			continue
 		}
 
@@ -551,42 +551,42 @@ func (a *ClientAI5x) GetProject(ctx context.Context, projectId uuid.UUID) (*proj
 
 func (a *ClientAI5x) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
 	localeId := "ru-Ru"
-	params := v5_4.GetApiReportsTemplatesTypeParams{
+	params := v5_x.GetApiReportsTemplatesTypeParams{
 		LocaleId: &localeId,
 	}
 
-	var aiReportType v5_4.ReportType
+	var aiReportType v5_x.ReportType
 	switch reportType {
 	case report.AutoCheck:
-		aiReportType = v5_4.ReportTypeAutoCheck
+		aiReportType = v5_x.ReportTypeAutoCheck
 	case report.Custom:
-		aiReportType = v5_4.ReportTypeCustom
+		aiReportType = v5_x.ReportTypeCustom
 	case report.Gitlab:
-		aiReportType = v5_4.ReportTypeGitlab
+		aiReportType = v5_x.ReportTypeGitlab
 	case report.Json:
-		aiReportType = v5_4.ReportTypeJson
+		aiReportType = v5_x.ReportTypeJson
 	case report.JsonV2:
 		return uuid.UUID{}, fmt.Errorf("json v2 report is not supported on Application Inspector 5.x")
 	case report.Markdown:
-		aiReportType = v5_4.ReportTypeMd
+		aiReportType = v5_x.ReportTypeMd
 	case report.Nist:
-		aiReportType = v5_4.ReportTypeNist
+		aiReportType = v5_x.ReportTypeNist
 	case report.Oud4:
-		aiReportType = v5_4.ReportTypeOud4
+		aiReportType = v5_x.ReportTypeOud4
 	case report.Owasp:
-		aiReportType = v5_4.ReportTypeOwasp
+		aiReportType = v5_x.ReportTypeOwasp
 	case report.Owaspm:
-		aiReportType = v5_4.ReportTypeOwaspm
+		aiReportType = v5_x.ReportTypeOwaspm
 	case report.Pcidss:
-		aiReportType = v5_4.ReportTypePcidss
+		aiReportType = v5_x.ReportTypePcidss
 	case report.PlainReport:
-		aiReportType = v5_4.ReportTypePlainReport
+		aiReportType = v5_x.ReportTypePlainReport
 	case report.Sans:
-		aiReportType = v5_4.ReportTypeSans
+		aiReportType = v5_x.ReportTypeSans
 	case report.Sarif:
-		aiReportType = v5_4.ReportTypeSarif
+		aiReportType = v5_x.ReportTypeSarif
 	case report.Xml:
-		aiReportType = v5_4.ReportTypeXml
+		aiReportType = v5_x.ReportTypeXml
 	default:
 		return uuid.UUID{}, fmt.Errorf("invalid reportType: %s", reportType)
 	}
@@ -624,7 +624,7 @@ func (a *ClientAI5x) GetDefaultTemplateId(ctx context.Context, reportType report
 
 func (a *ClientAI5x) GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error) {
 	localeId := "ru-RU"
-	params := v5_4.GetApiReportsUserTemplatesNameParams{
+	params := v5_x.GetApiReportsUserTemplatesNameParams{
 		LocaleId: &localeId,
 	}
 
@@ -663,9 +663,9 @@ func (a *ClientAI5x) GetReport(ctx context.Context, projectId, scanResultId, tem
 	useFilters := false
 	sessionId := uuid.New()
 
-	model := v5_4.ReportGenerateModel{
+	model := v5_x.ReportGenerateModel{
 		LocaleId: &l10n,
-		Parameters: &v5_4.UserReportParametersModel{
+		Parameters: &v5_x.UserReportParametersModel{
 			IncludeComments:  &includeComments,
 			IncludeDFD:       &includeDFD,
 			IncludeGlossary:  &includeGlossary,
@@ -740,6 +740,34 @@ func (a *ClientAI5x) GetBranches(ctx context.Context, projectId uuid.UUID) ([]br
 	}
 
 	return branches, nil
+}
+
+func (a *ClientAI5x) GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error) {
+	response, err := a.GetApiBranchesBranchIdWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get branch: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.Name == nil || model.IsWorking == nil {
+		return nil, apperror.NewEmptyResponseError("branch")
+	}
+
+	description := ""
+	if model.Description != nil {
+		description = *model.Description
+	}
+
+	b := branch.NewBranch(*model.Id, *model.Name, description, *model.IsWorking)
+
+	return &b, nil
 }
 
 func (a *ClientAI5x) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
@@ -903,7 +931,7 @@ func (a *ClientAI5x) StartScanBranch(ctx context.Context, branchId uuid.UUID, sc
 		return uuid.UUID{}, err
 	}
 
-	params := v5_4.StartScanModel{
+	params := v5_x.StartScanModel{
 		ScanType:  &aiScanType,
 		ScanLabel: &scanLabel,
 	}
@@ -935,7 +963,7 @@ func (a *ClientAI5x) StartScanProject(ctx context.Context, projectId uuid.UUID, 
 		return uuid.UUID{}, err
 	}
 
-	params := v5_4.StartScanModel{
+	params := v5_x.StartScanModel{
 		ScanType:  &aiScanType,
 		ScanLabel: &scanLabel,
 	}
@@ -961,12 +989,12 @@ func (a *ClientAI5x) StartScanProject(ctx context.Context, projectId uuid.UUID, 
 	return scanResultId, nil
 }
 
-func toScanType(scanType scantype.Type) (v5_4.ScanType, error) {
+func toScanType(scanType scantype.Type) (v5_x.ScanType, error) {
 	switch scanType {
 	case scantype.Incremental:
-		return v5_4.Incremental, nil
+		return v5_x.Incremental, nil
 	case scantype.Full:
-		return v5_4.Full, nil
+		return v5_x.Full, nil
 	default:
 		return "", fmt.Errorf("invalid scan type: %d", scanType)
 	}
@@ -1014,7 +1042,7 @@ func (a *ClientAI5x) UpdateSources(ctx context.Context, projectId, branchId uuid
 	}()
 
 	archived := true
-	params := v5_4.PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
+	params := v5_x.PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
 
 	response, err := a.PostApiStoreProjectIdBranchesBranchIdSourcesWithBodyWithResponse(ctx, projectId, branchId, &params, contentType, body, a.AddJWTToHeader)
 	if err != nil {

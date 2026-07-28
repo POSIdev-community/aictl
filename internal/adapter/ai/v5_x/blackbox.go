@@ -1,4 +1,4 @@
-package v6_1
+package v5_x
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v5_x"
 	"github.com/google/uuid"
 )
 
-func (a *ClientAI6x) setBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
+func (a *ClientAI5x) setBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
 	payload := common.BuildBlackBoxPayload(scanSettings.BlackBoxSettings, scanSettings.BlackBoxEnabled)
 	body := toBlackBoxSettingsModel(payload)
 
@@ -28,8 +28,8 @@ func (a *ClientAI6x) setBlackBoxSettings(ctx context.Context, projectId uuid.UUI
 	return nil
 }
 
-func toBlackBoxSettingsModel(payload common.BlackBoxPayload) v6_1.BlackBoxSettingsModel {
-	model := v6_1.BlackBoxSettingsModel{
+func toBlackBoxSettingsModel(payload common.BlackBoxPayload) v5_x.BlackBoxSettingsModel {
+	model := v5_x.BlackBoxSettingsModel{
 		Site:                  payload.Site,
 		Level:                 toBlackBoxScanLevel(payload.Level),
 		ScanScope:             toScanScope(payload.ScanScope),
@@ -39,9 +39,9 @@ func toBlackBoxSettingsModel(payload common.BlackBoxPayload) v6_1.BlackBoxSettin
 	}
 
 	if payload.AdditionalHttpHeaders != nil {
-		headers := make([]v6_1.HttpHeaderModel, len(*payload.AdditionalHttpHeaders))
+		headers := make([]v5_x.HttpHeaderModel, len(*payload.AdditionalHttpHeaders))
 		for i, header := range *payload.AdditionalHttpHeaders {
-			headers[i] = v6_1.HttpHeaderModel{
+			headers[i] = v5_x.HttpHeaderModel{
 				Key:   header.Key,
 				Value: header.Value,
 			}
@@ -57,14 +57,14 @@ func toBlackBoxSettingsModel(payload common.BlackBoxPayload) v6_1.BlackBoxSettin
 	return model
 }
 
-func toBlackBoxAddresses(source *[]common.BlackBoxAddress) *[]v6_1.BlackBoxAddressModel {
+func toBlackBoxAddresses(source *[]common.BlackBoxAddress) *[]v5_x.BlackBoxAddressModel {
 	if source == nil {
 		return nil
 	}
 
-	result := make([]v6_1.BlackBoxAddressModel, len(*source))
+	result := make([]v5_x.BlackBoxAddressModel, len(*source))
 	for i, address := range *source {
-		result[i] = v6_1.BlackBoxAddressModel{
+		result[i] = v5_x.BlackBoxAddressModel{
 			Address: address.Address,
 			Format:  toBlackBoxFormat(address.Format),
 		}
@@ -73,21 +73,21 @@ func toBlackBoxAddresses(source *[]common.BlackBoxAddress) *[]v6_1.BlackBoxAddre
 	return &result
 }
 
-func toBlackBoxAuthentication(source *common.BlackBoxAuth) *v6_1.BlackBoxAuthenticationFullModel {
+func toBlackBoxAuthentication(source *common.BlackBoxAuth) *v5_x.BlackBoxAuthenticationFullModel {
 	if source == nil {
 		return nil
 	}
 
-	result := &v6_1.BlackBoxAuthenticationFullModel{}
+	result := &v5_x.BlackBoxAuthenticationFullModel{}
 	if source.Cookie != nil {
-		result.Cookie = &v6_1.BlackBoxRawCookieAuthenticationModel{
+		result.Cookie = &v5_x.BlackBoxRawCookieAuthenticationModel{
 			Cookie:             source.Cookie.Cookie,
 			ValidationAddress:  source.Cookie.ValidationAddress,
 			ValidationTemplate: source.Cookie.ValidationTemplate,
 		}
 	}
 	if source.Form != nil {
-		result.Form = &v6_1.BlackBoxFormAuthenticationModel{
+		result.Form = &v5_x.BlackBoxFormAuthenticationModel{
 			FormDetection:      toBlackBoxFormDetection(source.Form.FormDetection),
 			FormAddress:        source.Form.FormAddress,
 			FormXPath:          source.Form.FormXPath,
@@ -99,7 +99,7 @@ func toBlackBoxAuthentication(source *common.BlackBoxAuth) *v6_1.BlackBoxAuthent
 		}
 	}
 	if source.Http != nil {
-		result.Http = &v6_1.BlackBoxHttpAuthenticationModel{
+		result.Http = &v5_x.BlackBoxHttpAuthenticationModel{
 			Login:             source.Http.Login,
 			Password:          source.Http.Password,
 			ValidationAddress: source.Http.ValidationAddress,
@@ -109,7 +109,7 @@ func toBlackBoxAuthentication(source *common.BlackBoxAuth) *v6_1.BlackBoxAuthent
 	return result
 }
 
-func toBlackBoxProxySettings(source *common.BlackBoxProxy) *v6_1.BlackBoxProxySettingsModel {
+func toBlackBoxProxySettings(source *common.BlackBoxProxy) *v5_x.BlackBoxProxySettingsModel {
 	if source == nil {
 		return nil
 	}
@@ -120,7 +120,7 @@ func toBlackBoxProxySettings(source *common.BlackBoxProxy) *v6_1.BlackBoxProxySe
 		port = &value
 	}
 
-	return &v6_1.BlackBoxProxySettingsModel{
+	return &v5_x.BlackBoxProxySettingsModel{
 		IsActive: source.Enabled,
 		Host:     source.Host,
 		Login:    source.Login,
@@ -130,52 +130,52 @@ func toBlackBoxProxySettings(source *common.BlackBoxProxy) *v6_1.BlackBoxProxySe
 	}
 }
 
-func toBlackBoxScanLevel(value *string) *v6_1.BlackBoxScanLevel {
+func toBlackBoxScanLevel(value *string) *v5_x.BlackBoxScanLevel {
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	level := v6_1.BlackBoxScanLevel(*value)
+	level := v5_x.BlackBoxScanLevel(*value)
 
 	return &level
 }
 
-func toScanScope(value *string) *v6_1.ScanScope {
+func toScanScope(value *string) *v5_x.ScanScope {
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	scope := v6_1.ScanScope(*value)
+	scope := v5_x.ScanScope(*value)
 
 	return &scope
 }
 
-func toBlackBoxFormat(value *string) *v6_1.BlackBoxFormat {
+func toBlackBoxFormat(value *string) *v5_x.BlackBoxFormat {
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	format := v6_1.BlackBoxFormat(*value)
+	format := v5_x.BlackBoxFormat(*value)
 
 	return &format
 }
 
-func toBlackBoxFormDetection(value *string) *v6_1.BlackBoxFormDetection {
+func toBlackBoxFormDetection(value *string) *v5_x.BlackBoxFormDetection {
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	detection := v6_1.BlackBoxFormDetection(*value)
+	detection := v5_x.BlackBoxFormDetection(*value)
 
 	return &detection
 }
 
-func toProxyType(value *string) *v6_1.ProxyType {
+func toProxyType(value *string) *v5_x.ProxyType {
 	if value == nil || *value == "" {
 		return nil
 	}
 
-	proxyType := v6_1.ProxyType(*value)
+	proxyType := v5_x.ProxyType(*value)
 
 	return &proxyType
 }

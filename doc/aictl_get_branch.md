@@ -1,16 +1,15 @@
-## aictl get scan-agents
+## aictl get branch
 
-Get scan agents
+Get branch
 
 ```
-aictl get scan-agents [flags]
+aictl get branch <branch-id> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help    help for scan-agents
-  -q, --quite   Get only ids
+  -h, --help   help for branch
 ```
 
 ### Options inherited from parent commands

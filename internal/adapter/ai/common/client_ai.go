@@ -36,6 +36,7 @@ type ClientAi interface {
 	GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
 	GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
+	GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error)
 	GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error)
 	GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error)
 	GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error)

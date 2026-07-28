@@ -7,27 +7,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type CmdGetScanAgents struct {
+type CmdGetAgents struct {
 	*cobra.Command
 }
 
-type UseCaseGetScanAgents interface {
+type UseCaseGetAgents interface {
 	Execute(ctx context.Context, quite bool) error
 }
 
-func NewGetScanAgentsCmd(uc UseCaseGetScanAgents) CmdGetScanAgents {
+func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
 	var quite bool
 
 	cmd := &cobra.Command{
-		Use:   "scan-agents",
-		Short: "Get scan agents",
+		Use:   "agents",
+		Short: "Get agents",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
 			if err := uc.Execute(ctx, quite); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("'get scan-agents' usecase call: %w", err)
+				return fmt.Errorf("'get agents' usecase call: %w", err)
 			}
 
 			return nil
@@ -36,5 +36,5 @@ func NewGetScanAgentsCmd(uc UseCaseGetScanAgents) CmdGetScanAgents {
 
 	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Get only ids")
 
-	return CmdGetScanAgents{cmd}
+	return CmdGetAgents{cmd}
 }

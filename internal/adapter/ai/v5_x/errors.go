@@ -1,11 +1,11 @@
-package v6_1
+package v5_x
 
 import (
 	"io"
 	"net/http"
 
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
-	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v5_x"
 )
 
 func CheckResponse(rsp *http.Response, resourceName string) error {
@@ -29,7 +29,7 @@ func CheckResponse(rsp *http.Response, resourceName string) error {
 	return checkResponseCommon(rsp.StatusCode, body, nil, resourceName)
 }
 
-func CheckResponseByModel(statusCode int, body string, model *v6_1.ApiErrorModel) error {
+func CheckResponseByModel(statusCode int, body string, model *v5_x.ApiErrorModel) error {
 	if model != nil && model.ErrorCode != nil && model.Details != nil {
 		var errorCode = string(*model.ErrorCode)
 
@@ -39,7 +39,7 @@ func CheckResponseByModel(statusCode int, body string, model *v6_1.ApiErrorModel
 	return checkResponseCommon(statusCode, body, nil, "")
 }
 
-func checkResponseCommon(statusCode int, body string, model *v6_1.ApiErrorModel, resourceName string) error {
+func checkResponseCommon(statusCode int, body string, model *v5_x.ApiErrorModel, resourceName string) error {
 	if statusCode < 400 {
 		return nil
 	}

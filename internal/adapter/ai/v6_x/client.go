@@ -1,4 +1,4 @@
-package v6_1
+package v6_x
 
 import (
 	"context"
@@ -27,33 +27,33 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
-	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 	"github.com/google/uuid"
 )
 
-type ClientAI6x struct {
-	*v6_1.ClientWithResponses
-	jwtClient *v6_1.ClientWithResponses
+type ClientAI61 struct {
+	*v6_x.ClientWithResponses
+	jwtClient *v6_x.ClientWithResponses
 
 	*common.BaseClient
 }
 
-func NewAiClient(base *common.BaseClient) *ClientAI6x {
-	return &ClientAI6x{
+func NewAiClient(base *common.BaseClient) *ClientAI61 {
+	return &ClientAI61{
 		BaseClient: base,
 	}
 }
 
-func (a *ClientAI6x) Initialize(ctx context.Context, cfg *config.Config) error {
-	client, err := v6_1.NewClientWithResponses(cfg.UriString(), v6_1.WithHTTPClient(a.HttpClient))
+func (a *ClientAI61) Initialize(ctx context.Context, cfg *config.Config) error {
+	client, err := v6_x.NewClientWithResponses(cfg.UriString(), v6_x.WithHTTPClient(a.HttpClient))
 	if err != nil {
 		return fmt.Errorf("new client: %w", err)
 	}
 	a.ClientWithResponses = client
 
-	a.jwtClient, err = v6_1.NewClientWithResponses(cfg.UriString(), v6_1.WithHTTPClient(a.JwtHttpClient))
+	a.jwtClient, err = v6_x.NewClientWithResponses(cfg.UriString(), v6_x.WithHTTPClient(a.JwtHttpClient))
 	if err != nil {
 		return fmt.Errorf("new jwt client: %w", err)
 	}
@@ -79,13 +79,13 @@ func (a *ClientAI6x) Initialize(ctx context.Context, cfg *config.Config) error {
 	return nil
 }
 
-func (a *ClientAI6x) AddJwtRetry() {
+func (a *ClientAI61) AddJwtRetry() {
 	a.HttpClient.Transport = common.NewRetryRoundTripper(a.HttpClient.Transport, http.StatusUnauthorized, a.refreshJWT)
 
 	a.WithRetry = true
 }
 
-func (a *ClientAI6x) getJWT(ctx context.Context, cfg *config.Config) error {
+func (a *ClientAI61) getJWT(ctx context.Context, cfg *config.Config) error {
 	if a.Initialized {
 		return nil
 	}
@@ -109,7 +109,7 @@ func (a *ClientAI6x) getJWT(ctx context.Context, cfg *config.Config) error {
 	return nil
 }
 
-func (a *ClientAI6x) refreshJWT(ctx context.Context, req *http.Request) error {
+func (a *ClientAI61) refreshJWT(ctx context.Context, req *http.Request) error {
 	if err := a.RefreshAccessToken(ctx); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (a *ClientAI6x) refreshJWT(ctx context.Context, req *http.Request) error {
 	return nil
 }
 
-func (a *ClientAI6x) RefreshAccessToken(ctx context.Context) error {
+func (a *ClientAI61) RefreshAccessToken(ctx context.Context) error {
 	return a.DoJWTRefresh(func() error {
 		log := logger.FromContext(ctx)
 
@@ -148,7 +148,7 @@ func (a *ClientAI6x) RefreshAccessToken(ctx context.Context) error {
 	})
 }
 
-func (a *ClientAI6x) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
+func (a *ClientAI61) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
 	res, err := a.GetApiProjectsDefaultSettingsWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return settings.ScanSettings{}, fmt.Errorf("get projects default settings request: %w", err)
@@ -237,26 +237,26 @@ func (a *ClientAI6x) GetDefaultSettings(ctx context.Context) (settings.ScanSetti
 	}, err
 }
 
-func (a *ClientAI6x) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error {
+func (a *ClientAI61) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error {
 	if settings == nil {
 		return nil
 	}
 
 	priority := priorityFromSettings(settings)
-	projectSettings := v6_1.PutApiProjectsProjectIdSettingsJSONRequestBody{
+	projectSettings := v6_x.PutApiProjectsProjectIdSettingsJSONRequestBody{
 		ProjectName: &settings.ProjectName,
 		Priority:    &priority,
-		Languages: func() *[]v6_1.LegacyProgrammingLanguageGroup {
+		Languages: func() *[]v6_x.LegacyProgrammingLanguageGroup {
 			if settings.Languages == nil {
 				return nil
 			}
-			res := make([]v6_1.LegacyProgrammingLanguageGroup, len(settings.Languages))
+			res := make([]v6_x.LegacyProgrammingLanguageGroup, len(settings.Languages))
 			for i := range settings.Languages {
-				res[i] = v6_1.LegacyProgrammingLanguageGroup(settings.Languages[i])
+				res[i] = v6_x.LegacyProgrammingLanguageGroup(settings.Languages[i])
 			}
 			return &res
 		}(),
-		WhiteBoxSettings: &v6_1.WhiteBoxSettingsModel{
+		WhiteBoxSettings: &v6_x.WhiteBoxSettingsModel{
 			StaticCodeAnalysisEnabled:            &settings.WhiteBoxSettings.StaticCodeAnalysisEnabled,
 			PatternMatchingEnabled:               &settings.WhiteBoxSettings.PatternMatchingEnabled,
 			SearchForVulnerableComponentsEnabled: &settings.WhiteBoxSettings.SearchForVulnerableComponentsEnabled,
@@ -265,54 +265,54 @@ func (a *ClientAI6x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 			SecretDetectionEnabled:               &settings.WhiteBoxSettings.SecretDetectionEnabled,
 			SearchForMaliciousCodeEnabled:        &settings.WhiteBoxSettings.SearchForMaliciousCodeEnabled,
 		},
-		DotNetSettings: &v6_1.DotNetSettingsModel{
-			ProjectType:                           common.Reference(v6_1.DotNetProjectType(settings.DotNetSettings.ProjectType)),
+		DotNetSettings: &v6_x.DotNetSettingsModel{
+			ProjectType:                           common.Reference(v6_x.DotNetProjectType(settings.DotNetSettings.ProjectType)),
 			SolutionFile:                          &settings.DotNetSettings.SolutionFile,
 			LaunchParameters:                      &settings.DotNetSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.DotNetSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.DotNetSettings.DownloadDependencies,
 		},
-		GoSettings: &v6_1.GoSettingsModel{
+		GoSettings: &v6_x.GoSettingsModel{
 			LaunchParameters:                      &settings.GoSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.GoSettings.UseAvailablePublicAndProtectedMethods,
 		},
-		JavaScriptSettings: &v6_1.JavaScriptSettingsModel{
+		JavaScriptSettings: &v6_x.JavaScriptSettingsModel{
 			LaunchParameters:                      &settings.JavaScriptSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.JavaScriptSettings.DownloadDependencies,
 			UseTaintAnalysis:                      &settings.JavaScriptSettings.UseTaintAnalysis,
 			UseJsaAnalysis:                        &settings.JavaScriptSettings.UseJsaAnalysis,
 		},
-		JavaSettings: &v6_1.JavaSettingsModel{
+		JavaSettings: &v6_x.JavaSettingsModel{
 			Parameters:                            &settings.JavaSettings.Parameters,
 			UnpackUserPackages:                    &settings.JavaSettings.UnpackUserPackages,
 			UserPackagePrefixes:                   &settings.JavaSettings.UserPackagePrefixes,
-			Version:                               common.Reference(v6_1.JavaVersions(settings.JavaSettings.Version)),
+			Version:                               common.Reference(v6_x.JavaVersions(settings.JavaSettings.Version)),
 			LaunchParameters:                      &settings.JavaSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.JavaSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.JavaSettings.DownloadDependencies,
 			DependenciesPath:                      &settings.JavaSettings.DependenciesPath,
 		},
-		PhpSettings: &v6_1.PhpSettingsModel{
+		PhpSettings: &v6_x.PhpSettingsModel{
 			LaunchParameters:                      &settings.PhpSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PhpSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.PhpSettings.DownloadDependencies,
 		},
-		PmTaintSettings: &v6_1.PmTaintBaseSettingsModel{
+		PmTaintSettings: &v6_x.PmTaintBaseSettingsModel{
 			LaunchParameters:                      &settings.PmTaintSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PmTaintSettings.UseAvailablePublicAndProtectedMethods,
 		},
-		PythonSettings: &v6_1.PythonSettingsModel{
+		PythonSettings: &v6_x.PythonSettingsModel{
 			LaunchParameters:                      &settings.PythonSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.PythonSettings.UseAvailablePublicAndProtectedMethods,
 			DownloadDependencies:                  &settings.PythonSettings.DownloadDependencies,
 			DependenciesPath:                      &settings.PythonSettings.DependenciesPath,
 		},
-		RubySettings: &v6_1.RubySettingsModel{
+		RubySettings: &v6_x.RubySettingsModel{
 			LaunchParameters:                      &settings.RubySettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.RubySettings.UseAvailablePublicAndProtectedMethods,
 		},
-		ScaSettings: &v6_1.ScaSettingsModel{
+		ScaSettings: &v6_x.ScaSettingsModel{
 			LaunchParameters:       &settings.ScaSettings.LaunchParameters,
 			BuildDependenciesGraph: &settings.ScaSettings.BuildDependenciesGraph,
 		},
@@ -343,7 +343,7 @@ func (a *ClientAI6x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 	return nil
 }
 
-func (a *ClientAI6x) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error) {
+func (a *ClientAI61) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions) (*uuid.UUID, error) {
 	useStubSources := scanTargetPath == ""
 	if useStubSources {
 		var err error
@@ -393,7 +393,7 @@ func (a *ClientAI6x) CreateBranch(ctx context.Context, projectId uuid.UUID, bran
 	return &branchId, nil
 }
 
-func (a *ClientAI6x) CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
+func (a *ClientAI61) CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
 	projectUrl := "http://localhost"
 
 	patternMatchingEnabled := true
@@ -403,12 +403,12 @@ func (a *ClientAI6x) CreateProject(ctx context.Context, projectName string) (*uu
 	staticCodeAnalysisEnabled := true
 	preferredAgentsOnly := false
 	preferredAgents := []uuid.UUID{}
-	priority := v6_1.PriorityLow
+	priority := v6_x.PriorityLow
 
-	projectBaseModel := v6_1.PostApiProjectsBaseJSONRequestBody{
+	projectBaseModel := v6_x.PostApiProjectsBaseJSONRequestBody{
 		Name:       &projectName,
 		ProjectUrl: &projectUrl,
-		WhiteBox: &v6_1.WhiteBoxSettingsModel{
+		WhiteBox: &v6_x.WhiteBoxSettingsModel{
 			PatternMatchingEnabled:               &patternMatchingEnabled,
 			SearchForConfigurationFlawsEnabled:   &searchForConfigurationFlawsEnabled,
 			SearchForVulnerableComponentsEnabled: &searchForVulnerableComponentsEnabled,
@@ -416,10 +416,10 @@ func (a *ClientAI6x) CreateProject(ctx context.Context, projectName string) (*uu
 			StaticCodeAnalysisEnabled:            &staticCodeAnalysisEnabled,
 		},
 		Id: &uuid.UUID{},
-		Languages: &[]v6_1.LegacyProgrammingLanguageGroup{
-			v6_1.LegacyProgrammingLanguageGroupGo,
+		Languages: &[]v6_x.LegacyProgrammingLanguageGroup{
+			v6_x.LegacyProgrammingLanguageGroupGo,
 		},
-		PreferredAgentsSettings: &v6_1.PreferredAgentsSettings{
+		PreferredAgentsSettings: &v6_x.PreferredAgentsSettings{
 			PreferredAgents:     &preferredAgents,
 			PreferredAgentsOnly: preferredAgentsOnly,
 		},
@@ -446,7 +446,7 @@ func (a *ClientAI6x) CreateProject(ctx context.Context, projectName string) (*uu
 	return &projectId, nil
 }
 
-func (a *ClientAI6x) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
+func (a *ClientAI61) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
 	response, err := a.DeleteApiProjectsProjectId(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter delete project request: %w", err)
@@ -459,7 +459,7 @@ func (a *ClientAI6x) DeleteProject(ctx context.Context, projectId uuid.UUID) err
 	return nil
 }
 
-func (a *ClientAI6x) ExistsProject(ctx context.Context, projectName string) (bool, error) {
+func (a *ClientAI61) ExistsProject(ctx context.Context, projectName string) (bool, error) {
 	response, err := a.GetApiProjectsNameExistsWithResponse(ctx, projectName, a.AddJWTToHeader)
 	if err != nil {
 		return false, fmt.Errorf("ai adapter get project name exists request: %w", err)
@@ -480,7 +480,7 @@ func (a *ClientAI6x) ExistsProject(ctx context.Context, projectName string) (boo
 	return boolValueTrue, nil
 }
 
-func (a *ClientAI6x) GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error) {
+func (a *ClientAI61) GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error) {
 	response, err := a.GetApiProjectsNameNameWithResponse(ctx, projectName, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get project name exists request: %w", err)
@@ -490,7 +490,7 @@ func (a *ClientAI6x) GetProjectId(ctx context.Context, projectName string) (*uui
 	body := string(response.Body)
 	errorModel := response.JSON400
 
-	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v6_1.ApiErrorTypePROJECTNOTFOUND {
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v6_x.ApiErrorTypePROJECTNOTFOUND {
 		return nil, nil
 	}
 
@@ -506,7 +506,7 @@ func (a *ClientAI6x) GetProjectId(ctx context.Context, projectName string) (*uui
 	return proj.Id, nil
 }
 
-func (a *ClientAI6x) GetProjects(ctx context.Context) ([]project.Project, error) {
+func (a *ClientAI61) GetProjects(ctx context.Context) ([]project.Project, error) {
 	log := logger.FromContext(ctx)
 
 	log.StdErrf("Send get projects request")
@@ -526,7 +526,7 @@ func (a *ClientAI6x) GetProjects(ctx context.Context) ([]project.Project, error)
 	projects := make([]project.Project, 0, len(models))
 
 	for _, model := range models {
-		if *model.ProjectType != v6_1.Permanent {
+		if *model.ProjectType != v6_x.Permanent {
 			continue
 		}
 
@@ -537,7 +537,7 @@ func (a *ClientAI6x) GetProjects(ctx context.Context) ([]project.Project, error)
 	return projects, nil
 }
 
-func (a *ClientAI6x) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
+func (a *ClientAI61) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
 	response, err := a.GetApiProjectsProjectIdWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get projects request: %w", err)
@@ -556,42 +556,42 @@ func (a *ClientAI6x) GetProject(ctx context.Context, projectId uuid.UUID) (*proj
 	return &p, nil
 }
 
-func (a *ClientAI6x) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
+func (a *ClientAI61) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
 	localeId := "ru-Ru"
-	params := v6_1.GetApiReportsTemplatesTypeParams{
+	params := v6_x.GetApiReportsTemplatesTypeParams{
 		LocaleId: &localeId,
 	}
 
-	var aiReportType v6_1.ReportType
+	var aiReportType v6_x.ReportType
 	switch reportType {
 	case report.AutoCheck:
-		aiReportType = v6_1.ReportTypeAutoCheck
+		aiReportType = v6_x.ReportTypeAutoCheck
 	case report.Custom:
-		aiReportType = v6_1.ReportTypeCustom
+		aiReportType = v6_x.ReportTypeCustom
 	case report.Gitlab:
-		aiReportType = v6_1.ReportTypeGitlab
+		aiReportType = v6_x.ReportTypeGitlab
 	case report.Json:
-		aiReportType = v6_1.ReportTypeJson
+		aiReportType = v6_x.ReportTypeJson
 	case report.JsonV2:
-		aiReportType = v6_1.ReportTypeJsonV2
+		aiReportType = v6_x.ReportTypeJsonV2
 	case report.Markdown:
-		aiReportType = v6_1.ReportTypeMd
+		aiReportType = v6_x.ReportTypeMd
 	case report.Nist:
-		aiReportType = v6_1.ReportTypeNist
+		aiReportType = v6_x.ReportTypeNist
 	case report.Oud4:
-		aiReportType = v6_1.ReportTypeOud4
+		aiReportType = v6_x.ReportTypeOud4
 	case report.Owasp:
-		aiReportType = v6_1.ReportTypeOwasp
+		aiReportType = v6_x.ReportTypeOwasp
 	case report.Owaspm:
-		aiReportType = v6_1.ReportTypeOwaspm
+		aiReportType = v6_x.ReportTypeOwaspm
 	case report.Pcidss:
-		aiReportType = v6_1.ReportTypePcidss
+		aiReportType = v6_x.ReportTypePcidss
 	case report.PlainReport:
-		aiReportType = v6_1.ReportTypePlainReport
+		aiReportType = v6_x.ReportTypePlainReport
 	case report.Sans:
-		aiReportType = v6_1.ReportTypeSans
+		aiReportType = v6_x.ReportTypeSans
 	case report.Sarif:
-		aiReportType = v6_1.ReportTypeSarif
+		aiReportType = v6_x.ReportTypeSarif
 	case report.Xml:
 		return uuid.UUID{}, fmt.Errorf("xml report is not supported on Application Inspector 6.x")
 	default:
@@ -629,9 +629,9 @@ func (a *ClientAI6x) GetDefaultTemplateId(ctx context.Context, reportType report
 	return *dest.Id, nil
 }
 
-func (a *ClientAI6x) GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error) {
+func (a *ClientAI61) GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error) {
 	localeId := "ru-RU"
-	params := v6_1.GetApiReportsUserTemplatesNameParams{
+	params := v6_x.GetApiReportsUserTemplatesNameParams{
 		LocaleId: &localeId,
 	}
 
@@ -666,13 +666,13 @@ func (a *ClientAI6x) GetCustomTemplateId(ctx context.Context, reportName string)
 	return *model.Id, nil
 }
 
-func (a *ClientAI6x) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
+func (a *ClientAI61) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
 	useFilters := false
 	sessionId := uuid.New()
 
-	model := v6_1.ReportGenerateModel{
+	model := v6_x.ReportGenerateModel{
 		LocaleId: &l10n,
-		Parameters: &v6_1.UserReportParametersModel{
+		Parameters: &v6_x.UserReportParametersModel{
 			IncludeComments:  &includeComments,
 			IncludeDFD:       &includeDFD,
 			IncludeGlossary:  &includeGlossary,
@@ -696,7 +696,7 @@ func (a *ClientAI6x) GetReport(ctx context.Context, projectId, scanResultId, tem
 	return response.Body, nil
 }
 
-func (a *ClientAI6x) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+func (a *ClientAI61) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
 	response, err := a.GetApiStoreProjectIdSbomsScanResultId(ctx, projectId, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get sbom: %w", err)
@@ -709,7 +709,7 @@ func (a *ClientAI6x) GetSbom(ctx context.Context, projectId, scanResultId uuid.U
 	return response.Body, nil
 }
 
-func (a *ClientAI6x) GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+func (a *ClientAI61) GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
 	response, err := a.GetApiStoreProjectIdLogsScanResultId(ctx, projectId, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan logs request: %w", err)
@@ -722,7 +722,7 @@ func (a *ClientAI6x) GetScanLogs(ctx context.Context, projectId, scanResultId uu
 	return response.Body, nil
 }
 
-func (a *ClientAI6x) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
+func (a *ClientAI61) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
 	getBranchesResponse, err := a.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
@@ -749,7 +749,35 @@ func (a *ClientAI6x) GetBranches(ctx context.Context, projectId uuid.UUID) ([]br
 	return branches, nil
 }
 
-func (a *ClientAI6x) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
+func (a *ClientAI61) GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error) {
+	response, err := a.GetApiBranchesBranchIdWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get branch: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.Name == nil || model.IsWorking == nil {
+		return nil, apperror.NewEmptyResponseError("branch")
+	}
+
+	description := ""
+	if model.Description != nil {
+		description = *model.Description
+	}
+
+	b := branch.NewBranch(*model.Id, *model.Name, description, *model.IsWorking)
+
+	return &b, nil
+}
+
+func (a *ClientAI61) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
 	response, err := a.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan results request: %w", err)
@@ -775,7 +803,7 @@ func (a *ClientAI6x) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.S
 	return scans, nil
 }
 
-func (a *ClientAI6x) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error) {
+func (a *ClientAI61) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error) {
 	response, err := a.GetApiBranchesBranchIdScanResultsLastWithResponse(ctx, branchId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get last scan result request: %w", err)
@@ -798,7 +826,7 @@ func (a *ClientAI6x) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan
 	return &scanResult, nil
 }
 
-func (a *ClientAI6x) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error) {
+func (a *ClientAI61) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error) {
 	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdWithResponse(ctx, projectId, scanId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan request: %w", err)
@@ -821,7 +849,7 @@ func (a *ClientAI6x) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (
 	return &scanResult, nil
 }
 
-func (a *ClientAI6x) GetProjectAiproj(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error) {
+func (a *ClientAI61) GetProjectAiproj(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error) {
 	response, err := a.GetApiProjectsProjectIdAiproj(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get project aiproj request: %w", err)
@@ -834,7 +862,7 @@ func (a *ClientAI6x) GetProjectAiproj(ctx context.Context, projectId uuid.UUID) 
 	return response.Body, nil
 }
 
-func (a *ClientAI6x) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error) {
+func (a *ClientAI61) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error) {
 	response, err := a.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiproj(ctx, projectId, scanSettingsId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get aiproj request: %w", err)
@@ -847,7 +875,7 @@ func (a *ClientAI6x) GetScanAiproj(ctx context.Context, projectId, scanSettingsI
 	return response.Body, nil
 }
 
-func scanProgressFromModel(model *v6_1.ScanProgressModel) (scanstage.ScanStage, bool) {
+func scanProgressFromModel(model *v6_x.ScanProgressModel) (scanstage.ScanStage, bool) {
 	if model == nil || model.Stage == nil {
 		return scanstage.ScanStage{}, false
 	}
@@ -865,7 +893,7 @@ func scanProgressFromModel(model *v6_1.ScanProgressModel) (scanstage.ScanStage, 
 	return stage, true
 }
 
-func (a *ClientAI6x) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
+func (a *ClientAI61) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
 	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdProgressWithResponse(ctx, projectId, scanId, a.AddJWTToHeader)
 	if err == nil {
 		statusCode := response.StatusCode()
@@ -901,7 +929,7 @@ func (a *ClientAI6x) GetScanStage(ctx context.Context, projectId, scanId uuid.UU
 	return scanstage.ScanStage{}, apperror.NewEmptyResponseError("scan progress")
 }
 
-func (a *ClientAI6x) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error) {
+func (a *ClientAI61) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error) {
 	if item, found, err := a.findScanQueueItem(ctx, id); err != nil {
 		return queue.Item{}, err
 	} else if found {
@@ -911,7 +939,7 @@ func (a *ClientAI6x) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item,
 	return a.getScanQueueItemByID(ctx, id)
 }
 
-func (a *ClientAI6x) getScanQueueItemByID(ctx context.Context, id uuid.UUID) (queue.Item, error) {
+func (a *ClientAI61) getScanQueueItemByID(ctx context.Context, id uuid.UUID) (queue.Item, error) {
 	response, err := a.GetItemWithResponse(ctx, id, a.AddJWTToHeader)
 	if err != nil {
 		return queue.Item{}, fmt.Errorf("ai adapter get scan queue item request: %w", err)
@@ -920,12 +948,12 @@ func (a *ClientAI6x) getScanQueueItemByID(ctx context.Context, id uuid.UUID) (qu
 	statusCode := response.StatusCode()
 	body := string(response.Body)
 	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
-		if apperror.IsApiErrorCode(err, string(v6_1.ApiErrorTypeEMPTYSCANRESULT)) {
+		if apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeEMPTYSCANRESULT)) {
 			time.Sleep(1 * time.Second)
 			return a.getScanQueueItemByID(ctx, id)
 		}
-		if apperror.IsApiErrorCode(err, string(v6_1.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
-			apperror.IsApiErrorCode(err, string(v6_1.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) {
+		if apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+			apperror.IsApiErrorCode(err, string(v6_x.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) {
 			return queue.Item{ScanId: id}, nil
 		}
 
@@ -944,7 +972,7 @@ func (a *ClientAI6x) getScanQueueItemByID(ctx context.Context, id uuid.UUID) (qu
 	}, nil
 }
 
-func (a *ClientAI6x) findScanQueueItem(ctx context.Context, id uuid.UUID) (queue.Item, bool, error) {
+func (a *ClientAI61) findScanQueueItem(ctx context.Context, id uuid.UUID) (queue.Item, bool, error) {
 	response, err := a.GetAllItemsWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return queue.Item{}, false, fmt.Errorf("ai adapter get scan queue items request: %w", err)
@@ -978,13 +1006,13 @@ func (a *ClientAI6x) findScanQueueItem(ctx context.Context, id uuid.UUID) (queue
 	return queue.Item{}, false, nil
 }
 
-func (a *ClientAI6x) createScanQueueItem(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+func (a *ClientAI61) createScanQueueItem(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
 	scope, err := toScope(scanType)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	params := v6_1.CreateQueueItem{
+	params := v6_x.CreateQueueItem{
 		BranchId:  branchId,
 		Scope:     scope,
 		ScanLabel: &scanLabel,
@@ -1008,7 +1036,7 @@ func (a *ClientAI6x) createScanQueueItem(ctx context.Context, branchId uuid.UUID
 	return *response.JSON200, nil
 }
 
-func (a *ClientAI6x) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+func (a *ClientAI61) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
 	taskId, err := a.createScanQueueItem(ctx, branchId, scanLabel, scanType)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("ai adapter start scan: %w", err)
@@ -1033,7 +1061,7 @@ func (a *ClientAI6x) StartScanBranch(ctx context.Context, branchId uuid.UUID, sc
 	return lastScan.Id, nil
 }
 
-func (a *ClientAI6x) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+func (a *ClientAI61) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
 	branches, err := a.GetBranches(ctx, projectId)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("get branches for project scan: %w", err)
@@ -1053,18 +1081,18 @@ func (a *ClientAI6x) StartScanProject(ctx context.Context, projectId uuid.UUID, 
 	return a.createScanQueueItem(ctx, branchId, scanLabel, scanType)
 }
 
-func toScope(scanType scantype.Type) (v6_1.Scope, error) {
+func toScope(scanType scantype.Type) (v6_x.Scope, error) {
 	switch scanType {
 	case scantype.Incremental:
-		return v6_1.ScopeIncremental, nil
+		return v6_x.ScopeIncremental, nil
 	case scantype.Full:
-		return v6_1.ScopeFull, nil
+		return v6_x.ScopeFull, nil
 	default:
 		return "", fmt.Errorf("invalid scan type: %d", scanType)
 	}
 }
 
-func (a *ClientAI6x) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
+func (a *ClientAI61) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 	response, err := a.StopScanWithResponse(ctx, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter stop scan request: %w", err)
@@ -1079,7 +1107,7 @@ func (a *ClientAI6x) StopScan(ctx context.Context, scanResultId uuid.UUID) error
 	return nil
 }
 
-func (a *ClientAI6x) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions) error {
+func (a *ClientAI61) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions) error {
 	log := logger.FromContext(ctx)
 
 	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions)
@@ -1105,7 +1133,7 @@ func (a *ClientAI6x) UpdateSources(ctx context.Context, projectId, branchId uuid
 	}()
 
 	archived := true
-	params := v6_1.PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
+	params := v6_x.PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
 
 	response, err := a.PostApiStoreProjectIdBranchesBranchIdSourcesWithBodyWithResponse(ctx, projectId, branchId, &params, contentType, body, a.AddJWTToHeader)
 	if err != nil {
@@ -1122,7 +1150,7 @@ func (a *ClientAI6x) UpdateSources(ctx context.Context, projectId, branchId uuid
 	return nil
 }
 
-func (a *ClientAI6x) GetVersion(ctx context.Context) (version.Version, error) {
+func (a *ClientAI61) GetVersion(ctx context.Context) (version.Version, error) {
 	response, err := a.GetApiVersionsPackageCurrentWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return version.Version{}, fmt.Errorf("ai get version request: %w", err)
@@ -1142,7 +1170,7 @@ func (a *ClientAI6x) GetVersion(ctx context.Context) (version.Version, error) {
 	return v, nil
 }
 
-func (a *ClientAI6x) GetHealthcheck(ctx context.Context) (bool, error) {
+func (a *ClientAI61) GetHealthcheck(ctx context.Context) (bool, error) {
 	response, err := a.GetHealthSummaryWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return false, fmt.Errorf("ai get version request: %w", err)
@@ -1162,7 +1190,7 @@ func (a *ClientAI6x) GetHealthcheck(ctx context.Context) (bool, error) {
 	return health, nil
 }
 
-func (a *ClientAI6x) CheckLicense(ctx context.Context) error {
+func (a *ClientAI61) CheckLicense(ctx context.Context) error {
 	response, err := a.GetApiLicenseWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai check license request: %w", err)
@@ -1181,7 +1209,7 @@ func (a *ClientAI6x) CheckLicense(ctx context.Context) error {
 	return nil
 }
 
-func (a *ClientAI6x) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {
+func (a *ClientAI61) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {
 	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdStatisticWithResponse(ctx, projectId, scanResultId, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai get scan statistic request: %w", err)

@@ -749,6 +749,34 @@ func (a *ClientAI60) GetBranches(ctx context.Context, projectId uuid.UUID) ([]br
 	return branches, nil
 }
 
+func (a *ClientAI60) GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error) {
+	response, err := a.GetApiBranchesBranchIdWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get branch: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.Name == nil || model.IsWorking == nil {
+		return nil, apperror.NewEmptyResponseError("branch")
+	}
+
+	description := ""
+	if model.Description != nil {
+		description = *model.Description
+	}
+
+	b := branch.NewBranch(*model.Id, *model.Name, description, *model.IsWorking)
+
+	return &b, nil
+}
+
 func (a *ClientAI60) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
 	response, err := a.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.AddJWTToHeader)
 	if err != nil {

@@ -1,4 +1,4 @@
-package v6_1
+package v6_x
 
 import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"

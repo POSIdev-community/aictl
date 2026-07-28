@@ -122,6 +122,10 @@ func (a *Adapter) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branc
 	return a.activeClient.GetBranches(ctx, projectId)
 }
 
+func (a *Adapter) GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error) {
+	return a.activeClient.GetBranch(ctx, branchId)
+}
+
 func (a *Adapter) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
 	return a.activeClient.GetScans(ctx, branchId)
 }

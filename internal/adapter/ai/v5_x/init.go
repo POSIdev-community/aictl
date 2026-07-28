@@ -1,4 +1,4 @@
-package v5_4
+package v5_x
 
 import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	minVersion, _ = version.NewVersion("5.4.0")
+	minVersion, _ = version.NewVersion("5.0.0")
 	maxVersion, _ = version.NewVersion("6.0.0")
 )
 

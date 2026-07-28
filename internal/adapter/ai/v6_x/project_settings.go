@@ -1,4 +1,4 @@
-package v6_1
+package v6_x
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
-	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-func (a *ClientAI6x) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error) {
+func (a *ClientAI61) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error) {
 	res, err := a.GetApiProjectsProjectIdSettingsWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return settings.ScanSettings{}, fmt.Errorf("get project settings request: %w", err)
@@ -48,7 +48,7 @@ func (a *ClientAI6x) GetProjectSettings(ctx context.Context, projectId uuid.UUID
 	return result, nil
 }
 
-func (a *ClientAI6x) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
+func (a *ClientAI61) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
 	response, err := a.GetAllWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan agents request: %w", err)
@@ -73,14 +73,14 @@ func (a *ClientAI6x) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, 
 	return agents, nil
 }
 
-func (a *ClientAI6x) putPreferredAgentsSettings(ctx context.Context, projectId uuid.UUID, s *settings.ScanSettings) error {
+func (a *ClientAI61) putPreferredAgentsSettings(ctx context.Context, projectId uuid.UUID, s *settings.ScanSettings) error {
 	preferredAgents := make([]openapi_types.UUID, len(s.PreferredAgentsSettings.PreferredAgents))
 	for i, id := range s.PreferredAgentsSettings.PreferredAgents {
 		preferredAgents[i] = openapi_types.UUID(id)
 	}
 
 	preferredOnly := s.PreferredAgentsSettings.PreferredAgentsOnly
-	body := v6_1.PreferredAgentsSettingsModel{
+	body := v6_x.PreferredAgentsSettingsModel{
 		PreferredAgents:     &preferredAgents,
 		PreferredAgentsOnly: &preferredOnly,
 	}
@@ -99,15 +99,15 @@ func (a *ClientAI6x) putPreferredAgentsSettings(ctx context.Context, projectId u
 	return nil
 }
 
-func priorityFromSettings(s *settings.ScanSettings) v6_1.Priority {
+func priorityFromSettings(s *settings.ScanSettings) v6_x.Priority {
 	if s.Priority == "" {
-		return v6_1.PriorityLow
+		return v6_x.PriorityLow
 	}
 
-	return v6_1.Priority(s.Priority)
+	return v6_x.Priority(s.Priority)
 }
 
-func mapPreferredAgentsFromModel(model v6_1.PreferredAgentsSettingsModel) settings.PreferredAgentsSettings {
+func mapPreferredAgentsFromModel(model v6_x.PreferredAgentsSettingsModel) settings.PreferredAgentsSettings {
 	result := settings.PreferredAgentsSettings{
 		PreferredAgentsOnly: common.GetOrDefault(model.PreferredAgentsOnly, false),
 	}
@@ -123,7 +123,7 @@ func mapPreferredAgentsFromModel(model v6_1.PreferredAgentsSettingsModel) settin
 	return result
 }
 
-func mapAgentToScanAgent(model v6_1.Agent) scanagent.ScanAgent {
+func mapAgentToScanAgent(model v6_x.Agent) scanagent.ScanAgent {
 	status := string(model.Status)
 	if model.Disabled {
 		status += " (disabled)"
@@ -143,7 +143,7 @@ func mapAgentToScanAgent(model v6_1.Agent) scanagent.ScanAgent {
 	}
 }
 
-func mapProjectSettingsFromModel(model v6_1.ProjectSettingsModel) settings.ScanSettings {
+func mapProjectSettingsFromModel(model v6_x.ProjectSettingsModel) settings.ScanSettings {
 	result := settings.ScanSettings{
 		ProjectName: common.GetOrDefault(model.ProjectName, ""),
 		Languages: func() []string {

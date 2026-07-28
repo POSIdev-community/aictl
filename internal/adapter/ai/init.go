@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_4"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_x"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_0"
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_1"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_x"
 )
 
 var clientInitializers = []common.Initializer{
-	v6_1.Initializer,
+	v6_x.Initializer,
 	v6_0.Initializer,
-	v5_4.Initializer,
+	v5_x.Initializer,
 }
 
 func (a *Adapter) Initialize(ctx context.Context) error {
@@ -33,7 +33,9 @@ func (a *Adapter) Initialize(ctx context.Context) error {
 		a.serverVersion = state.Version
 		a.activeClient = client
 
-		return a.activeClient.CheckLicense(ctx)
+		//return a.activeClient.CheckLicense(ctx)
+
+		return nil
 	}
 
 	return fmt.Errorf("initialize ai client: no compatible client found")

@@ -1,6 +1,7 @@
 package di
 
 import (
+	getBranch "github.com/POSIdev-community/aictl/internal/core/usecase/get/branch"
 	getBranches "github.com/POSIdev-community/aictl/internal/core/usecase/get/branches"
 	getHealthchech "github.com/POSIdev-community/aictl/internal/core/usecase/get/healthcheck"
 	projectAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/aiproj"
@@ -44,6 +45,11 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 	}
 	cmdBranches := get.NewGetBranchesCmd(a.cfg, branchesUC)
 
+	cmdBranch, err := buildGetBranchCmd(a)
+	if err != nil {
+		return nil, err
+	}
+
 	scansUC, err := getScans.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return nil, err
@@ -65,11 +71,23 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmdScanAgents := get.NewGetScanAgentsCmd(scanAgentsUC)
+	cmdAgents := get.NewGetAgentsCmd(scanAgentsUC)
 
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 
-	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdScans, cmdScan, cmdScanAgents, cmdVersion), nil
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdBranch, cmdScans, cmdScan, cmdAgents, cmdVersion), nil
+}
+
+func buildGetBranchCmd(a *adapters) (get.CmdGetBranch, error) {
+	branchUC, err := getBranch.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return get.CmdGetBranch{}, err
+	}
+
+	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
+	persistentPreRunEGetBranchCmd := get.NewPersistentPreRunEGetBranchCmd(persistentPreRunEGetCmd)
+
+	return get.NewGetBranchCmd(persistentPreRunEGetBranchCmd, branchUC), nil
 }
 
 func buildGetProjectCmd(a *adapters) (get.CmdGetProject, error) {

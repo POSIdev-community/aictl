@@ -22,9 +22,10 @@ func NewGetCmd(
 	cmdGetProjects CmdGetProjects,
 	cmdGetProject CmdGetProject,
 	cmdGetBranches CmdGetBranches,
+	cmdGetBranch CmdGetBranch,
 	cmdGetScans CmdGetScans,
 	cmdGetScan CmdGetScan,
-	cmdGetScanAgents CmdGetScanAgents,
+	cmdGetAgents CmdGetAgents,
 	cmdGetVersion CmdGetVersion) *CmdGet {
 
 	cmd := &cobra.Command{
@@ -37,9 +38,10 @@ func NewGetCmd(
 	cmd.AddCommand(cmdGetProjects.Command)
 	cmd.AddCommand(cmdGetProject.Command)
 	cmd.AddCommand(cmdGetBranches.Command)
+	cmd.AddCommand(cmdGetBranch.Command)
 	cmd.AddCommand(cmdGetScans.Command)
 	cmd.AddCommand(cmdGetScan.Command)
-	cmd.AddCommand(cmdGetScanAgents.Command)
+	cmd.AddCommand(cmdGetAgents.Command)
 	cmd.AddCommand(cmdGetVersion.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
