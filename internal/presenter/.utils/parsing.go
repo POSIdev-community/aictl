@@ -2,6 +2,7 @@ package _utils
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"strings"
 
@@ -25,11 +26,15 @@ func ParseUUIDs(args []string) ([]uuid.UUID, error) {
 }
 
 func ReadArgsFromStdin(args []string) []string {
+	return ReadArgsFromReader(args, os.Stdin)
+}
+
+func ReadArgsFromReader(args []string, r io.Reader) []string {
 	if len(args) != 1 || args[0] != "-" {
 		return args
 	}
 
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(r)
 	var inputLines []string
 
 	for scanner.Scan() {

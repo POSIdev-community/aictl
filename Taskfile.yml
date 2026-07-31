@@ -201,7 +201,7 @@ tasks:
     desc: Run unit tests with race detector
     cmds:
       - echo "⇒ Running tests..."
-      - go test -race ./...
+      - go test -race ./... ./internal/presenter/.utils
       - echo "⇒ Tests ✅"
 
   build-e2e:

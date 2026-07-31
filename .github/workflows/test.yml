@@ -36,7 +36,7 @@ jobs:
             -ldflags="-X 'github.com/POSIdev-community/aictl/pkg/version.version=${VERSION}'" \
             -coverprofile=coverage.out \
             -covermode=atomic \
-            ./...
+            ./... ./internal/presenter/.utils
 
       - name: Show coverage summary
         run: go tool cover -func=coverage.out | grep '^total:'

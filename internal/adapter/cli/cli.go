@@ -19,10 +19,15 @@ import (
 )
 
 type Adapter struct {
+	stdin  io.Reader
+	stdout io.Writer
 }
 
 func NewAdapter() *Adapter {
-	return &Adapter{}
+	return &Adapter{
+		stdin:  os.Stdin,
+		stdout: os.Stdout,
+	}
 }
 
 func (cli *Adapter) AskConfirmation(ctx context.Context, question string) (bool, error) {
@@ -30,7 +35,7 @@ func (cli *Adapter) AskConfirmation(ctx context.Context, question string) (bool,
 	log.StdOutf("%s [y/n]: ", question)
 
 	var answer string
-	_, err := fmt.Scan(&answer)
+	_, err := fmt.Fscan(cli.stdin, &answer)
 	if err != nil {
 		return false, err
 	}
@@ -103,7 +108,7 @@ func (cli *Adapter) ReturnTextf(ctx context.Context, format string, a ...any) {
 
 // ShowReader copy provided reader to stdout.
 func (cli *Adapter) ShowReader(r io.Reader) error {
-	if _, err := io.Copy(os.Stdout, r); err != nil {
+	if _, err := io.Copy(cli.stdout, r); err != nil {
 		return fmt.Errorf("write to stdout: %w", err)
 	}
 
