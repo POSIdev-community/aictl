@@ -16,9 +16,10 @@ type run struct {
 	*UseCase
 	scanId           uuid.UUID
 	failOnScanFailed bool
+	notFoundCount    int
 }
 
-func (r *run) waitUntilDone(ctx context.Context, updates <-chan scanstage.ScanStage) error {
+func (r *run) waitUntilDone(ctx context.Context, updates <-chan scanstage.ScanStage, watchErrs <-chan error) error {
 	timer := time.NewTimer(r.pollInterval)
 	defer timer.Stop()
 
@@ -26,6 +27,19 @@ func (r *run) waitUntilDone(ctx context.Context, updates <-chan scanstage.ScanSt
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+		case err, ok := <-watchErrs:
+			if !ok {
+				watchErrs = nil
+
+				continue
+			}
+			if err == nil {
+				continue
+			}
+			if isImmediateTerminalAwaitErr(err) {
+				return err
+			}
+			r.cliAdapter.ShowTextf(ctx, "notification watch error: %v", err.Error())
 		case stage, ok := <-updates:
 			if !ok {
 				updates = nil
@@ -60,8 +74,8 @@ func (r *run) waitUntilDone(ctx context.Context, updates <-chan scanstage.ScanSt
 func (r *run) onPollTick(ctx context.Context, timer *time.Timer, showDots bool) (bool, error) {
 	done, err := r.checkStage(ctx)
 	if err != nil {
-		if isTerminalAwaitErr(err) {
-			return false, err
+		if fatal, fatalErr := r.classifyPollError(err); fatal {
+			return false, fatalErr
 		}
 		r.cliAdapter.ShowTextf(ctx, "error getting scan stage: %v", err.Error())
 		if showDots {
@@ -71,10 +85,27 @@ func (r *run) onPollTick(ctx context.Context, timer *time.Timer, showDots bool) 
 
 		return false, nil
 	}
+	r.notFoundCount = 0
 	if done {
 		return true, nil
 	}
 	timer.Reset(r.pollInterval)
+
+	return false, nil
+}
+
+// classifyPollError decides whether a poll error should stop await.
+// NotFound is retried up to notFoundMaxRetries (scan may not be visible yet after start).
+func (r *run) classifyPollError(err error) (fatal bool, fatalErr error) {
+	if isImmediateTerminalAwaitErr(err) {
+		return true, err
+	}
+	if isNotFoundErr(err) {
+		r.notFoundCount++
+		if r.notFoundCount > r.notFoundMaxRetries {
+			return true, err
+		}
+	}
 
 	return false, nil
 }

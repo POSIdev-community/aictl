@@ -2,12 +2,14 @@ package ai
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common/notify"
+	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
@@ -27,31 +29,41 @@ const (
 // WatchScanStage subscribes to PT AI notification hub and forwards progress updates
 // for the given scan result. The subscription reconnects with exponential backoff on
 // transient failures. On NeedRefreshToken (or 401) the JWT is refreshed and the
-// websocket is reopened with the new access token. The returned channel is closed
-// only when ctx is done.
-func (a *Adapter) WatchScanStage(ctx context.Context, scanID uuid.UUID) (<-chan scanstage.ScanStage, error) {
-	if a.baseClient == nil || a.baseClient.AccessToken == "" {
-		return nil, fmt.Errorf("watch scan stage: adapter is not initialized")
+// websocket is reopened with the new access token.
+//
+// Fatal authentication failures are sent once on errc before both channels are closed.
+// errc is closed when the watch loop exits for any reason.
+func (a *Adapter) WatchScanStage(ctx context.Context, scanID uuid.UUID) (<-chan scanstage.ScanStage, <-chan error, error) {
+	if a.baseClient == nil || a.baseClient.GetAccessToken() == "" {
+		return nil, nil, fmt.Errorf("watch scan stage: adapter is not initialized")
 	}
 
 	client, err := notify.NewClient(notify.Options{
 		BaseURL:     a.cfg.UriString(),
-		AccessToken: a.baseClient.AccessToken,
+		AccessToken: a.baseClient.GetAccessToken(),
 		HTTPClient:  a.baseClient.JwtHttpClient,
 		TLSSkip:     a.cfg.TLSSkip(),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("create notify client: %w", err)
+		return nil, nil, fmt.Errorf("create notify client: %w", err)
 	}
 
 	out := make(chan scanstage.ScanStage, 8)
-	go a.watchScanLoop(ctx, client, scanID, out)
+	errc := make(chan error, 1)
+	go a.watchScanLoop(ctx, client, scanID, out, errc)
 
-	return out, nil
+	return out, errc, nil
 }
 
-func (a *Adapter) watchScanLoop(ctx context.Context, client *notify.Client, scanID uuid.UUID, out chan<- scanstage.ScanStage) {
+func (a *Adapter) watchScanLoop(
+	ctx context.Context,
+	client *notify.Client,
+	scanID uuid.UUID,
+	out chan<- scanstage.ScanStage,
+	errc chan<- error,
+) {
 	defer close(out)
+	defer close(errc)
 
 	log := logger.FromContext(ctx)
 	backoff := notify.ReconnectMinDelay
@@ -61,10 +73,10 @@ func (a *Adapter) watchScanLoop(ctx context.Context, client *notify.Client, scan
 			return
 		}
 
-		client.SetAccessToken(a.baseClient.AccessToken)
+		client.SetAccessToken(a.baseClient.GetAccessToken())
 
 		subCtx, cancel := context.WithCancel(ctx)
-		messages, errc, err := client.Subscribe(subCtx)
+		messages, subErrc, err := client.Subscribe(subCtx)
 		if err != nil {
 			cancel()
 			if ctx.Err() != nil {
@@ -75,6 +87,11 @@ func (a *Adapter) watchScanLoop(ctx context.Context, client *notify.Client, scan
 				log.Debugf("notification auth failed, refreshing access token: %v", err)
 				if refreshErr := a.refreshAccessToken(ctx); refreshErr != nil {
 					log.Debugf("refresh access token failed: %v", refreshErr)
+					if isAuthenticationError(refreshErr) {
+						errc <- refreshErr
+
+						return
+					}
 				} else {
 					backoff = notify.ReconnectMinDelay
 					continue
@@ -92,7 +109,7 @@ func (a *Adapter) watchScanLoop(ctx context.Context, client *notify.Client, scan
 
 		connectedAt := time.Now()
 
-		reason := a.consumeSubscription(ctx, cancel, messages, errc, scanID, out)
+		reason := a.consumeSubscription(ctx, cancel, messages, subErrc, scanID, out)
 		cancel()
 		drainMessages(messages)
 
@@ -104,6 +121,11 @@ func (a *Adapter) watchScanLoop(ctx context.Context, client *notify.Client, scan
 			log.Debugf("NeedRefreshToken received, refreshing access token")
 			if err := a.refreshAccessToken(ctx); err != nil {
 				log.Debugf("refresh access token after NeedRefreshToken: %v", err)
+				if isAuthenticationError(err) {
+					errc <- err
+
+					return
+				}
 			}
 			backoff = notify.ReconnectMinDelay
 
@@ -184,6 +206,12 @@ func (a *Adapter) refreshAccessToken(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func isAuthenticationError(err error) bool {
+	var authErr *apperror.AuthenticationError
+
+	return errors.As(err, &authErr)
 }
 
 func drainMessages(messages <-chan notify.Message) {

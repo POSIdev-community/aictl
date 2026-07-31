@@ -70,7 +70,8 @@ func (a *ClientAI5x) Initialize(ctx context.Context, cfg *config.Config) error {
 	a.HttpClient.Transport = transport.Clone()
 	a.JwtHttpClient.Transport = transport.Clone()
 
-	if err := a.getJWT(ctx, cfg); err != nil {
+	a.SetAPIToken(cfg.Token())
+	if err := a.getJWT(ctx); err != nil {
 		return fmt.Errorf("update jwt: %w", err)
 	}
 
@@ -85,13 +86,17 @@ func (a *ClientAI5x) AddJwtRetry() {
 	a.WithRetry = true
 }
 
-func (a *ClientAI5x) getJWT(ctx context.Context, cfg *config.Config) error {
+func (a *ClientAI5x) getJWT(ctx context.Context) error {
 	if a.Initialized {
 		return nil
 	}
 
+	return a.signin(ctx)
+}
+
+func (a *ClientAI5x) signin(ctx context.Context) error {
 	response, err := a.jwtClient.GetApiAuthSigninWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
-		req.Header.Add("Access-Token", cfg.Token())
+		req.Header.Add("Access-Token", a.GetAPIToken())
 
 		return nil
 	})
@@ -103,8 +108,7 @@ func (a *ClientAI5x) getJWT(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 
-	a.AccessToken = *response.JSON200.AccessToken
-	a.RefreshToken = *response.JSON200.RefreshToken
+	a.SetAuthTokens(*response.JSON200.AccessToken, *response.JSON200.RefreshToken)
 
 	return nil
 }
@@ -114,38 +118,42 @@ func (a *ClientAI5x) refreshJWT(ctx context.Context, req *http.Request) error {
 		return err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+a.AccessToken)
+	req.Header.Set("Authorization", "Bearer "+a.GetAccessToken())
 
 	return nil
 }
 
 func (a *ClientAI5x) RefreshAccessToken(ctx context.Context) error {
 	return a.DoJWTRefresh(func() error {
-		log := logger.FromContext(ctx)
+		return common.RefreshOrReauth(ctx, a.doRefresh, a.signin)
+	})
+}
 
-		response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
-			req.Header.Set("Authorization", "Bearer "+a.RefreshToken)
+func (a *ClientAI5x) doRefresh(ctx context.Context) error {
+	log := logger.FromContext(ctx)
 
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("get api auth refresh token: %w", err)
-		}
-
-		if err = CheckResponse(response.HTTPResponse, "jwt refresh"); err != nil {
-			return err
-		}
-
-		if response.JSON200 == nil || response.JSON200.AccessToken == nil {
-			log.StdErrf("Got empty access token")
-
-			return fmt.Errorf("no access token")
-		}
-
-		a.AccessToken = *response.JSON200.AccessToken
+	response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
+		req.Header.Set("Authorization", "Bearer "+a.GetRefreshToken())
 
 		return nil
 	})
+	if err != nil {
+		return fmt.Errorf("get api auth refresh token: %w", err)
+	}
+
+	if err = CheckResponse(response.HTTPResponse, "jwt refresh"); err != nil {
+		return err
+	}
+
+	if response.JSON200 == nil || response.JSON200.AccessToken == nil {
+		log.StdErrf("Got empty access token")
+
+		return fmt.Errorf("no access token")
+	}
+
+	a.SetAccessToken(*response.JSON200.AccessToken)
+
+	return nil
 }
 
 func (a *ClientAI5x) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {

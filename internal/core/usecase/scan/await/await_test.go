@@ -46,7 +46,7 @@ func TestUseCase_Execute_SilenceFallbackDone(t *testing.T) {
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: "Scanning", Value: 10}, nil,
 	).Once()
-	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), nil).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: scanstage.Done}, nil,
 	).Once()
@@ -76,7 +76,7 @@ func TestUseCase_Execute_SilenceFallbackStillRunningThenDone(t *testing.T) {
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: "Scanning", Value: 10}, nil,
 	).Once()
-	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), nil).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: "Scanning", Value: 50}, nil,
 	).Once()
@@ -110,7 +110,7 @@ func TestUseCase_Execute_NotificationCompletesBeforeSilence(t *testing.T) {
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: "Scanning", Value: 10}, nil,
 	).Once()
-	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), nil).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
 
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
@@ -137,7 +137,7 @@ func TestUseCase_Execute_SilenceFallbackErrorThenDone(t *testing.T) {
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{Stage: "Scanning", Value: 10}, nil,
 	).Once()
-	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), nil).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
 	ai.On("GetScanStage", ctx, projectID, scanID).Return(
 		scanstage.ScanStage{}, errors.New("temporary"),
 	).Once()
@@ -148,6 +148,37 @@ func TestUseCase_Execute_SilenceFallbackErrorThenDone(t *testing.T) {
 	cli := NewMockCLI(t)
 	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+	require.NoError(t, uc.Execute(ctx, scanID, false))
+}
+
+func TestUseCase_Execute_StartTransientThenDone(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	updates := make(chan scanstage.ScanStage)
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{}, errors.New("temporary at start"),
+	).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
+	).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowText", mock.Anything, mock.Anything).Return().Maybe()
 	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
 
 	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
@@ -206,6 +237,158 @@ func TestUseCase_Execute_FailOnScanFailed(t *testing.T) {
 
 	var failErr *apperror.FailError
 	require.ErrorAs(t, err, &failErr)
+}
+
+func TestUseCase_Execute_AuthenticationErrorIsTerminal(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{}, apperror.NewAuthenticationError(),
+	).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+
+	err = uc.Execute(ctx, scanID, false)
+	require.Error(t, err)
+
+	var authErr *apperror.AuthenticationError
+	require.ErrorAs(t, err, &authErr)
+}
+
+func TestUseCase_Execute_AuthorizationErrorIsTerminal(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{}, apperror.NewAuthorizationError(),
+	).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+
+	err = uc.Execute(ctx, scanID, false)
+	require.Error(t, err)
+
+	var authzErr *apperror.AuthorizationError
+	require.ErrorAs(t, err, &authzErr)
+}
+
+func TestUseCase_Execute_NotFoundRetriesThenSucceeds(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	updates := make(chan scanstage.ScanStage)
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{}, apperror.NewNotFoundError("scan"),
+	).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{}, apperror.NewNotFoundError("scan"),
+	).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{Stage: scanstage.Done}, nil,
+	).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowText", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ReturnText", ctx, scanstage.Done).Return().Once()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+	require.NoError(t, uc.Execute(ctx, scanID, false))
+}
+
+func TestUseCase_Execute_NotFoundExhaustsRetries(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	updates := make(chan scanstage.ScanStage)
+	notFound := apperror.NewNotFoundError("scan")
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(scanstage.ScanStage{}, notFound)
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(nil), nil).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowTextf", mock.Anything, mock.Anything).Return().Maybe()
+	cli.On("ShowText", mock.Anything, mock.Anything).Return().Maybe()
+
+	uc, err := NewUseCase(ai, cli, cfg, testPollInterval)
+	require.NoError(t, err)
+	uc.notFoundMaxRetries = 2
+
+	err = uc.Execute(ctx, scanID, false)
+	require.Error(t, err)
+
+	var nf *apperror.NotFoundError
+	require.ErrorAs(t, err, &nf)
+}
+
+func TestUseCase_Execute_WatchAuthErrorIsTerminal(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+	projectID := uuid.New()
+	scanID := uuid.New()
+	cfg := config.NewConfig(config.Uri{}, "", true, projectID, uuid.New())
+
+	updates := make(chan scanstage.ScanStage)
+	watchErrs := make(chan error, 1)
+	watchErrs <- apperror.NewAuthenticationError()
+
+	ai := NewMockAI(t)
+	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
+	ai.On("GetScanStage", ctx, projectID, scanID).Return(
+		scanstage.ScanStage{Stage: "Scanning", Value: 10}, nil,
+	).Once()
+	ai.On("WatchScanStage", ctx, scanID).Return((<-chan scanstage.ScanStage)(updates), (<-chan error)(watchErrs), nil).Once()
+
+	cli := NewMockCLI(t)
+	cli.On("ShowTextf", mock.Anything, mock.Anything, mock.Anything).Return().Maybe()
+
+	uc, err := NewUseCase(ai, cli, cfg, time.Hour)
+	require.NoError(t, err)
+
+	err = uc.Execute(ctx, scanID, false)
+	require.Error(t, err)
+
+	var authErr *apperror.AuthenticationError
+	require.ErrorAs(t, err, &authErr)
 }
 
 func TestNewUseCase_InvalidPollInterval(t *testing.T) {

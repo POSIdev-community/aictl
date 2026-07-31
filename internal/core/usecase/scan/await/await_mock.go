@@ -230,7 +230,7 @@ func (_c *MockAI_InitializeWithRetry_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // WatchScanStage provides a mock function for the type MockAI
-func (_mock *MockAI) WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, error) {
+func (_mock *MockAI) WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, <-chan error, error) {
 	ret := _mock.Called(ctx, scanId)
 
 	if len(ret) == 0 {
@@ -238,8 +238,9 @@ func (_mock *MockAI) WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-ch
 	}
 
 	var r0 <-chan scanstage.ScanStage
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (<-chan scanstage.ScanStage, error)); ok {
+	var r1 <-chan error
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (<-chan scanstage.ScanStage, <-chan error, error)); ok {
 		return returnFunc(ctx, scanId)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) <-chan scanstage.ScanStage); ok {
@@ -249,12 +250,19 @@ func (_mock *MockAI) WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-ch
 			r0 = ret.Get(0).(<-chan scanstage.ScanStage)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) <-chan error); ok {
 		r1 = returnFunc(ctx, scanId)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(<-chan error)
+		}
 	}
-	return r0, r1
+	if returnFunc, ok := ret.Get(2).(func(context.Context, uuid.UUID) error); ok {
+		r2 = returnFunc(ctx, scanId)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
 }
 
 // MockAI_WatchScanStage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WatchScanStage'
@@ -287,12 +295,12 @@ func (_c *MockAI_WatchScanStage_Call) Run(run func(ctx context.Context, scanId u
 	return _c
 }
 
-func (_c *MockAI_WatchScanStage_Call) Return(scanStageCh <-chan scanstage.ScanStage, err error) *MockAI_WatchScanStage_Call {
-	_c.Call.Return(scanStageCh, err)
+func (_c *MockAI_WatchScanStage_Call) Return(scanStageCh <-chan scanstage.ScanStage, errCh <-chan error, err error) *MockAI_WatchScanStage_Call {
+	_c.Call.Return(scanStageCh, errCh, err)
 	return _c
 }
 
-func (_c *MockAI_WatchScanStage_Call) RunAndReturn(run func(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, error)) *MockAI_WatchScanStage_Call {
+func (_c *MockAI_WatchScanStage_Call) RunAndReturn(run func(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, <-chan error, error)) *MockAI_WatchScanStage_Call {
 	_c.Call.Return(run)
 	return _c
 }

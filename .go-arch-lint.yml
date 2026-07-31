@@ -97,3 +97,7 @@ deps:
   tests:
     mayDependOn:
       - tests
+      - adapter
+      - apperror
+      - domain
+      - pkg_lib

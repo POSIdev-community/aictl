@@ -16,14 +16,15 @@ import (
 )
 
 const (
-	DefaultPollInterval = 10 * time.Second
+	DefaultPollInterval    = 10 * time.Second
+	DefaultNotFoundRetries = 5
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetScanStage(ctx context.Context, projectId uuid.UUID, scanId uuid.UUID) (scanstage.ScanStage, error)
 	GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error)
-	WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, error)
+	WatchScanStage(ctx context.Context, scanId uuid.UUID) (<-chan scanstage.ScanStage, <-chan error, error)
 }
 
 type CLI interface {
@@ -33,10 +34,11 @@ type CLI interface {
 }
 
 type UseCase struct {
-	aiAdapter    AI
-	cliAdapter   CLI
-	cfg          *config.Config
-	pollInterval time.Duration
+	aiAdapter          AI
+	cliAdapter         CLI
+	cfg                *config.Config
+	pollInterval       time.Duration
+	notFoundMaxRetries int
 }
 
 func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config, pollInterval time.Duration) (*UseCase, error) {
@@ -52,7 +54,13 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config, pollInterval t
 		return nil, validation.NewInvalidError("pollInterval")
 	}
 
-	return &UseCase{aiAdapter, cliAdapter, cfg, pollInterval}, nil
+	return &UseCase{
+		aiAdapter:          aiAdapter,
+		cliAdapter:         cliAdapter,
+		cfg:                cfg,
+		pollInterval:       pollInterval,
+		notFoundMaxRetries: DefaultNotFoundRetries,
+	}, nil
 }
 
 func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, failOnScanFailed bool) error {
@@ -66,30 +74,42 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, failOnScanFaile
 
 	done, err := r.checkStage(ctx)
 	if err != nil {
-		if isTerminalAwaitErr(err) {
-			return err
+		if fatal, fatalErr := r.classifyPollError(err); fatal {
+			return fatalErr
 		}
-
-		return fmt.Errorf("get scan stage: %w", err)
-	}
-	if done {
+		u.cliAdapter.ShowTextf(ctx, "error getting scan stage: %v", err.Error())
+	} else if done {
 		return nil
 	}
 
-	updates, err := u.aiAdapter.WatchScanStage(ctx, scanId)
+	updates, watchErrs, err := u.aiAdapter.WatchScanStage(ctx, scanId)
 	if err != nil {
 		updates = nil
+		watchErrs = nil
 	}
 
-	return r.waitUntilDone(ctx, updates)
+	return r.waitUntilDone(ctx, updates, watchErrs)
 }
 
-func isTerminalAwaitErr(err error) bool {
+func isImmediateTerminalAwaitErr(err error) bool {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return true
 	}
 
-	var failErr *apperror.FailError
+	var (
+		failErr  *apperror.FailError
+		authErr  *apperror.AuthenticationError
+		authzErr *apperror.AuthorizationError
+	)
 
-	return errors.As(err, &failErr)
+	return errors.As(err, &failErr) || errors.As(err, &authErr) || errors.As(err, &authzErr)
+}
+
+func isNotFoundErr(err error) bool {
+	var (
+		notFound     *apperror.NotFoundError
+		notFoundByID *apperror.NotFoundByIdError
+	)
+
+	return errors.As(err, &notFound) || errors.As(err, &notFoundByID)
 }
