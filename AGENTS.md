@@ -191,11 +191,12 @@ Mockery-моки (~48 файлов) сгенерированы, но почти 
 
 ## CI
 
-GitHub Actions: `arch-lint`, `golangci-lint`, `test`, `check-doc` (генерация `doc/aictl.md`).
+GitHub Actions: `arch-lint`, `golangci-lint`, `test`, `check-doc` (генерация `doc/gen/`).
 
 Optional local setup: root `devenv.nix` / `.envrc` — **not a team standard yet**; use only if already adopted. Do not require devenv for contributors.
 
 ## Документация для пользователей
 
-- `doc/aictl.md` — справочник команд (генерируется)
+- `doc/aictl.md` — пользовательский гайд (обзор, установка, все команды и флаги)
+- `doc/gen/` — автоген markdown по cobra (`task doc` / `check-doc`)
 - `doc/migration/` — миграция с aisa / ptai-cli-plugin

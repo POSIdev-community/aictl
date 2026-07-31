@@ -64,7 +64,7 @@ Use subcommands to talk to an AI server. Connection settings come from context (
 	rootCmd.AddCommand(setCmd.Command)
 	rootCmd.AddCommand(updateCmd.Command)
 
-	rootCmd.Flags().BoolVarP(&versionFlag, "version", "v", false, "Show aictl version")
+	rootCmd.Flags().BoolVar(&versionFlag, "version", false, "Show aictl version")
 
 	return &CmdRoot{rootCmd}
 }

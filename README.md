@@ -3,7 +3,7 @@ PT Application Inspector CLI control
 ___
 ### Documentation
 
-- [Command reference](doc/aictl.md)
+- [User guide (commands & flags)](doc/aictl.md)
 - [Migration: aisa → aictl](doc/migration/aisa-to-aictl.md)
 - [Migration: ptai-cli-plugin → aictl](doc/migration/ptai-cli-plugin-to-aictl.md)
 - [Gap analysis](doc/migration/gap-analysis.md)

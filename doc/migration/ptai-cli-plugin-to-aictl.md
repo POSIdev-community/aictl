@@ -4,7 +4,7 @@
 
 **aictl** заменяет этот CLI отдельными командами. Плагины **Jenkins** (`ptaiAst`) и **TeamCity** (`ptsecurity`) из репозитория `ptai-ee-tools` **не** входят в этот гайд (отдельный трек).
 
-См. также: [gap-analysis](gap-analysis.md), [миграция aisa](aisa-to-aictl.md), [справочник aictl](../gen/aictl.md), [`examples/base-pipeline.sh`](../../examples/base-pipeline.sh).
+См. также: [gap-analysis](gap-analysis.md), [миграция aisa](aisa-to-aictl.md), [гайд aictl](../aictl.md), [автоген справочник](../gen/aictl.md), [`examples/base-pipeline.sh`](../../examples/base-pipeline.sh).
 
 Статус **планируется** — предлагаемое API, ещё не в CLI.
 

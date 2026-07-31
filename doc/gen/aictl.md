@@ -24,7 +24,7 @@ aictl [flags]
 
 ```
   -h, --help      help for aictl
-  -v, --version   Show aictl version
+      --version   Show aictl version
 ```
 
 ### SEE ALSO

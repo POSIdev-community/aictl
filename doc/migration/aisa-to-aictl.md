@@ -4,7 +4,7 @@
 
 **aictl** — набор отдельных команд. Тот же сценарий собирается скриптом или CI job.
 
-См. также: [gap-analysis](gap-analysis.md), [справочник aictl](../gen/aictl.md), пример [`examples/base-pipeline.sh`](../../examples/base-pipeline.sh).
+См. также: [gap-analysis](gap-analysis.md), [гайд aictl](../aictl.md), [автоген справочник](../gen/aictl.md), пример [`examples/base-pipeline.sh`](../../examples/base-pipeline.sh).
 
 Команды и флаги со статусом **планируется** ещё не реализованы; имена — целевые предложения.
 
@@ -65,7 +65,7 @@ aictl ctx clear -y
 | `-t` | `ctx set -t` или `-t` | |
 | `--set-settings` | `ctx set` | Persist в `~/.config/aictl/context.yaml` |
 | `--log-level` | `-v` / `--verbose`, `-l` / `--log-path` | Нет полного паритета уровней NLog |
-| `-v` / `--version` | `aictl -v` / `--version` | |
+| `-v` / `--version` | `aictl --version` | `-v` в aictl — verbose |
 | (нет TLS-skip) | `--tls-skip` | Только в aictl |
 
 ### Проект, ветка, источники

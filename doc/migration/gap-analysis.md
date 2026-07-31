@@ -7,7 +7,8 @@
 - [Миграция aisa → aictl](aisa-to-aictl.md)
 - [Миграция ptai-cli-plugin → aictl](ptai-cli-plugin-to-aictl.md)
 - [Backlog доработок](backlog.md)
-- [Справочник команд aictl](../gen/aictl.md)
+- [Гайд aictl](../aictl.md)
+- [Автоген справочник команд](../gen/aictl.md)
 
 **Модель aictl:** набор отдельных команд (не one-shot). Типичный пайплайн собирается скриптом — см. [`examples/base-pipeline.sh`](../../examples/base-pipeline.sh).
 
