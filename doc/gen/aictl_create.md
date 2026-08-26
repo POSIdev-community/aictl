@@ -9,6 +9,7 @@ Create AI projects and branches on the server.
 ### Options
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -h, --help              help for create
   -l, --log-path string   Log file path
       --safe              If the resource already exists, return its id without error

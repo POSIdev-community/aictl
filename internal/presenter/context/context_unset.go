@@ -14,7 +14,7 @@ type CmdConfigUnset struct {
 }
 
 type UseCaseConfigUnset interface {
-	Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset bool) error
+	Execute(uriUnset, tokenUnset, tlsUnset, cacertUnset, projectIdUnset, branchIdUnset bool) error
 }
 
 func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
@@ -23,6 +23,7 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 		uriUnset       bool
 		tokenUnset     bool
 		tlsUnset       bool
+		cacertUnset    bool
 		projectIdUnset bool
 		branchIdUnset  bool
 	)
@@ -32,9 +33,10 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 		Short: "Unset context parameters",
 		Long:  `Clear selected fields from the local aictl context. At least one flag is required.`,
 		Example: `  aictl ctx unset -p -b
-  aictl ctx unset -u -t`,
+  aictl ctx unset -u -t
+  aictl ctx unset --cacert`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if !uriUnset && !tokenUnset && !tlsUnset && !projectIdUnset && !branchIdUnset {
+			if !uriUnset && !tokenUnset && !tlsUnset && !cacertUnset && !projectIdUnset && !branchIdUnset {
 				return validation.NewError("Any configs not provided")
 			}
 
@@ -44,7 +46,7 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 			log := logger.FromContext(cmd.Context())
 			log.StdErrf("aictl ctx")
 
-			err := uc.Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset)
+			err := uc.Execute(uriUnset, tokenUnset, tlsUnset, cacertUnset, projectIdUnset, branchIdUnset)
 			if err != nil {
 				return fmt.Errorf("'ctx unset' usecase call: %w", err)
 			}
@@ -56,6 +58,7 @@ func NewConfigUnsetCommand(uc UseCaseConfigUnset) CmdConfigUnset {
 	cmd.Flags().BoolVarP(&uriUnset, "uri", "u", false, "Unset URI")
 	cmd.Flags().BoolVarP(&tokenUnset, "token", "t", false, "Unset access token")
 	cmd.Flags().BoolVar(&tlsUnset, "tls-skip", false, "Unset TLS skip setting")
+	cmd.Flags().BoolVar(&cacertUnset, "cacert", false, "Unset CA certificate path")
 	cmd.Flags().BoolVarP(&projectIdUnset, "project-id", "p", false, "Unset project id")
 	cmd.Flags().BoolVarP(&branchIdUnset, "branch-id", "b", false, "Unset branch id")
 

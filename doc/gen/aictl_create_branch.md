@@ -32,6 +32,7 @@ aictl create branch <branch-name> [flags]
 ### Options inherited from parent commands
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -l, --log-path string   Log file path
       --safe              If the resource already exists, return its id without error
       --tls-skip          Skip TLS certificate verification

@@ -2,7 +2,6 @@ package v5_x
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -58,13 +57,9 @@ func (a *ClientAI5x) Initialize(ctx context.Context, cfg *config.Config) error {
 		return fmt.Errorf("new jwt client: %w", err)
 	}
 
-	transport := &http.Transport{}
-	if cfg.TLSSkip() {
-		if transport.TLSClientConfig == nil {
-			transport.TLSClientConfig = &tls.Config{}
-		}
-
-		transport.TLSClientConfig.InsecureSkipVerify = true
+	transport, err := common.NewHTTPTransport(cfg.TLSSkip(), cfg.CACertPath())
+	if err != nil {
+		return fmt.Errorf("configure tls: %w", err)
 	}
 
 	a.HttpClient.Transport = transport.Clone()

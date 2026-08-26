@@ -1,6 +1,8 @@
 package context
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
@@ -61,5 +63,28 @@ func TestConfigSetCommand(t *testing.T) {
 		require.NoError(t, cmdtest.Execute(t, root.Command, "set", "--no-tls-skip"))
 		require.Equal(t, 1, uc.called)
 		require.False(t, cfg.TLSSkip())
+	})
+
+	t.Run("sets_cacert", func(t *testing.T) {
+		ca := filepath.Join(t.TempDir(), "ca.pem")
+		require.NoError(t, os.WriteFile(ca, []byte("-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n"), 0o600))
+
+		cfg := emptyCfg()
+		uc := &fakeConfigSetUC{}
+		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
+		require.NoError(t, cmdtest.Execute(t, root.Command, "set", "--cacert", ca))
+		require.Equal(t, 1, uc.called)
+		require.Equal(t, ca, cfg.CACertPath())
+	})
+
+	t.Run("rejects_cacert_with_tls_skip", func(t *testing.T) {
+		ca := filepath.Join(t.TempDir(), "ca.pem")
+		require.NoError(t, os.WriteFile(ca, []byte("x"), 0o600))
+
+		cfg := emptyCfg()
+		uc := &fakeConfigSetUC{}
+		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
+		require.Error(t, cmdtest.Execute(t, root.Command, "set", "--cacert", ca, "--tls-skip"))
+		require.Equal(t, 0, uc.called)
 	})
 }

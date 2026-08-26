@@ -9,6 +9,7 @@ Start, stop, await, and check security scans on the server.
 ### Options
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -h, --help              help for scan
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification

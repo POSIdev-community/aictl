@@ -143,9 +143,9 @@ cmd := presenter.NewSomeCmd(uc)
 
 ## Config и context
 
-- Domain model: `internal/core/domain/config/` — URI, token, TLS skip, project/branch UUID.
+- Domain model: `internal/core/domain/config/` — URI, token, TLS skip, CA cert path (`--cacert`), project/branch UUID.
 - Persistence: `~/.config/aictl/context.yaml` (через `adapter/config`).
-- CLI overlay: глобальные флаги `-u/--uri`, `-t/--token`, `--tls-skip` на connection-командах через `presenter/.utils/cmd.go` → `UpdateConnectionConfig` + `cfg.Validate()`.
+- CLI overlay: глобальные флаги `-u/--uri`, `-t/--token`, `--tls-skip`, `--cacert` на connection-командах через `presenter/.utils/cmd.go` → `UpdateConnectionConfig` + `cfg.Validate()`. `--cacert` и `--tls-skip` взаимоисключающие; сброс пути CA — `ctx unset --cacert`.
 - Ошибки чтения `context.yaml` сейчас **молча** возвращают пустой config (TODO: logging).
 
 ## Обработка ошибок и exit codes

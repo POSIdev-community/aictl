@@ -49,12 +49,14 @@ func (i VersionRangeInitializer) TryInitialize(
 	}
 
 	if err := initializable.Initialize(ctx, cfg); err != nil {
-		return nil, state, false, nil
+		// Soft failure: caller may try the next versioned client, but must surface the error
+		// if none match (otherwise TLS/network problems become "no compatible client").
+		return nil, state, false, err
 	}
 
 	state, err := EnsureVersion(ctx, state, initializable.GetVersion)
 	if err != nil {
-		return nil, state, false, nil
+		return nil, state, false, err
 	}
 
 	if !MatchesVersionRange(state.Version, i.MinVersion, i.MaxVersion) {

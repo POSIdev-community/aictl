@@ -6,7 +6,7 @@ Application Inspector ConTroL tool
 
 CLI for managing PT Application Inspector: projects, branches, scans, reports, and local context.
 
-Use subcommands to talk to an AI server. Connection settings come from context (~/.config/aictl/context.yaml) or -u/-t/--tls-skip flags.
+Use subcommands to talk to an AI server. Connection settings come from context (~/.config/aictl/context.yaml) or -u/-t/--tls-skip/--cacert flags.
 
 ```
 aictl [flags]

@@ -2,6 +2,7 @@ package context
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -24,6 +25,7 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 		tokenFlag     string
 		tlsSkipFlag   bool
 		noTlsSkipFlag bool
+		cacertFlag    string
 		projectIdFlag string
 		branchIdFlag  string
 	)
@@ -31,17 +33,22 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Set current aictl configuration",
-		Long:  `Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip.`,
+		Long:  `Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. Clear cacert with: aictl ctx unset --cacert.`,
 		Example: `  aictl ctx set -u https://ai.example -t <token>
   aictl ctx set -p <project-id> -b <branch-id>
+  aictl ctx set --cacert /path/to/ca.pem
   aictl ctx set --tls-skip`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if uriFlag == "" && tokenFlag == "" && !tlsSkipFlag && !noTlsSkipFlag && projectIdFlag == "" && branchIdFlag == "" {
+			if uriFlag == "" && tokenFlag == "" && !tlsSkipFlag && !noTlsSkipFlag && cacertFlag == "" && projectIdFlag == "" && branchIdFlag == "" {
 				return validation.NewError("Any configs not provided")
 			}
 
 			if tlsSkipFlag && noTlsSkipFlag {
 				return validation.NewError("Not use both 'tls-skip' and 'no-tls-skip' flags at the same time")
+			}
+
+			if tlsSkipFlag && cacertFlag != "" {
+				return validation.NewError("Not use both 'cacert' and 'tls-skip' flags at the same time")
 			}
 
 			if uriFlag != "" {
@@ -57,11 +64,23 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 			}
 
 			if tlsSkipFlag {
+				if cfg.CACertPath() != "" {
+					return validation.NewError("cannot enable 'tls-skip' while 'cacert' is set; unset cacert first")
+				}
 				cfg.SetTLSSkip(true)
 			}
 
 			if noTlsSkipFlag {
 				cfg.SetTLSSkip(false)
+			}
+
+			if cacertFlag != "" {
+				if _, err := os.Stat(cacertFlag); err != nil {
+					return validation.NewFieldError("cacert", fmt.Sprintf("file %q: %v", cacertFlag, err))
+				}
+				if err := cfg.SetCACertPath(cacertFlag); err != nil {
+					return err
+				}
 			}
 
 			if projectIdFlag != "" {
@@ -92,6 +111,7 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 	cmd.Flags().StringVarP(&tokenFlag, "token", "t", "", "AI server access token")
 	cmd.Flags().BoolVar(&tlsSkipFlag, "tls-skip", false, "Skip TLS certificate verification")
 	cmd.Flags().BoolVar(&noTlsSkipFlag, "no-tls-skip", false, "Require TLS certificate verification")
+	cmd.Flags().StringVar(&cacertFlag, "cacert", "", "Path to PEM file with CA certificate(s) to trust (appended to system roots)")
 
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Default project id")
 	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Default branch id")

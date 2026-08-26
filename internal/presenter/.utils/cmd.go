@@ -13,6 +13,7 @@ var (
 	uri         string
 	token       string
 	tlsSkip     bool
+	cacert      string
 	verboseFlag bool
 	logPath     string
 )
@@ -21,6 +22,7 @@ func AddConnectionPersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&uri, "uri", "u", "", "AI server URI (overrides context)")
 	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token (overrides context)")
 	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip TLS certificate verification")
+	cmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Path to PEM file with CA certificate(s) to trust (appended to system roots)")
 	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output")
 	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "Log file path")
 }
@@ -40,8 +42,21 @@ func UpdateConnectionConfig(cfg *config.Config) error {
 		}
 	}
 
+	if tlsSkip && cacert != "" {
+		return fmt.Errorf("cannot use 'cacert' together with 'tls-skip'")
+	}
+
 	if tlsSkip {
+		if cfg.CACertPath() != "" {
+			return fmt.Errorf("cannot use 'tls-skip' together with configured cacert")
+		}
 		cfg.SetTLSSkip(tlsSkip)
+	}
+
+	if cacert != "" {
+		if err := cfg.SetCACertPath(cacert); err != nil {
+			return fmt.Errorf("set cacert error: %w", err)
+		}
 	}
 
 	return nil

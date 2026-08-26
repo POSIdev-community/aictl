@@ -31,7 +31,7 @@ func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, del
 		Short: "Application Inspector ConTroL tool",
 		Long: `CLI for managing PT Application Inspector: projects, branches, scans, reports, and local context.
 
-Use subcommands to talk to an AI server. Connection settings come from context (~/.config/aictl/context.yaml) or -u/-t/--tls-skip flags.`,
+Use subcommands to talk to an AI server. Connection settings come from context (~/.config/aictl/context.yaml) or -u/-t/--tls-skip/--cacert flags.`,
 		Example: `  aictl ctx set -u https://ai.example -t <token>
   aictl get projects
   aictl --version`,

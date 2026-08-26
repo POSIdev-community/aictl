@@ -9,11 +9,12 @@ import (
 )
 
 type Config struct {
-	uri       Uri
-	token     string
-	tlsSkip   bool
-	projectId uuid.UUID
-	branchId  uuid.UUID
+	uri        Uri
+	token      string
+	tlsSkip    bool
+	caCertPath string
+	projectId  uuid.UUID
+	branchId   uuid.UUID
 }
 
 func NewConfig(uri Uri, token string, tlsSkip bool, projectId, branchId uuid.UUID) *Config {
@@ -49,7 +50,6 @@ func (cfg *Config) UriString() string {
 }
 
 func (cfg *Config) SetURI(rawUri string) error {
-
 	uri, err := NewUri(rawUri)
 	if err != nil {
 		cfg.uri = Uri{}
@@ -68,6 +68,42 @@ func (cfg *Config) TLSSkip() bool {
 
 func (cfg *Config) SetTLSSkip(tlsSkip bool) {
 	cfg.tlsSkip = tlsSkip
+}
+
+func (cfg *Config) CACertPath() string {
+	return cfg.caCertPath
+}
+
+// SetCACertPath stores a non-empty path to a PEM CA file.
+// Empty path is rejected; use ClearCACertPath to unset.
+func (cfg *Config) SetCACertPath(path string) error {
+	if path == "" {
+		return validation.NewRequiredError("cacert")
+	}
+	if cfg.tlsSkip {
+		return validation.NewError("cannot use 'cacert' together with 'tls-skip'")
+	}
+
+	cfg.caCertPath = path
+
+	return nil
+}
+
+// ClearCACertPath removes the configured CA certificate path.
+func (cfg *Config) ClearCACertPath() {
+	cfg.caCertPath = ""
+}
+
+// ApplyCACertPath sets or clears the path without requiring non-empty
+// (used when loading context / preserving value on unset).
+func (cfg *Config) ApplyCACertPath(path string) error {
+	if path != "" && cfg.tlsSkip {
+		return validation.NewError("cannot use 'cacert' together with 'tls-skip'")
+	}
+
+	cfg.caCertPath = path
+
+	return nil
 }
 
 func (cfg *Config) ProjectId() uuid.UUID {
@@ -149,6 +185,10 @@ func (cfg *Config) Validate() error {
 
 	if cfg.token == "" {
 		return validation.NewRequiredError("token")
+	}
+
+	if cfg.tlsSkip && cfg.caCertPath != "" {
+		return validation.NewError("cannot use 'cacert' together with 'tls-skip'")
 	}
 
 	return nil

@@ -17,6 +17,7 @@ func resetConnectionFlags() {
 	uri = ""
 	token = ""
 	tlsSkip = false
+	cacert = ""
 	verboseFlag = false
 	logPath = ""
 }
@@ -48,6 +49,24 @@ func TestUpdateConnectionConfig(t *testing.T) {
 		require.Equal(t, "https://keep.example", cfg.UriString())
 		require.Equal(t, "keep-token", cfg.Token())
 		require.False(t, cfg.TLSSkip())
+	})
+
+	t.Run("overlays_cacert", func(t *testing.T) {
+		resetConnectionFlags()
+		cacert = "/tmp/ca.pem"
+
+		cfg := config.NewConfig(config.Uri{}, "", false, uuid.Nil, uuid.Nil)
+		require.NoError(t, UpdateConnectionConfig(cfg))
+		require.Equal(t, "/tmp/ca.pem", cfg.CACertPath())
+	})
+
+	t.Run("rejects_cacert_with_tls_skip", func(t *testing.T) {
+		resetConnectionFlags()
+		tlsSkip = true
+		cacert = "/tmp/ca.pem"
+
+		cfg := config.NewConfig(config.Uri{}, "", false, uuid.Nil, uuid.Nil)
+		require.Error(t, UpdateConnectionConfig(cfg))
 	})
 }
 

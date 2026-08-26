@@ -16,6 +16,7 @@ Retrieve project-level data. Project id comes from context or -p.
 ### Options inherited from parent commands
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)

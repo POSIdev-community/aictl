@@ -25,6 +25,7 @@ aictl get project policies [flags]
 ### Options inherited from parent commands
 
 ```
+      --cacert string       Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -l, --log-path string     Log file path
   -p, --project-id string   Project id (overrides context)
       --tls-skip            Skip TLS certificate verification

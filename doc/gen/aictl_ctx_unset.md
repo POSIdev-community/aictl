@@ -15,12 +15,14 @@ aictl ctx unset [flags]
 ```
   aictl ctx unset -p -b
   aictl ctx unset -u -t
+  aictl ctx unset --cacert
 ```
 
 ### Options
 
 ```
   -b, --branch-id    Unset branch id
+      --cacert       Unset CA certificate path
   -h, --help         help for unset
   -p, --project-id   Unset project id
       --tls-skip     Unset TLS skip setting

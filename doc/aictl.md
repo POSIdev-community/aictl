@@ -58,19 +58,24 @@ eval "$(aictl completion zsh)"
 
 ## Context
 
-Локальные настройки хранятся в `~/.config/aictl/context.yaml`: URI, токен, TLS skip, id проекта и ветки по умолчанию.
+Локальные настройки хранятся в `~/.config/aictl/context.yaml`: URI, токен, TLS skip, путь к CA (`caCert`), id проекта и ветки по умолчанию.
 
 ```bash
-aictl ctx set -u https://ai.example -t "$TOKEN" --tls-skip
+aictl ctx set -u https://ai.example -t "$TOKEN"
+aictl ctx set --cacert /path/to/corp-ca.pem   # при внутреннем CA
+# либо осознанно: aictl ctx set --tls-skip
 aictl ctx set -p "$project_id" -b "$branch_id"
 aictl ctx show
+aictl ctx unset --cacert
 aictl ctx unset -p
 aictl ctx clear -y
 ```
 
-Флаги `-u`, `-t`, `--tls-skip` на командах работы с сервером **переопределяют** значения из context на время одного вызова. Многие команды также принимают `-p` / `-b`.
+Флаги `-u`, `-t`, `--tls-skip`, `--cacert` на командах работы с сервером **переопределяют** значения из context на время одного вызова. `--cacert` и `--tls-skip` вместе нельзя. Многие команды также принимают `-p` / `-b`.
 
-Типичные общие флаги connection-команд: `-u`, `-t`, `--tls-skip`, `-v` / `--verbose`, `-l` / `--log-path`.
+По умолчанию TLS-проверка включена (system trust). Если сервер с внутренним CA — передайте PEM через `--cacert` (сертификаты **добавляются** к system roots). Текст сертификата в context не хранится, только путь; сброс: `aictl ctx unset --cacert`.
+
+Типичные общие флаги connection-команд: `-u`, `-t`, `--tls-skip`, `--cacert`, `-v` / `--verbose`, `-l` / `--log-path`.
 
 ## Типовой пайплайн
 
@@ -150,7 +155,7 @@ aictl get version -u … -t …
 
 Имена команд и флагов — как в CLI. Описания — на русском. У каждой команды есть пример.
 
-Общие inherited-флаги у connection-команд обычно включают `-u`, `-t`, `--tls-skip`, `-v`, `-l`.
+Общие inherited-флаги у connection-команд обычно включают `-u`, `-t`, `--tls-skip`, `--cacert`, `-v`, `-l`.
 
 ### `aictl`
 
@@ -313,7 +318,7 @@ aictl ctx show
 
 ### `aictl ctx set`
 
-Записать поля в `~/.config/aictl/context.yaml`. Нужен хотя бы один флаг; `--tls-skip` и `--no-tls-skip` вместе нельзя.
+Записать поля в `~/.config/aictl/context.yaml`. Нужен хотя бы один флаг; `--tls-skip` и `--no-tls-skip` вместе нельзя; `--cacert` и `--tls-skip` вместе нельзя. Сброс пути CA: `aictl ctx unset --cacert` (не через пустой `--cacert`).
 
 **Usage:**
 
@@ -331,6 +336,7 @@ aictl ctx set -u https://ai.example -t "$TOKEN"
 
 ```
   -b, --branch-id string    id ветки по умолчанию
+      --cacert string       путь к PEM с CA (добавляется к system roots)
   -h, --help                справка
       --no-tls-skip         требовать проверку TLS-сертификата
   -p, --project-id string   id проекта по умолчанию
@@ -383,6 +389,7 @@ aictl ctx unset -p -b
 
 ```
   -b, --branch-id    сбросить id ветки
+      --cacert       сбросить путь к CA
   -h, --help         справка
   -p, --project-id   сбросить id проекта
       --tls-skip     сбросить настройку TLS skip

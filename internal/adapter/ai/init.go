@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
@@ -18,24 +19,27 @@ var clientInitializers = []common.Initializer{
 
 func (a *Adapter) Initialize(ctx context.Context) error {
 	state := common.InitState{}
+	var candidateErrs []error
 
 	for _, init := range clientInitializers {
 		client, nextState, matched, err := init.TryInitialize(ctx, a.baseClient, a.cfg, state)
 		state = nextState
+		if matched {
+			a.serverVersion = state.Version
+			a.activeClient = client
+
+			//return a.activeClient.CheckLicense(ctx)
+
+			return nil
+		}
 		if err != nil {
-			return err
+			candidateErrs = append(candidateErrs, err)
 		}
-		if !matched {
-			a.baseClient.Reset()
-			continue
-		}
+		a.baseClient.Reset()
+	}
 
-		a.serverVersion = state.Version
-		a.activeClient = client
-
-		//return a.activeClient.CheckLicense(ctx)
-
-		return nil
+	if len(candidateErrs) > 0 {
+		return fmt.Errorf("initialize ai client: no compatible client found: %w", errors.Join(candidateErrs...))
 	}
 
 	return fmt.Errorf("initialize ai client: no compatible client found")

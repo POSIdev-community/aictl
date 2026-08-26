@@ -4,7 +4,7 @@ Set current aictl configuration
 
 ### Synopsis
 
-Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip.
+Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. Clear cacert with: aictl ctx unset --cacert.
 
 ```
 aictl ctx set [flags]
@@ -15,6 +15,7 @@ aictl ctx set [flags]
 ```
   aictl ctx set -u https://ai.example -t <token>
   aictl ctx set -p <project-id> -b <branch-id>
+  aictl ctx set --cacert /path/to/ca.pem
   aictl ctx set --tls-skip
 ```
 
@@ -22,6 +23,7 @@ aictl ctx set [flags]
 
 ```
   -b, --branch-id string    Default branch id
+      --cacert string       Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -h, --help                help for set
       --no-tls-skip         Require TLS certificate verification
   -p, --project-id string   Default project id

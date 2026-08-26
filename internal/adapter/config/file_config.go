@@ -14,6 +14,7 @@ type fileConfig struct {
 	Uri       string `yaml:"uri" json:"uri"`
 	Token     string `yaml:"token" json:"token"`
 	TLSSkip   bool   `yaml:"tlsSkip" json:"tlsSkip"`
+	CACert    string `yaml:"caCert,omitempty" json:"caCert,omitempty"`
 	ProjectId string `yaml:"projectId" json:"projectId"`
 	BranchId  string `yaml:"branchId" json:"branchId"`
 }
@@ -37,6 +38,7 @@ func fileConfigFromDomainConfig(config *config.Config) fileConfig {
 		Uri:       config.UriString(),
 		Token:     config.Token(),
 		TLSSkip:   config.TLSSkip(),
+		CACert:    config.CACertPath(),
 		ProjectId: projectId,
 		BranchId:  branchId,
 	}
@@ -55,7 +57,10 @@ func (fileCfg fileConfig) toDomainConfig() *config.Config {
 		branchId = uuid.Nil
 	}
 
-	return config.NewConfig(uri, fileCfg.Token, fileCfg.TLSSkip, projectId, branchId)
+	cfg := config.NewConfig(uri, fileCfg.Token, fileCfg.TLSSkip, projectId, branchId)
+	_ = cfg.ApplyCACertPath(fileCfg.CACert)
+
+	return cfg
 }
 
 func (fileCfg fileConfig) stringYaml() (string, error) {
@@ -76,6 +81,7 @@ func (fileCfg fileConfig) string() (string, error) {
 	}
 
 	yamlString = strings.Replace(yamlString, "tlsSkip", "tls-skip", 1)
+	yamlString = strings.Replace(yamlString, "caCert", "ca-cert", 1)
 
 	return yamlString, nil
 }
@@ -106,6 +112,10 @@ func (fileCfg fileConfig) fillUnsetSettings() fileConfig {
 
 	if fileCfg.BranchId == "" {
 		fileCfg.BranchId = "<unset>"
+	}
+
+	if fileCfg.CACert == "" {
+		fileCfg.CACert = "<unset>"
 	}
 
 	return fileCfg

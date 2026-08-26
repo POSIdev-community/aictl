@@ -26,6 +26,7 @@ aictl get scan report sans <scan-id> [flags]
 ### Options inherited from parent commands
 
 ```
+      --cacert string         Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -f, --force                 Overwrite existing output file
       --include-comments      Include comments in the report
       --include-dfd           Include data flow diagrams in the report

@@ -9,6 +9,7 @@ Retrieve AI resources from the server: projects, branches, scans, reports, agent
 ### Options
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -h, --help              help for get
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification

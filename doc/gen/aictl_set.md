@@ -9,6 +9,7 @@ Replace or upload project configuration on the server (settings, policies, exclu
 ### Options
 
 ```
+      --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
   -h, --help              help for set
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification

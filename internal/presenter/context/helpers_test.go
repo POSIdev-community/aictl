@@ -22,7 +22,7 @@ func (noopSetUC) Execute() error { return nil }
 
 type noopUnsetUC struct{}
 
-func (noopUnsetUC) Execute(bool, bool, bool, bool, bool) error { return nil }
+func (noopUnsetUC) Execute(bool, bool, bool, bool, bool, bool) error { return nil }
 
 func emptyCfg() *config.Config {
 	return config.NewConfig(config.Uri{}, "", false, uuid.Nil, uuid.Nil)

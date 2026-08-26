@@ -9,13 +9,13 @@ import (
 )
 
 type fakeConfigUnsetUC struct {
-	called                               int
-	uri, token, tls, projectID, branchID bool
+	called                                       int
+	uri, token, tls, cacert, projectID, branchID bool
 }
 
-func (f *fakeConfigUnsetUC) Execute(uriUnset, tokenUnset, tlsUnset, projectIdUnset, branchIdUnset bool) error {
+func (f *fakeConfigUnsetUC) Execute(uriUnset, tokenUnset, tlsUnset, cacertUnset, projectIdUnset, branchIdUnset bool) error {
 	f.called++
-	f.uri, f.token, f.tls = uriUnset, tokenUnset, tlsUnset
+	f.uri, f.token, f.tls, f.cacert = uriUnset, tokenUnset, tlsUnset, cacertUnset
 	f.projectID, f.branchID = projectIdUnset, branchIdUnset
 	return nil
 }
@@ -31,8 +31,8 @@ func TestConfigUnsetCommand(t *testing.T) {
 	t.Run("passes_all_flags", func(t *testing.T) {
 		uc := &fakeConfigUnsetUC{}
 		root := newCtxRoot(noopClearUC{}, noopSetUC{}, noopShowUC{}, uc)
-		require.NoError(t, cmdtest.Execute(t, root.Command, "unset", "-u", "-t", "-p", "-b", "--tls-skip"))
+		require.NoError(t, cmdtest.Execute(t, root.Command, "unset", "-u", "-t", "-p", "-b", "--tls-skip", "--cacert"))
 		require.Equal(t, 1, uc.called)
-		require.True(t, uc.uri && uc.token && uc.tls && uc.projectID && uc.branchID)
+		require.True(t, uc.uri && uc.token && uc.tls && uc.cacert && uc.projectID && uc.branchID)
 	})
 }

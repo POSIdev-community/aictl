@@ -18,7 +18,7 @@
 | `-t` / `--token` | `-t` / `--token`, `ctx set -t` | |
 | `--user` / `--password` | — | **Не планируется** (только token) |
 | `--insecure` | `--tls-skip` | |
-| `--truststore` | — | **Не планируется** (системный trust / `--tls-skip`) |
+| `--truststore` | `--cacert` | PEM-файл; путь в context; CA добавляются к system roots (в ptai truststore заменял roots) |
 | `-v` / `--verbose` | `-v` / `--verbose` | |
 | `--version` | `aictl --version` | |
 
@@ -210,7 +210,7 @@ aictl delete projects --regexp 'e2e-.*' -y         # планируется
 - Jenkins / TeamCity UI и Pipeline DSL
 - Advanced JVM `-Dptai.*` (таймауты, diagnostic filenames) — при необходимости отдельные флаги/env позже
 - Ant-семантика includes/excludes 1:1 (gitignore + staging)
-- Auth login/password и PEM truststore
+- Auth login/password (PEM truststore → `--cacert`)
 
 ---
 

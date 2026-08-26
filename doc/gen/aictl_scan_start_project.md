@@ -26,6 +26,7 @@ aictl scan start project <project-id> [flags]
 ### Options inherited from parent commands
 
 ```
+      --cacert string       Path to PEM file with CA certificate(s) to trust (appended to system roots)
       --full-scan           Run a full scan instead of incremental
   -l, --log-path string     Log file path
       --scan-label string   Label for the scan (max 40 chars)

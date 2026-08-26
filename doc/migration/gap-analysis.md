@@ -29,7 +29,7 @@
 
 | Возможность | aisa / ptai-cli-plugin | aictl |
 |-------------|------------------------|-------|
-| Подключение и сохранение | `-u`/`-t`, `--set-settings` | `ctx set` / `show` / `clear` / `unset`; флаги `-u`/`-t`/`--tls-skip` |
+| Подключение и сохранение | `-u`/`-t`, `--set-settings` | `ctx set` / `show` / `clear` / `unset`; флаги `-u`/`-t`/`--tls-skip`/`--cacert` |
 | Health / версия сервера | `check-server` | `get healthcheck`, `get version` |
 | Создание проекта | `--create-project` | `create project` |
 | Создание ветки | `--create-branch`, `--branch-name` | `create branch` |
@@ -93,7 +93,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 |-----|----------|----------------------------|--------|
 | Обновление sources из Git | stub / SourceControl | Агент сканирования обновляет VCS; команду aictl не добавлять | Не планируется |
 | Auth user/password | ptai `--user`/`--password` | — | Не планируется (token) |
-| Truststore PEM | ptai `--truststore` | — | Не планируется (`--tls-skip` или системный trust) |
+| Truststore PEM | ptai `--truststore` | `--cacert <path>` (+ `ctx set` / `ctx unset --cacert`) | Сделано: путь к PEM, append к system roots |
 | Retry при занятой ветке | aisa `--retry` / `--retry-time` | Скрипт [`pipeline-with-retry.sh`](../../examples/pipeline-with-retry.sh); в CLI не добавлять, пока AIE не поддержит множественные сканы на разных ветках | Не планируется (скрипт) |
 | Raw / GIIF отчёты | ptai | Форматов нет в AIE | Не планируется |
 | Priority на `scan start` | ptai | Задать нельзя при старте; `update project settings --priority` | Не планируется |
