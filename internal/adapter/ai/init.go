@@ -28,9 +28,7 @@ func (a *Adapter) Initialize(ctx context.Context) error {
 			a.serverVersion = state.Version
 			a.activeClient = client
 
-			//return a.activeClient.CheckLicense(ctx)
-
-			return nil
+			return a.activeClient.CheckLicense(ctx)
 		}
 		if err != nil {
 			candidateErrs = append(candidateErrs, err)
