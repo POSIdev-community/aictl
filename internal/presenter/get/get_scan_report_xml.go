@@ -15,7 +15,7 @@ type CmdGetScanReportXml struct {
 }
 
 type UseCaseGetScanReportXml interface {
-	Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
+	Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) error
 }
 
 func NewGetScanReportXmlCmd(uc UseCaseGetScanReportXml) CmdGetScanReportXml {
@@ -29,7 +29,7 @@ func NewGetScanReportXmlCmd(uc UseCaseGetScanReportXml) CmdGetScanReportXml {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.Sarif, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Xml, outPath, includeComments, includeDFD, includeGlossary, l10n, report.EmptyFilters()); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report xml' usecase call: %w", err)

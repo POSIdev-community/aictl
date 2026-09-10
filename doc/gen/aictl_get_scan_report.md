@@ -58,5 +58,6 @@ aictl get scan report <report-name> <scan-id> [flags]
 * [aictl get scan report plain](aictl_get_scan_report_plain.md)	 - Get scan report in plain text format
 * [aictl get scan report sans](aictl_get_scan_report_sans.md)	 - Get scan report in SANS format
 * [aictl get scan report sarif](aictl_get_scan_report_sarif.md)	 - Get scan report in SARIF format
+* [aictl get scan report with-filters](aictl_get_scan_report_with-filters.md)	 - Get scan report with vulnerability filters
 * [aictl get scan report xml](aictl_get_scan_report_xml.md)	 - Get scan report in XML format
 

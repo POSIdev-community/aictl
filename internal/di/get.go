@@ -222,13 +222,17 @@ func buildGetScanReportCmd(a *adapters) (get.CmdGetScanReport, error) {
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetScanCmd := get.NewPersistentPreRunEGetScanCmd(a.cfg, persistentPreRunEGetCmd)
 	persistentPreRunEGetScanReportCmd := get.NewPersistentPreRunEGetScanReportCmd(persistentPreRunEGetScanCmd)
+	persistentPreRunEWithFilters := get.NewPersistentPreRunEGetScanReportWithFiltersCmd(persistentPreRunEGetScanReportCmd)
 
 	customReportUC, err := report.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return get.CmdGetScanReport{}, err
 	}
 
-	return get.NewGetScanReportCmd(customReportUC, persistentPreRunEGetScanReportCmd, cmdReportAutocheck, cmdReportGitlab,
-		cmdReportJson, cmdReportJsonV2, cmdReportMarkdown, cmdReportNist, cmdReportOud4, cmdReportOwasp, cmdReportOwaspm,
-		cmdReportPcidss, cmdReportPlain, cmdReportSans, cmdReportSarif, cmdReportXml), nil
+	cmdReportWithFilters := get.NewGetScanReportWithFiltersCmd(customReportUC, defaultReportUC, persistentPreRunEWithFilters)
+
+	return get.NewGetScanReportCmd(customReportUC, persistentPreRunEGetScanReportCmd, cmdReportWithFilters,
+		cmdReportAutocheck, cmdReportGitlab, cmdReportJson, cmdReportJsonV2, cmdReportMarkdown, cmdReportNist,
+		cmdReportOud4, cmdReportOwasp, cmdReportOwaspm, cmdReportPcidss, cmdReportPlain, cmdReportSans,
+		cmdReportSarif, cmdReportXml), nil
 }

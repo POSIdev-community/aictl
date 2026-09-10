@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 	"github.com/POSIdev-community/aictl/pkg/fshelper"
@@ -19,7 +20,7 @@ type CmdGetScanReport struct {
 }
 
 type UseCaseGetScanReport interface {
-	Execute(ctx context.Context, scanId uuid.UUID, customReportName string, outPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
+	Execute(ctx context.Context, scanId uuid.UUID, customReportName string, outPath string, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) error
 }
 
 var (
@@ -51,6 +52,7 @@ func NewPersistentPreRunEGetScanReportCmd(prev PersistentPreRunEGetScanCmd) Pers
 func NewGetScanReportCmd(
 	uc UseCaseGetScanReport,
 	persistentPreRunE PersistentPreRunEGetScanReportCmd,
+	cmdGetScanReportWithFilters CmdGetScanReportWithFilters,
 	cmdGetScanReportAutocheck CmdGetScanReportAutocheck,
 	cmdGetScanReportGitlab CmdGetScanReportGitlab,
 	cmdGetScanReportJson CmdGetScanReportJson,
@@ -77,7 +79,7 @@ func NewGetScanReportCmd(
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, customReportName, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, customReportName, outPath, includeComments, includeDFD, includeGlossary, l10n, report.EmptyFilters()); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report' usecase call: %w", err)
@@ -101,6 +103,7 @@ func NewGetScanReportCmd(
 	cmd.AddCommand(cmdGetScanReportSans.Command)
 	cmd.AddCommand(cmdGetScanReportSarif.Command)
 	cmd.AddCommand(cmdGetScanReportXml.Command)
+	cmd.AddCommand(cmdGetScanReportWithFilters.Command)
 
 	cmd.PersistentFlags().StringVarP(&outPath, "output", "o", "", "Output file path")
 	cmd.PersistentFlags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")

@@ -15,7 +15,7 @@ type CmdGetScanReportOwasp struct {
 }
 
 type UseCaseGetScanReportOwasp interface {
-	Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error
+	Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) error
 }
 
 func NewGetScanReportOwaspCmd(uc UseCaseGetScanReportOwasp) CmdGetScanReportOwasp {
@@ -29,7 +29,7 @@ func NewGetScanReportOwaspCmd(uc UseCaseGetScanReportOwasp) CmdGetScanReportOwas
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, report.AutoCheck, outPath, includeComments, includeDFD, includeGlossary, l10n); err != nil {
+			if err := uc.Execute(ctx, scanId, report.Owasp, outPath, includeComments, includeDFD, includeGlossary, l10n, report.EmptyFilters()); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan report owasp' usecase call: %w", err)

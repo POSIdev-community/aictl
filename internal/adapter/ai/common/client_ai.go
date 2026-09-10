@@ -44,7 +44,7 @@ type ClientAi interface {
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)
 	GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error)
-	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error)
 	GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
 	GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error)
 	GetScanErrors(ctx context.Context, projectId, scanResultId uuid.UUID) ([]string, error)

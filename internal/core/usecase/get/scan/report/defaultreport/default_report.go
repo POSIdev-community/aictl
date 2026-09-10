@@ -16,7 +16,7 @@ import (
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
-	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error)
 }
 
 type CLI interface {
@@ -46,7 +46,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType report.ReportType, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -59,7 +59,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType repo
 		return fmt.Errorf("get default template id: %w", err)
 	}
 
-	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n)
+	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n, filters)
 	if err != nil {
 		return fmt.Errorf("get scan report: %w", err)
 	}

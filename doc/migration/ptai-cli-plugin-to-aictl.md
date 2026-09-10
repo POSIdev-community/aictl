@@ -141,6 +141,8 @@ aictl ctx set -p "$project_id"
 # aictl get scans --latest
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 aictl get scan report plain "$scan_id" -o ./out/report.html --include-dfd --include-glossary --localization en
+# фильтры из --report-json → get scan report with-filters (см. таблицу IssuesFilter ниже)
+aictl get scan report with-filters sarif "$scan_id" -o ./out/sarif-filtered.json --level-high --status-confirmed
 ```
 
 | ptai | aictl |
@@ -189,7 +191,27 @@ aictl delete projects --regexp 'e2e-.*' -y         # планируется
 | `--raw-data-file` | `get scan report json` / `json-v2` или `raw` | `raw` — **планируется**, если json недостаточен |
 | `--sarif-report-file` | `get scan report sarif -o` | |
 | `--giif-report-file` | `get scan report giif -o` | **Планируется** |
-| `--report-json` | `get scan reports -f reports.json` | **Планируется**; workaround — несколько вызовов |
+| `--report-json` | `get scan reports -f reports.json` | **Планируется**; workaround — несколько вызовов; filters внутри JSON → `report with-filters` |
+
+### `--report-json` `filters` (IssuesFilter) → aictl
+
+В ptai фильтры задаются в JSON (`--report-json`), не отдельными CLI-флагами. В aictl — команда `get scan report with-filters` и long-флаги ниже.
+
+| ptai `filters` | aictl |
+|----------------|-------|
+| `issueLevel` / `issueLevels` HIGH / MEDIUM / LOW / POTENTIAL | `--level-high` / `--level-medium` / `--level-low` / `--level-potential` |
+| `confirmationStatus` / `confirmationStatuses` UNDEFINED / APPROVED / AUTOAPPROVED / DISCARDED | `--status-undefined` / `--status-confirmed` / `--status-confirmed-auto` / `--status-rejected` |
+| `scanMode` / `scanModes` FROMENTRYPOINT / FROMPUBLIC / FROMROOT / OTHERS | `--mode-entry-point` / `--mode-public-methods` / `--mode-root-function` / `--mode-others` |
+| `actualStatus` ISNEW / NOTISNEW | `--found-this-scan` / `--found-prev-scan` |
+| `exploitationCondition` / `exploitationConditions` | `--conditional` / `--non-conditional` |
+| `suppressStatus` / `suppressStatuses` SUPPRESSED / EXCEPTSUPPRESSED | `--suppressed` / `--non-suppressed` |
+| `hideSuspected: false` (показать suspected) | `--suspected` (**не** эквивалент `hideSuspected: true`) |
+| `hideSecondOrder: false` (показать second-level) | `--second-level` |
+| `byFavorite: true` | `--only-favorite` |
+| `types` | `--type` ×N |
+| `languages` | `--language` ×N (имена AIE, без `None`) |
+| `scanModules` / модули скана | `--scan-module` ×N (whitelist aictl) |
+| `byBestPlaceToFix`, `hidePotential`, `sourceType(s)`, `pathInfo`, `pattern`, `*Separately`, значения `ALL`/`NONE` как «все» | **не переносится** |
 
 ---
 

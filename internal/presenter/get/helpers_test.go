@@ -24,6 +24,7 @@ func resetGetPackageFlags() {
 	includeDFD = false
 	includeGlossary = false
 	l10n = "en"
+	resetReportFilterFlags()
 }
 
 type noopHealthcheckUC struct{}
@@ -117,7 +118,7 @@ func (noopScanStatisticUC) Execute(context.Context, uuid.UUID, string, bool) err
 type noopDefaultReportUC struct{}
 
 func (noopDefaultReportUC) Execute(
-	context.Context, uuid.UUID, report.ReportType, string, bool, bool, bool, string,
+	context.Context, uuid.UUID, report.ReportType, string, bool, bool, bool, string, report.Filters,
 ) error {
 	return nil
 }
@@ -125,7 +126,7 @@ func (noopDefaultReportUC) Execute(
 type noopCustomReportUC struct{}
 
 func (noopCustomReportUC) Execute(
-	context.Context, uuid.UUID, string, string, bool, bool, bool, string,
+	context.Context, uuid.UUID, string, string, bool, bool, bool, string, report.Filters,
 ) error {
 	return nil
 }
@@ -189,9 +190,16 @@ func buildGetRoot(t *testing.T, cfg *config.Config, ucs getUCs) *CmdGet {
 	require.NotNil(t, cfg)
 
 	dr := ucs.defaultReport
+	reportPreRun := NewPersistentPreRunEGetScanReportCmd(NewPersistentPreRunEGetScanCmd(cfg, NewPersistentPreRunEGetCmd(cfg)))
+	cmdReportWithFilters := NewGetScanReportWithFiltersCmd(
+		ucs.customReport,
+		dr,
+		NewPersistentPreRunEGetScanReportWithFiltersCmd(reportPreRun),
+	)
 	cmdReport := NewGetScanReportCmd(
 		ucs.customReport,
-		NewPersistentPreRunEGetScanReportCmd(NewPersistentPreRunEGetScanCmd(cfg, NewPersistentPreRunEGetCmd(cfg))),
+		reportPreRun,
+		cmdReportWithFilters,
 		NewGetScanReportAutocheckCmd(dr),
 		NewGetScanReportGitlabCmd(dr),
 		NewGetScanReportJsonCmd(dr),

@@ -144,8 +144,11 @@ func (a *Adapter) GetReportTemplates(ctx context.Context, localization string) (
 	return a.activeClient.GetReportTemplates(ctx, localization)
 }
 
-func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
-	return a.activeClient.GetReport(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary, l10n)
+func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error) {
+	if err := common.ValidateReportFiltersForVersion(filters, a.serverVersion); err != nil {
+		return nil, err
+	}
+	return a.activeClient.GetReport(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary, l10n, filters)
 }
 
 func (a *Adapter) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {

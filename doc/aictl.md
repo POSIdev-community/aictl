@@ -113,11 +113,14 @@ scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json --include-glossary --localization en
+# с фильтрами уязвимостей (нужен ≥1 filter-флаг):
+# aictl get scan report with-filters sarif "$scan_id" -o ./out/sarif-filtered.json \
+#   --level-high --level-medium --status-confirmed --non-suppressed
 
 aictl ctx clear -y
 ```
 
-## SBOM-проекты (AIE ≥ 6.3)
+Полный пример с UI-подобным набором фильтров — [`examples/report-with-filters-pipeline.sh`](../examples/report-with-filters-pipeline.sh).
 
 Укороченный сценарий (полный пример — [`examples/sbom-pipeline.sh`](../examples/sbom-pipeline.sh)):
 
@@ -1347,6 +1350,7 @@ aictl get scan aiproj <scan-id> -o ./scan.aiproj -f
 ### `aictl get scan report`
 
 Скачать отчёт по скану в выбранном формате. Форматы — подкоманды ниже; общие флаги наследуются.
+Без фильтров уязвимостей (`useFilters=false`). Для фильтров — [`get scan report with-filters`](#aictl-get-scan-report-with-filters).
 
 **Usage:**
 
@@ -1383,6 +1387,40 @@ aictl get scan report sarif <scan-id> -o ./out.sarif
   -v, --verbose             подробный вывод
   -V, --debug             debug-вывод (цепочки ошибок)
 ```
+
+### `aictl get scan report with-filters`
+
+То же, что `get scan report`, но с фильтрами уязвимостей (`useFilters=true`). Нужен **хотя бы один** filter-флаг.
+Булевы флаги при наличии отправляют `true`, иначе поле omit; `--type` / `--language` / `--scan-module` без передачи уходят как пустые массивы `[]`.
+`SecretDetection` / `MaliciousCodeDetection` / `OneC` требуют AIE ≥ 6.0; `Dart` — ≥ 6.1.
+
+**Usage:**
+
+```
+aictl get scan report with-filters <report-name> <scan-id> [flags]
+```
+
+**Пример:**
+
+```bash
+aictl get scan report with-filters sarif <scan-id> -o ./out.sarif --level-high --level-medium --non-suppressed
+```
+
+**Filter-флаги:**
+
+```
+      --level-high|--level-medium|--level-low|--level-potential
+      --status-undefined|--status-confirmed|--status-confirmed-auto|--status-rejected
+      --mode-entry-point|--mode-public-methods|--mode-root-function|--mode-others
+      --found-this-scan|--found-prev-scan
+      --conditional|--non-conditional|--suppressed|--non-suppressed
+      --suspected|--second-level|--only-favorite
+      --type string                 (повторяемый)
+      --scan-module string          whitelist API: StaticCodeAnalysis, PatternMatching, …
+      --language string             без None; имена AIE (Java, Dart, …)
+```
+
+Остальные флаги (`-o`, `-f`, `--include-*`, `--localization`) — как у `get scan report`. Форматные подкоманды те же (`sarif`, `json`, …).
 
 ### `aictl get scan report autocheck`
 

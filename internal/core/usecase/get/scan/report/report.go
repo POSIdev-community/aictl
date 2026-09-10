@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainreport "github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	utils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
@@ -15,7 +16,7 @@ import (
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)
-	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error)
+	GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters domainreport.Filters) (io.ReadCloser, error)
 }
 
 type CLI interface {
@@ -41,7 +42,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, customReportName string, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string) error {
+func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, customReportName string, fullDestPath string, includeComments, includeDFD, includeGlossary bool, l10n string, filters domainreport.Filters) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -54,7 +55,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, customReportNam
 		return err
 	}
 
-	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n)
+	r, err := u.aiAdapter.GetReport(ctx, u.cfg.ProjectId(), scanId, templateId, includeComments, includeDFD, includeGlossary, l10n, filters)
 	if err != nil {
 		return fmt.Errorf("get scan report: %w", err)
 	}

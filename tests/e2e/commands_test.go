@@ -22,6 +22,7 @@ import (
 //   - get scan sbom — e2e aiproj has only StaticCodeAnalysis (API returns sbom not found)
 //   - get/update project settings — not on AIE 5.4
 //   - get scan report json-v2 — AIE 6.1+ only
+//   - get scan report xml — on AIE 6.1+ expect error (template removed)
 func TestLeafCommandsOutsideSmoke(t *testing.T) {
 	configPath, err := ConfigPath()
 	if err != nil {
@@ -156,12 +157,13 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 
 			reportTypes := []string{
 				"autocheck", "gitlab", "json", "markdown",
-				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "xml",
+				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "sarif", "xml",
 			}
 			// json-v2 is supported on AIE 6.1+ only
 			if standName == standOrder61 || standName == standOrder62 || standName == standOrder63 {
 				reportTypes = append(reportTypes, "json-v2")
 			}
+			xmlExpectError := standName == standOrder61 || standName == standOrder62 || standName == standOrder63
 			for _, rt := range reportTypes {
 				out := filepath.Join(reportsDir, rt+".out")
 				commands = append(commands, struct {
@@ -173,9 +175,50 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				})
 			}
 
+			uiFilterFlags := uiLikeReportFilterFlags(standName)
+			for _, rt := range reportTypes {
+				out := filepath.Join(reportsDir, "filtered-"+rt+".out")
+				args := []string{"get", "scan", "report", "with-filters", rt, scanID, "-p", projectID, "-o", out, "--localization", "en"}
+				args = append(args, uiFilterFlags...)
+				commands = append(commands, struct {
+					name string
+					args []string
+				}{
+					name: "get scan report with-filters " + rt,
+					args: args,
+				})
+			}
+
 			for _, c := range commands {
+				c := c
 				t.Run(c.name, func(t *testing.T) {
+					if xmlExpectError && isXmlReportCommand(c.args) {
+						_, err := runAictl(t, aictlBin, stand, env, c.args...)
+						require.Error(t, err)
+						return
+					}
 					RunAictl(t, aictlBin, stand, env, c.args...)
+				})
+			}
+
+			t.Run("get scan report with-filters without filters", func(t *testing.T) {
+				_, err := runAictl(t, aictlBin, stand, env,
+					"get", "scan", "report", "with-filters", "sarif", scanID, "-p", projectID,
+					"-o", filepath.Join(reportsDir, "no-filters.sarif"), "--localization", "en")
+				require.Error(t, err)
+			})
+
+			if standName == standOrder54 {
+				t.Run("get scan report with-filters unsupported SecretDetection on 5.x", func(t *testing.T) {
+					args := []string{
+						"get", "scan", "report", "with-filters", "sarif", scanID, "-p", projectID,
+						"-o", filepath.Join(reportsDir, "secret-detection-5x.sarif"),
+						"--localization", "en",
+						"--level-high",
+						"--scan-module", "SecretDetection",
+					}
+					_, err := runAictl(t, aictlBin, stand, env, args...)
+					require.Error(t, err)
 				})
 			}
 
@@ -235,6 +278,47 @@ func writePatchedAiproj(t *testing.T, src, dst, projectName string) {
 	out, err := json.Marshal(doc)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(dst, out, 0o644))
+}
+
+// uiLikeReportFilterFlags returns UI-default-like filter flags for report with-filters e2e.
+// SecretDetection / MaliciousCodeDetection are included only on AIE ≥ 6.0.
+func uiLikeReportFilterFlags(standName string) []string {
+	flags := []string{
+		"--level-high", "--level-medium",
+		"--status-undefined", "--status-confirmed", "--status-confirmed-auto",
+		"--mode-entry-point", "--mode-root-function", "--mode-public-methods", "--mode-others",
+		"--found-this-scan", "--found-prev-scan",
+		"--conditional", "--non-conditional",
+		"--non-suppressed",
+		"--suspected", "--second-level",
+		"--scan-module", "StaticCodeAnalysis",
+		"--scan-module", "PatternMatching",
+		"--scan-module", "Components",
+		"--scan-module", "SoftwareCompositionAnalysis",
+		"--scan-module", "Configuration",
+		"--scan-module", "BlackBox",
+	}
+	if standName != standOrder54 {
+		flags = append(flags,
+			"--scan-module", "MaliciousCodeDetection",
+			"--scan-module", "SecretDetection",
+		)
+	}
+	return flags
+}
+
+// isXmlReportCommand reports whether args are get scan report [with-filters] xml …
+func isXmlReportCommand(args []string) bool {
+	if len(args) < 4 {
+		return false
+	}
+	if args[0] != "get" || args[1] != "scan" || args[2] != "report" {
+		return false
+	}
+	if args[3] == "xml" {
+		return true
+	}
+	return len(args) >= 5 && args[3] == "with-filters" && args[4] == "xml"
 }
 
 func regexpEscape(s string) string {
