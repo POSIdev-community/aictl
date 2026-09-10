@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	minVersion, _ = version.NewVersion("6.1.0")
+	minVersion, _ = version.NewVersion("6.3.0")
 	maxVersion, _ = version.NewVersion("7.0.0")
 )
 

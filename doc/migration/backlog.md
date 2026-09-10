@@ -86,7 +86,7 @@
 - `update sources git` — удалено; обновление sources из VCS выполняет агент сканирования
 - Retry при занятой ветке в CLI — скрипт [`pipeline-with-retry.sh`](../../examples/pipeline-with-retry.sh), пока AIE не поддержит множественные сканы на разных ветках
 - `get scan report raw` / `giif` — форматов нет в AIE
-- `--priority` на `scan start` — нельзя; есть `update project settings --priority`
+- `--priority` на `scan branch` / `scan project` — нельзя; есть `update project settings --priority`
 - `update sources --include` — достаточно `-e` / `--exclude-from`
 - `get scan reports -f` — отдельные `get scan report …`
 

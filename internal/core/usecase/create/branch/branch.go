@@ -8,12 +8,15 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
 
 type AI interface {
 	Initialize(ctx context.Context) error
+	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
 	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTarget string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error)
 }
@@ -44,6 +47,10 @@ func (u *UseCase) Execute(ctx context.Context, cfg *config.Config, branchName, s
 	err := u.aiAdapter.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	if err = usecaseutils.RequireSourceProject(ctx, u.aiAdapter, cfg.ProjectId(), project.ErrCannotCreateBranchOnSbom); err != nil {
+		return err
 	}
 
 	u.cliAdapter.ShowTextf(ctx, "creating branch '%v'", branchName)

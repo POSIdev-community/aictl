@@ -25,7 +25,7 @@ func TestUpdateProjectLanguagesCmd(t *testing.T) {
 		NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 		NewUpdateProjectLanguagesCmd(uc),
 	)
-	root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), projectCmd)
+	root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), projectCmd)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "project", "languages", "-p", projectID.String()))
 	require.Equal(t, 1, uc.called)
 	require.Equal(t, projectID, cfg.ProjectId())

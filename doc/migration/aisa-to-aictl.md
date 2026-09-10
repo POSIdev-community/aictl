@@ -42,7 +42,7 @@ aictl ctx set -b "$branch_id"
 aictl update sources ./src
 # aictl update sources ./src --exclude-from .aisaignore
 
-scan_id=$(aictl scan start branch "$branch_id")
+scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 
@@ -80,7 +80,7 @@ aictl ctx clear -y
 | `--scan-target` | `update sources <path>` | По умолчанию aisa: CWD |
 | `--file-exclusions` | `update sources -e` / `--exclude-from` | Синтаксис gitignore |
 | `--project-settings-file` | `set project settings -f` | `.aiproj` / JSON |
-| `--scan-off` | Не вызывать `scan start` | Upload/settings без скана |
+| `--scan-off` | Не вызывать `scan branch` / `scan project` | Upload/settings без скана |
 | `--policy-settings-file` | `set project policies -f` | |
 | `--policies-path` | `set project policies -f` | |
 
@@ -88,9 +88,9 @@ aictl ctx clear -y
 
 | aisa | aictl | Примечание |
 |------|-------|------------|
-| (старт в составе one-shot) | `scan start branch` / `scan start project` | |
-| `--full-scan` | `scan start --full-scan` | По умолчанию incremental |
-| `--scan-label` | `scan start --scan-label` | |
+| (старт в составе one-shot) | `scan branch` / `scan project` | |
+| `--full-scan` | `scan branch|project --full-scan` | По умолчанию incremental |
+| `--scan-label` | `scan branch|project --scan-label` | |
 | `--no-wait` | Не вызывать `scan await` | |
 | `--status` + `--project-id` + `--scan-result-id` | `get scan stage` / `scan await` | |
 | `--scan-result-id` | аргумент `<scan-id>` | |
@@ -159,13 +159,13 @@ aisa использует детальные коды. aictl сохраняет 
 ```bash
 aictl set project settings -f ./project.aiproj
 aictl update sources ./src
-# не вызывать scan start  → аналог --scan-off
+# не вызывать scan branch  → аналог --scan-off
 ```
 
 ### Полный скан с меткой
 
 ```bash
-aictl scan start branch "$branch_id" --full-scan --scan-label "ci-$CI_COMMIT_SHA"
+aictl scan branch "$branch_id" --full-scan --scan-label "ci-$CI_COMMIT_SHA"
 ```
 
 ### Проверка статуса позже

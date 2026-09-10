@@ -22,12 +22,14 @@ type UseCaseScanStartProject interface {
 func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdScanStartProject {
 	cmd := &cobra.Command{
 		Use:   "project <project-id>",
-		Short: "Start project scan",
-		Long:  `Start a scan on an entire project. Project id comes from the argument or context.`,
+		Short: "Start project scan (obsolete)",
+		Long:  `Obsolete: use 'aictl scan project'. Start a scan on an entire project. Project id comes from the argument or context.`,
 		Example: `  aictl scan start project <project-id>
   aictl scan start project --scan-label release --full-scan`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Warning: 'scan start project' is obsolete; use 'aictl scan project'")
+
 			args = _utils.ReadArgsFromStdin(args)
 			var projectIdFlag string
 			if len(args) > 0 {

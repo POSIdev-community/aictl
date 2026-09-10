@@ -36,7 +36,7 @@ func TestCreateProjectCmd(t *testing.T) {
 	t.Run("with_safe", func(t *testing.T) {
 		resetSafeFlag()
 		uc := &fakeCreateProjectUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "my-app", "--safe"))
 		require.Equal(t, 1, uc.called)
 		require.Equal(t, "my-app", uc.name)
@@ -46,7 +46,7 @@ func TestCreateProjectCmd(t *testing.T) {
 	t.Run("stdin_dash", func(t *testing.T) {
 		resetSafeFlag()
 		uc := &fakeCreateProjectUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		cmdtest.WithStdin(t, "from-stdin\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "-"))
 		})

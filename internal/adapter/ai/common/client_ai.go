@@ -32,11 +32,15 @@ type ClientAi interface {
 	GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error)
 	CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error)
 	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
+	CreateSbomProject(ctx context.Context, projectName string) (*uuid.UUID, error)
 	DeleteProject(ctx context.Context, projectId uuid.UUID) error
 	ExistsProject(ctx context.Context, projectName string) (bool, error)
 	GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error)
+	GetProjectByName(ctx context.Context, projectName string) (*project.Project, error)
 	GetProjects(ctx context.Context) ([]project.Project, error)
 	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
+	UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath string) error
+	StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error)
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)
 	GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error)

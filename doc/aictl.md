@@ -12,7 +12,7 @@ aictl работает с серверами Application Inspector в диапа
 
 **5.0.0 ≤ версия < 7.0.0**
 
-Клиент сам выбирает API-слой под версию сервера (5.x, 6.0.x или 6.1+).
+Клиент сам выбирает API-слой под версию сервера (5.x, 6.0.x, 6.1–6.2 или 6.3+).
 
 ## Установка
 
@@ -75,7 +75,22 @@ aictl ctx clear -y
 
 По умолчанию TLS-проверка включена (system trust). Если сервер с внутренним CA — передайте PEM через `--cacert` (сертификаты **добавляются** к system roots). Текст сертификата в context не хранится, только путь; сброс: `aictl ctx unset --cacert`.
 
-Типичные общие флаги connection-команд: `-u`, `-t`, `--tls-skip`, `--cacert`, `-v` / `--verbose`, `-l` / `--log-path`.
+Типичные общие флаги connection-команд: `-u`, `-t`, `--tls-skip`, `--cacert`, `-v` / `--verbose`, `-V` / `--debug`, `-l` / `--log-path`.
+
+### Логирование (`-v`, `-V`, `-l`)
+
+При ошибке API на stderr всегда одно **user-facing** сообщение (без Go-цепочки обёрток). Уровни:
+
+| Флаги | Консоль | Файл (`-l`) |
+|-------|---------|-------------|
+| (нет) | только user-facing при ошибке | — |
+| `-v` / `--verbose` | + operational-логи (`StdErr`) | — |
+| `-V` / `--debug` | + operational-логи и debug-цепочка ошибки | — |
+| `-v` и `-V` вместе | максимальный уровень (как `-V`) | — |
+| `-l` / `--log-path` | без `-v`/`-V` консоль тихая (только user-facing при ошибке) | Error: ops и user-facing (с timestamp); **без** обычного stdout и **без** debug-цепочки |
+| `-l` + `-V` | как `-V` | Error + Debug (в т.ч. цепочка) |
+
+Обычный вывод команд (stdout / Info) в лог-файл не пишется.
 
 ## Типовой пайплайн
 
@@ -94,13 +109,30 @@ branch_id=$(aictl create branch default --safe)
 aictl ctx set -b "$branch_id"
 
 aictl update sources ./src
-scan_id=$(aictl scan start branch "$branch_id")
+scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json --include-glossary --localization en
 
 aictl ctx clear -y
 ```
+
+## SBOM-проекты (AIE ≥ 6.3)
+
+Укороченный сценарий (полный пример — [`examples/sbom-pipeline.sh`](../examples/sbom-pipeline.sh)):
+
+```bash
+project_id=$(aictl create sbom-project MySbom --file ./sbom.json --safe)
+aictl ctx set -p "$project_id"
+
+scan_id=$(aictl scan sbom)
+aictl scan await "$scan_id"
+aictl get scan report sarif "$scan_id" -o ./out/sarif.json --include-glossary --localization en
+
+aictl ctx clear -y
+```
+
+`create sbom-project --file` сразу загружает SBOM; для повторной загрузки без пересоздания проекта — `aictl update sbom ./sbom.json`. `get projects` показывает колонку `TYPE` (`source` / `sbom`).
 
 ## Миграция с других CLI
 
@@ -446,6 +478,7 @@ aictl create project MyApp --safe
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl create project`
@@ -479,6 +512,7 @@ aictl create project MyApp --safe
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl create branch`
@@ -517,6 +551,7 @@ aictl create branch default --safe
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get`
@@ -544,6 +579,7 @@ aictl get healthcheck
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get healthcheck`
@@ -576,6 +612,7 @@ aictl get healthcheck
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get version`
@@ -608,6 +645,7 @@ aictl get version
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get agents`
@@ -641,6 +679,7 @@ aictl get agents -q
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get projects`
@@ -674,6 +713,7 @@ aictl get projects 'MyApp'
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get project`
@@ -707,6 +747,7 @@ aictl get project settings
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get project settings`
@@ -741,6 +782,7 @@ aictl get project settings --json
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get project policies`
@@ -774,6 +816,7 @@ aictl get project policies
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get project exclusions`
@@ -807,6 +850,7 @@ aictl get project exclusions
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get project aiproj`
@@ -842,6 +886,7 @@ aictl get project aiproj -o ./project.aiproj -f
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get branches`
@@ -876,6 +921,7 @@ aictl get branches -p <project-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get branch`
@@ -908,6 +954,7 @@ aictl get branch <branch-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scans`
@@ -943,6 +990,7 @@ aictl get scans --latest -q
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scanning`
@@ -976,6 +1024,7 @@ aictl get scanning -p <project-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get queue`
@@ -1009,6 +1058,7 @@ aictl get queue
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get report-templates`
@@ -1043,6 +1093,7 @@ aictl get report-templates --localization ru
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan`
@@ -1076,6 +1127,7 @@ aictl get scan stage <scan-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan stage`
@@ -1110,6 +1162,7 @@ aictl get scan stage <scan-id> --fail-on-scan-failed
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan errors`
@@ -1143,6 +1196,7 @@ aictl get scan errors <scan-id>
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan logs`
@@ -1178,6 +1232,7 @@ aictl get scan logs <scan-id> -o ./scan.log -f
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan statistic`
@@ -1214,6 +1269,7 @@ aictl get scan statistic <scan-id> --json
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan sbom`
@@ -1249,6 +1305,7 @@ aictl get scan sbom <scan-id> -o ./sbom.json -f
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan aiproj`
@@ -1284,6 +1341,7 @@ aictl get scan aiproj <scan-id> -o ./scan.aiproj -f
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report`
@@ -1323,6 +1381,7 @@ aictl get scan report sarif <scan-id> -o ./out.sarif
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report autocheck`
@@ -1362,6 +1421,7 @@ aictl get scan report autocheck <scan-id> -o ./out.autocheck -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report gitlab`
@@ -1401,6 +1461,7 @@ aictl get scan report gitlab <scan-id> -o ./out.gitlab -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report json`
@@ -1440,6 +1501,7 @@ aictl get scan report json <scan-id> -o ./out.json -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report json-v2`
@@ -1479,6 +1541,7 @@ aictl get scan report json-v2 <scan-id> -o ./out.json-v2 -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report markdown`
@@ -1518,6 +1581,7 @@ aictl get scan report markdown <scan-id> -o ./out.markdown -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report nist`
@@ -1557,6 +1621,7 @@ aictl get scan report nist <scan-id> -o ./out.nist -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report oud4`
@@ -1596,6 +1661,7 @@ aictl get scan report oud4 <scan-id> -o ./out.oud4 -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report owasp`
@@ -1635,6 +1701,7 @@ aictl get scan report owasp <scan-id> -o ./out.owasp -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report owaspm`
@@ -1674,6 +1741,7 @@ aictl get scan report owaspm <scan-id> -o ./out.owaspm -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report pcidss`
@@ -1713,6 +1781,7 @@ aictl get scan report pcidss <scan-id> -o ./out.pcidss -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report plain`
@@ -1752,6 +1821,7 @@ aictl get scan report plain <scan-id> -o ./out.plain -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report sans`
@@ -1791,6 +1861,7 @@ aictl get scan report sans <scan-id> -o ./out.sans -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report sarif`
@@ -1830,6 +1901,7 @@ aictl get scan report sarif <scan-id> -o ./out.sarif -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl get scan report xml`
@@ -1869,6 +1941,7 @@ aictl get scan report xml <scan-id> -o ./out.xml -f
   -t, --token string          токен доступа к AI (переопределяет context)
   -u, --uri string            URI AI-сервера (переопределяет context)
   -v, --verbose               подробный вывод
+  -V, --debug               debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl set`
@@ -1896,6 +1969,7 @@ aictl set project settings -f ./aiproj.json
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl set project`
@@ -1929,6 +2003,7 @@ aictl set project policies -f ./policies.json
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl set project settings`
@@ -1963,6 +2038,7 @@ aictl set project settings -f ./aiproj.json
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl set project policies`
@@ -1997,6 +2073,7 @@ aictl set project policies -f ./policies.json
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl set project exclusions`
@@ -2031,6 +2108,7 @@ aictl set project exclusions -f ./exclusions.txt
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl update`
@@ -2058,6 +2136,7 @@ aictl update sources ./src
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl update sources`
@@ -2095,6 +2174,7 @@ aictl update sources ./src -e '**/test/**'
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl update project`
@@ -2128,6 +2208,7 @@ aictl update project settings --priority High
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl update project settings`
@@ -2165,6 +2246,7 @@ aictl update project settings --priority High --preferred-agents-only
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl update project languages`
@@ -2198,6 +2280,7 @@ aictl update project languages
   -t, --token string        токен доступа к AI (переопределяет context)
   -u, --uri string          URI AI-сервера (переопределяет context)
   -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl scan`
@@ -2225,22 +2308,23 @@ aictl scan await <scan-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
-### `aictl scan start`
+### `aictl scan branch`
 
-Старт скана (ветка или проект). Общие флаги: `--full-scan`, `--scan-label`.
+Запустить скан ветки (source-проекты). Печатает id скана.
 
 **Usage:**
 
 ```
-aictl scan start [flags]
+aictl scan branch <branch-id> [flags]
 ```
 
 **Пример:**
 
 ```bash
-aictl scan start branch <branch-id> --full-scan
+aictl scan branch <branch-id> --scan-label ci-1
 ```
 
 **Флаги:**
@@ -2248,33 +2332,49 @@ aictl scan start branch <branch-id> --full-scan
 ```
       --full-scan           полный скан вместо инкрементального
   -h, --help                справка
+  -p, --project-id string   id проекта (переопределяет context)
       --scan-label string   метка скана (до 40 символов)
 ```
 
-**Унаследованные флаги:**
+### `aictl scan project`
 
-```
-  -l, --log-path string   путь к файлу логов
-      --tls-skip          не проверять TLS-сертификат сервера
-  -t, --token string      токен доступа к AI (переопределяет context)
-  -u, --uri string        URI AI-сервера (переопределяет context)
-  -v, --verbose           подробный вывод
-```
-
-### `aictl scan start branch`
-
-Запустить скан ветки. Печатает id скана.
+Запустить скан source-проекта. Печатает id скана. Для SBOM-проектов используйте `aictl scan sbom`.
 
 **Usage:**
 
 ```
-aictl scan start branch <branch-id> [flags]
+aictl scan project <project-id> [flags]
 ```
 
 **Пример:**
 
 ```bash
-aictl scan start branch <branch-id> --scan-label ci-1
+aictl scan project <project-id> --full-scan
+```
+
+**Флаги:**
+
+```
+      --full-scan           полный скан вместо инкрементального
+  -h, --help                справка
+  -p, --project-id string   id проекта (переопределяет context)
+      --scan-label string   метка скана (до 40 символов)
+```
+
+### `aictl scan sbom`
+
+Запустить скан SBOM-проекта (AIE ≥ 6.3). Печатает id скана. Без `--full-scan` (всегда incremental).
+
+**Usage:**
+
+```
+aictl scan sbom <project-id> [flags]
+```
+
+**Пример:**
+
+```bash
+aictl scan sbom -p <project-id> --scan-label nightly
 ```
 
 **Флаги:**
@@ -2282,53 +2382,12 @@ aictl scan start branch <branch-id> --scan-label ci-1
 ```
   -h, --help                справка
   -p, --project-id string   id проекта (переопределяет context)
-```
-
-**Унаследованные флаги:**
-
-```
-      --full-scan           полный скан вместо инкрементального
-  -l, --log-path string     путь к файлу логов
       --scan-label string   метка скана (до 40 символов)
-      --tls-skip            не проверять TLS-сертификат сервера
-  -t, --token string        токен доступа к AI (переопределяет context)
-  -u, --uri string          URI AI-сервера (переопределяет context)
-  -v, --verbose             подробный вывод
 ```
 
-### `aictl scan start project`
+### `aictl scan start` (устарело)
 
-Запустить скан проекта. Печатает id скана.
-
-**Usage:**
-
-```
-aictl scan start project <project-id> [flags]
-```
-
-**Пример:**
-
-```bash
-aictl scan start project <project-id> --full-scan
-```
-
-**Флаги:**
-
-```
-  -h, --help   справка
-```
-
-**Унаследованные флаги:**
-
-```
-      --full-scan           полный скан вместо инкрементального
-  -l, --log-path string     путь к файлу логов
-      --scan-label string   метка скана (до 40 символов)
-      --tls-skip            не проверять TLS-сертификат сервера
-  -t, --token string        токен доступа к AI (переопределяет context)
-  -u, --uri string          URI AI-сервера (переопределяет context)
-  -v, --verbose             подробный вывод
-```
+Устарело: используйте `aictl scan branch` / `aictl scan project`. Команды `scan start *` сохранены для совместимости.
 
 ### `aictl scan await`
 
@@ -2362,6 +2421,7 @@ aictl scan await <scan-id> --fail-on-scan-failed
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl scan check-policies`
@@ -2396,6 +2456,7 @@ aictl scan check-policies <scan-id> --fail-on-policies-rejected
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl scan stop`
@@ -2428,6 +2489,7 @@ aictl scan stop <scan-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl delete`
@@ -2455,6 +2517,7 @@ aictl delete projects <project-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 
 ### `aictl delete projects`
@@ -2487,5 +2550,6 @@ aictl delete projects <project-id>
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
 ```
 

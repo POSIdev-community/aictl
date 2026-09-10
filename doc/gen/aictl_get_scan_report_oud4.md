@@ -27,6 +27,7 @@ aictl get scan report oud4 <scan-id> [flags]
 
 ```
       --cacert string         Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug                 Debug output (includes error chains)
   -f, --force                 Overwrite existing output file
       --include-comments      Include comments in the report
       --include-dfd           Include data flow diagrams in the report
@@ -38,7 +39,7 @@ aictl get scan report oud4 <scan-id> [flags]
       --tls-skip              Skip TLS certificate verification
   -t, --token string          AI server access token (overrides context)
   -u, --uri string            AI server URI (overrides context)
-  -v, --verbose               Verbose output
+  -v, --verbose               Verbose output (operational details)
 ```
 
 ### SEE ALSO

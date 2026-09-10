@@ -10,7 +10,7 @@ ___
 
 ### E2E tests
 
-End-to-end tests run the base pipeline from [`examples/base-pipeline.sh`](examples/base-pipeline.sh) against external AIE stands (5.4 and 6.0).
+End-to-end tests run the base pipeline from [`examples/base-pipeline.sh`](examples/base-pipeline.sh) against external AIE stands (5.4, 6.0, 6.1, 6.2, 6.3).
 
 **Setup:**
 

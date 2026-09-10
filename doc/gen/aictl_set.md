@@ -10,12 +10,13 @@ Replace or upload project configuration on the server (settings, policies, exclu
 
 ```
       --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug             Debug output (includes error chains)
   -h, --help              help for set
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)
   -u, --uri string        AI server URI (overrides context)
-  -v, --verbose           Verbose output
+  -v, --verbose           Verbose output (operational details)
 ```
 
 ### SEE ALSO

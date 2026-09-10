@@ -35,14 +35,22 @@ func (app *Application) Run(ctx context.Context) {
 	if err == nil {
 		os.Exit(ExitCodeSuccess)
 	}
-	log := logger.FromContext(ctx)
-	log.StdErrf(err.Error())
 
+	exitCode := reportCommandError(app.cmd.Context(), err)
+	os.Exit(exitCode)
+}
+
+// reportCommandError prints a single user-facing message to stderr, mirrors it to the
+// log file when configured, and emits the full Go error chain only at debug level.
+func reportCommandError(ctx context.Context, err error) int {
+	log := logger.FromContext(ctx)
 	exitCode, errorMessage := mapExitCode(err)
 
 	_, _ = fmt.Fprintln(os.Stderr, errorMessage)
+	log.FileError(errorMessage)
+	log.Debugf("%v", err)
 
-	os.Exit(exitCode)
+	return exitCode
 }
 
 func (app *Application) GenerateDoc(dirPath string) error {

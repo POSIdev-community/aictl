@@ -100,6 +100,10 @@ func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.
 	return a.activeClient.CreateProject(ctx, projectName)
 }
 
+func (a *Adapter) CreateSbomProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
+	return a.activeClient.CreateSbomProject(ctx, projectName)
+}
+
 func (a *Adapter) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
 	return a.activeClient.DeleteProject(ctx, projectId)
 }
@@ -112,12 +116,20 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 	return a.activeClient.GetProjectId(ctx, projectName)
 }
 
+func (a *Adapter) GetProjectByName(ctx context.Context, projectName string) (*project.Project, error) {
+	return a.activeClient.GetProjectByName(ctx, projectName)
+}
+
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 	return a.activeClient.GetProjects(ctx)
 }
 
 func (a *Adapter) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
 	return a.activeClient.GetProject(ctx, projectId)
+}
+
+func (a *Adapter) UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath string) error {
+	return a.activeClient.UpdateSbom(ctx, projectId, sbomPath)
 }
 
 func (a *Adapter) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
@@ -202,6 +214,10 @@ func (a *Adapter) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanL
 
 func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
 	return a.activeClient.StartScanProject(ctx, projectId, scanLabel, scanType)
+}
+
+func (a *Adapter) StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error) {
+	return a.activeClient.StartScanSbom(ctx, projectId, scanLabel)
 }
 
 func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {

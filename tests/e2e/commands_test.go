@@ -80,11 +80,11 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			run("update", "sources", filepath.Join(fixturesDir, "project"), "-p", projectID, "-b", branchID)
 
 			// stop: start a branch scan and stop it while still running.
-			stopScanID := run("scan", "start", "branch", branchID, "-p", projectID)
+			stopScanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, stopScanID)
 			run("scan", "stop", stopScanID)
 
-			scanID := run("scan", "start", "branch", branchID, "-p", projectID)
+			scanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, scanID)
 			run("scan", "await", scanID, "-p", projectID)
 
@@ -159,7 +159,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "xml",
 			}
 			// json-v2 is supported on AIE 6.1+ only
-			if standName == standOrder61 {
+			if standName == standOrder61 || standName == standOrder62 || standName == standOrder63 {
 				reportTypes = append(reportTypes, "json-v2")
 			}
 			for _, rt := range reportTypes {
@@ -214,8 +214,8 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			})
 
 			// start project last: exit 0 only (stop/await may hit SCAN*_NOT_FOUND on some AIE).
-			t.Run("scan start project", func(t *testing.T) {
-				projectScanID := RunAictl(t, aictlBin, stand, env, "scan", "start", "project", projectID)
+			t.Run("scan project", func(t *testing.T) {
+				projectScanID := RunAictl(t, aictlBin, stand, env, "scan", "project", projectID)
 				assertUUID(t, projectScanID)
 			})
 		})

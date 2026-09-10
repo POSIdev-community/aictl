@@ -103,7 +103,7 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 }
 
 func buildGetBranchCmd(a *adapters) (get.CmdGetBranch, error) {
-	branchUC, err := getBranch.NewUseCase(a.ai, a.cli)
+	branchUC, err := getBranch.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return get.CmdGetBranch{}, err
 	}

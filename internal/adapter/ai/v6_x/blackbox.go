@@ -11,7 +11,7 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 )
 
-func (a *ClientAI61) setBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
+func (a *ClientAI6x) setBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
 	payload := common.BuildBlackBoxPayload(scanSettings.BlackBoxSettings, scanSettings.BlackBoxEnabled)
 	body := toBlackBoxSettingsModel(payload)
 

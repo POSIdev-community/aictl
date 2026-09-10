@@ -21,6 +21,9 @@ func NewScanCmd(
 	persistentPreRunE PersistentPreRunEScanCmd,
 	cmdScanAwait CmdScanAwait,
 	cmdScanCheckPolicies CmdScanCheckPolicies,
+	cmdScanBranch CmdScanBranch,
+	cmdScanProject CmdScanProject,
+	cmdScanSbom CmdScanSbom,
 	cmdScanStart CmdScanStart,
 	cmdScanStop CmdScanStop) *CmdScan {
 
@@ -33,6 +36,9 @@ func NewScanCmd(
 
 	cmd.AddCommand(cmdScanAwait.Command)
 	cmd.AddCommand(cmdScanCheckPolicies.Command)
+	cmd.AddCommand(cmdScanBranch.Command)
+	cmd.AddCommand(cmdScanProject.Command)
+	cmd.AddCommand(cmdScanSbom.Command)
 	cmd.AddCommand(cmdScanStart.Command)
 	cmd.AddCommand(cmdScanStop.Command)
 

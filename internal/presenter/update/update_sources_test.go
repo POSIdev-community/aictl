@@ -42,6 +42,10 @@ type noopUpdateLanguagesUC struct{}
 
 func (noopUpdateLanguagesUC) Execute(context.Context) error { return nil }
 
+type noopUpdateSbomUC struct{}
+
+func (noopUpdateSbomUC) Execute(context.Context, string) error { return nil }
+
 func TestUpdateSourcesCmd(t *testing.T) {
 	t.Cleanup(resetUpdateFlags)
 	projectID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
@@ -61,7 +65,7 @@ func TestUpdateSourcesCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), projectCmd)
+		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), projectCmd)
 		require.NoError(t, cmdtest.Execute(t, root.Command,
 			"sources", srcDir,
 			"-p", projectID.String(),
@@ -88,7 +92,7 @@ func TestUpdateSourcesCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), projectCmd)
+		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), projectCmd)
 		require.Error(t, cmdtest.Execute(t, root.Command, "sources", "/no/such/path"))
 		require.Equal(t, 0, uc.called)
 	})

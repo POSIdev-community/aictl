@@ -16,16 +16,18 @@ var safeFlag bool
 func NewCreateCmd(
 	cfg *config.Config,
 	cmdCreateBranch CmdCreateBranch,
-	cmdCreateProject CmdCreateProject) *CmdCreate {
+	cmdCreateProject CmdCreateProject,
+	cmdCreateSbomProject CmdCreateSbomProject) *CmdCreate {
 
 	cmd := &cobra.Command{
 		Use:               "create",
 		Short:             "Create resources",
-		Long:              `Create AI projects and branches on the server.`,
+		Long:              `Create AI projects (source or SBOM) and branches on the server.`,
 		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(cmdCreateProject.Command)
+	cmd.AddCommand(cmdCreateSbomProject.Command)
 	cmd.AddCommand(cmdCreateBranch.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)

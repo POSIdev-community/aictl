@@ -22,15 +22,16 @@ var (
 	branchIdFlag  string
 )
 
-func NewUpdateCmd(cfg *config.Config, cmdUpdateSources CmdUpdateSources, cmdUpdateProject CmdUpdateProject) *CmdUpdate {
+func NewUpdateCmd(cfg *config.Config, cmdUpdateSources CmdUpdateSources, cmdUpdateSbom CmdUpdateSbom, cmdUpdateProject CmdUpdateProject) *CmdUpdate {
 	cmd := &cobra.Command{
 		Use:               "update",
 		Short:             "Update resources",
-		Long:              `Update project sources and settings on the server.`,
+		Long:              `Update project sources, SBOM files, and settings on the server.`,
 		PersistentPreRunE: _utils.ChainRunE(_utils.InitializeLogger, _utils.UpdateConfig(cfg)),
 	}
 
 	cmd.AddCommand(cmdUpdateSources.Command)
+	cmd.AddCommand(cmdUpdateSbom.Command)
 	cmd.AddCommand(cmdUpdateProject.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)

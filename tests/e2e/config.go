@@ -16,9 +16,11 @@ const (
 	standOrder54         = "5.4"
 	standOrder60         = "6.0"
 	standOrder61         = "6.1"
+	standOrder62         = "6.2"
+	standOrder63         = "6.3"
 )
 
-var standOrder = []string{standOrder54, standOrder60, standOrder61}
+var standOrder = []string{standOrder54, standOrder60, standOrder61, standOrder62, standOrder63}
 
 type Stand struct {
 	URL           string `yaml:"url"`
@@ -112,8 +114,10 @@ func (s Stand) ResolveAiprojVersion(standName string) (string, error) {
 		return "1.9", nil
 	case standOrder60:
 		return "1.10", nil
-	case standOrder61:
+	case standOrder61, standOrder62:
 		return "1.11", nil
+	case standOrder63:
+		return "1.12", nil
 	default:
 		return "", fmt.Errorf("stand %q: aiproj_version is required", standName)
 	}

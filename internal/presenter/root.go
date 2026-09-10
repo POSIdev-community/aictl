@@ -35,6 +35,7 @@ Use subcommands to talk to an AI server. Connection settings come from context (
 		Example: `  aictl ctx set -u https://ai.example -t <token>
   aictl get projects
   aictl --version`,
+		SilenceErrors:     true,
 		PersistentPreRunE: _utils.InitializeLogger,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if versionFlag {

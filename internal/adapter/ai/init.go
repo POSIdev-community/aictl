@@ -8,11 +8,13 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_x"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_0"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_1"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_x"
 )
 
 var clientInitializers = []common.Initializer{
 	v6_x.Initializer,
+	v6_1.Initializer,
 	v6_0.Initializer,
 	v5_x.Initializer,
 }

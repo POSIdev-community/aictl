@@ -36,10 +36,10 @@
 | Настройки из `.aiproj` / JSON | `--project-settings-file`, `--settings-json` | `set project settings -f` |
 | Загрузка исходников | `--scan-target` / `--input` | `update sources <path>` |
 | Исключения при upload | `--file-exclusions` (gitignore) | `-e` / `--exclude-from` (gitignore) |
-| Старт скана | (часть one-shot / `ui-ast`) | `scan start branch` / `scan start project` |
-| Метка скана | `--scan-label` | `--scan-label` на `scan start` |
-| Полный скан | `--full-scan` | `--full-scan` на `scan start` |
-| Async / без ожидания | `--no-wait`, `--async` | `scan start` без `scan await` |
+| Старт скана | (часть one-shot / `ui-ast`) | `scan branch` / `scan project` |
+| Метка скана | `--scan-label` | `--scan-label` на `scan branch` / `scan project` |
+| Полный скан | `--full-scan` | `--full-scan` на `scan branch` / `scan project` |
+| Async / без ожидания | `--no-wait`, `--async` | `scan branch` / `scan project` без `scan await` |
 | Ожидание скана | по умолчанию / `--status` | `scan await` |
 | Остановка скана | — | `scan stop` |
 | Отчёты (основные типы) | `--report`, SARIF/HTML/… | `get scan report <type>` (+ шаблон по имени) |
@@ -71,7 +71,7 @@
 Пример целевого CI:
 
 ```bash
-sid=$(aictl scan start branch "$bid")
+sid=$(aictl scan branch "$bid")
 aictl scan await "$sid" --fail-on-scan-failed
 aictl scan check-policies "$sid" --fail-on-policies-rejected
 aictl get scan report sarif "$sid" -o out/sarif.json
@@ -96,7 +96,7 @@ aictl get scan report sarif "$sid" -o out/sarif.json
 | Truststore PEM | ptai `--truststore` | `--cacert <path>` (+ `ctx set` / `ctx unset --cacert`) | Сделано: путь к PEM, append к system roots |
 | Retry при занятой ветке | aisa `--retry` / `--retry-time` | Скрипт [`pipeline-with-retry.sh`](../../examples/pipeline-with-retry.sh); в CLI не добавлять, пока AIE не поддержит множественные сканы на разных ветках | Не планируется (скрипт) |
 | Raw / GIIF отчёты | ptai | Форматов нет в AIE | Не планируется |
-| Priority на `scan start` | ptai | Задать нельзя при старте; `update project settings --priority` | Не планируется |
+| Priority на `scan branch` / `scan project` | ptai | Задать нельзя при старте; `update project settings --priority` | Не планируется |
 | Include при upload | ptai `-i` | Достаточно excludes (`-e` / `--exclude-from`) | Не планируется |
 | Пакетная генерация отчётов | ptai `--report-json` | Несколько вызовов `get scan report` | Не планируется |
 | `get scan result` | удалено | — | Не для миграции |

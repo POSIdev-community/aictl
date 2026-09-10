@@ -42,12 +42,12 @@ Presenter **не** импортирует adapter напрямую — толь�
 | `internal/presenter/`                                         | Cobra CLI, grouped: `context`, `create`, `delete`, `get`, `scan`, `set`, `update` |
 | `internal/core/usecase/`                                      | Use cases (по одному пакету на команду/сценарий)                                  |
 | `internal/core/domain/`                                       | Domain models, validation, без зависимостей от `pkg/`                             |
-| `internal/adapter/ai/`                                        | Фасад AI + версионирование 5.4 / 6.0 / 6.1+                                       |
-| `internal/adapter/ai/{5_4,6_0,6_4}/`                          | Маппинг domain ↔ OpenAPI types                                                    |
+| `internal/adapter/ai/`                                        | Фасад AI + версионирование 5.x / 6.0 / 6.1–6.2 / 6.3+                            |
+| `internal/adapter/ai/{5_x,6_0,6_1,6_x}/`                      | Маппинг domain ↔ OpenAPI types                                                    |
 | `internal/adapter/ai/client/`                                 | BaseClient, retry, JWT helpers                                                    |
 | `internal/adapter/cli/`                                       | Вывод в терминал, подтверждения                                                   |
 | `internal/adapter/config/`                                    | Чтение/запись `context.yaml`                                                      |
-| `pkg/clientai/{5_4,6_0,6_4}/`                                 | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`)                     |
+| `pkg/clientai/{5_x,6_0,6_1,6_x}/`                             | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`)                     |
 | `pkg/errs/`                                                   | Сетевые/API ошибки и их exit codes                                                |
 | `pkg/logger/`, `pkg/fshelper/`, `pkg/version/`, `pkg/metric/` | Утилиты без зависимостей от `internal/`                                           |
 
@@ -91,24 +91,27 @@ type CLI interface {
 }
 ```
 
-`internal/adapter/ai.Adapter` реализует монолитный `ClientAi` (~25 методов) и делегирует в `activeClient` (5.x, 6.0 или 6.1+). Формальной связи между `ClientAi` и портами use case **нет** — compile-time проверка только через DI.
+`internal/adapter/ai.Adapter` реализует монолитный `ClientAi` (~25 методов) и делегирует в `activeClient` (5.x, 6.0, 6.1–6.2 или 6.3+). Формальной связи между `ClientAi` и портами use case **нет** — compile-time проверка только через DI.
 
 ### Initialize vs InitializeWithRetry
 
 | Метод | Поведение |
 |-------|-----------|
-| `Initialize` | Выбор 5.x / 6.0 / 6.1+ клиента, проверка версии и лицензии |
+| `Initialize` | Выбор 5.x / 6.0 / 6.1–6.2 / 6.3+ клиента, проверка версии и лицензии |
 | `InitializeWithRetry` | `Initialize` + `AddJwtRetry()` на активном клиенте |
 
 **Несогласованность:** большинство use cases вызывают `InitializeWithRetry`; `create/branch` и `update/sources` — только `Initialize` (без JWT retry). При добавлении команд — следовать окружающим use cases той же группы или унифицировать на `InitializeWithRetry`.
 
-## AI adapter: версионирование 5.x / 6.0 / 6.1+
+## AI adapter: версионирование 5.x / 6.0 / 6.1–6.2 / 6.3+
 
 ```mermaid
 flowchart LR
     init["Adapter.Initialize"] --> try6x["tryInitializeClient6x"]
-    try6x -->|"version 6.1..7"| active6x["activeClient = 6_x"]
-    try6x -->|skip| reset1["BaseClient.Reset()"]
+    try6x -->|"version 6.3..7"| active6x["activeClient = 6_x"]
+    try6x -->|skip| reset0["BaseClient.Reset()"]
+    reset0 --> try61["tryInitializeClient61"]
+    try61 -->|"version 6.1..6.3"| active61["activeClient = 6_1"]
+    try61 -->|skip| reset1["BaseClient.Reset()"]
     reset1 --> try60["tryInitializeClient60"]
     try60 -->|"version 6.0..6.1"| active60["activeClient = 6_0"]
     try60 -->|skip| reset2["BaseClient.Reset()"]
@@ -117,13 +120,15 @@ flowchart LR
 ```
 
 - Поддерживаемый диапазон версий сервера: **5.0.0 ≤ ver < 7.0.0** (`adapter.go`, `init.go`).
-- Порядок попыток: **6.1+** (`6_x`) → **6.0.x** (`6_0`) → **5.x** (`5_x`). При несовпадении версии — `BaseClient.Reset()` и следующая попытка.
-- Границы: `6_0` для `[6.0.0, 6.1.0)`, `6_x` для `[6.1.0, 7.0.0)`.
+- Порядок попыток: **6.3+** (`6_x`) → **6.1–6.2** (`6_1`) → **6.0.x** (`6_0`) → **5.x** (`5_x`). При несовпадении версии — `BaseClient.Reset()` и следующая попытка.
+- Границы: `6_0` для `[6.0.0, 6.1.0)`, `6_1` для `[6.1.0, 6.3.0)`, `6_x` для `[6.3.0, 7.0.0)`.
 - Все клиенты делят один `client.BaseClient` (JWT, HTTP clients). **Параллельное использование двух клиентов невозможно** — shared mutable state.
-- Ручной код маппинга: `internal/adapter/ai/{5_x,6_0,6_x}/client.go` (~1000 строк каждый, значительное дублирование).
-- Codegen: `pkg/clientai/{5_x,6_0,6_x}/` — перегенерация через `go generate` в `gen.go`.
+- Ручной код маппинга: `internal/adapter/ai/{5_x,6_0,6_1,6_x}/client.go` (~1000 строк каждый, значительное дублирование).
+- Codegen: `pkg/clientai/{5_x,6_0,6_1,6_x}/` — перегенерация через `go generate` в `gen.go`.
 
-При правках scan/settings/report — проверять **все три** адаптера или выносить shared helpers в `internal/adapter/ai/client/` или новый shared-пакет внутри `adapter/ai/`.
+При правках scan/settings/report — проверять **все четыре** адаптера или выносить shared helpers в `internal/adapter/ai/client/` или новый shared-пакет внутри `adapter/ai/`.
+
+**SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete).
 
 ## DI (composition root)
 
@@ -174,19 +179,19 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`.
 Покрытие минимальное (4 test-файла на ~190 hand-written Go в `internal/`):
 
 - `internal/adapter/ai/client/retry_test.go`
-- `internal/adapter/ai/client_test.go` — `validateVersion`, `isClient60Version`, `isClient6xVersion`
+- `internal/adapter/ai/client_test.go` — version range bounds для `v5_x` / `v6_0` / `v6_1` / `v6_x`
 - `internal/core/usecase/get/scan/report/defaultreport/default_report_test.go`
 - `internal/core/usecase/set/project/settings/settings_test.go`
 
-Mockery-моки (~48 файлов) сгенерированы, но почти не используются. При добавлении тестов — приоритет: init flow 6.1+→6.0→5x, exit code mapping, critical use cases.
+Mockery-моки (~48 файлов) сгенерированы, но почти не используются. При добавлении тестов — приоритет: init flow 6.3→6.1→6.0→5x, exit code mapping, critical use cases.
 
 ## Рекомендации при изменениях
 
 1. **Новая команда:** domain (если нужны типы) → use case с локальными ports → presenter cobra → wiring в `internal/di/*.go`.
-2. **Новый AI-метод:** добавить в `ClientAi` + `Adapter` delegate → реализовать в **трёх** `5_x/client.go`, `6_0/client.go` и `6_x/client.go` → добавить в port нужных use cases.
-3. **OpenAPI изменился:** обновить `swagger.yaml`, `go generate` в `pkg/clientai/{5_x,6_0,6_x}/`, затем adapter mapping.
+2. **Новый AI-метод:** добавить в `ClientAi` + `Adapter` delegate → реализовать в **четырёх** `5_x/client.go`, `6_0/client.go`, `6_1/client.go` и `6_x/client.go` → добавить в port нужных use cases.
+3. **OpenAPI изменился:** обновить `swagger.yaml`, `go generate` в `pkg/clientai/{5_x,6_0,6_1,6_x}/`, затем adapter mapping.
 4. **Не нарушать arch-lint:** use case не должен импортировать adapter или `pkg/clientai`.
-5. **Shared logic 5x/6.0/6.1+:** выносить в `internal/adapter/ai/client/` или internal shared helper — главный источник регрессий при дублировании.
+5. **Shared logic 5x/6.0/6.1/6.x:** выносить в `internal/adapter/ai/client/` или internal shared helper — главный источник регрессий при дублировании.
 6. **Exit codes:** validation → `exitcode.go`; network/API → `pkg/errs`.
 
 ## CI

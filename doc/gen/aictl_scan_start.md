@@ -1,10 +1,14 @@
 ## aictl scan start
 
-Start scan
+Start scan (obsolete)
 
 ### Synopsis
 
-Start a full or incremental scan on a project or branch.
+Obsolete: use 'aictl scan branch' or 'aictl scan project'. Start a full or incremental scan on a project or branch.
+
+```
+aictl scan start [flags]
+```
 
 ### Options
 
@@ -18,16 +22,17 @@ Start a full or incremental scan on a project or branch.
 
 ```
       --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug             Debug output (includes error chains)
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)
   -u, --uri string        AI server URI (overrides context)
-  -v, --verbose           Verbose output
+  -v, --verbose           Verbose output (operational details)
 ```
 
 ### SEE ALSO
 
 * [aictl scan](aictl_scan.md)	 - Manage scans
-* [aictl scan start branch](aictl_scan_start_branch.md)	 - Start branch scan
-* [aictl scan start project](aictl_scan_start_project.md)	 - Start project scan
+* [aictl scan start branch](aictl_scan_start_branch.md)	 - Start branch scan (obsolete)
+* [aictl scan start project](aictl_scan_start_project.md)	 - Start project scan (obsolete)
 

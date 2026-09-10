@@ -3,6 +3,7 @@ package di
 import (
 	updateProjectLanguages "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/languages"
 	updateProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
+	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sbom"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources"
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
 )
@@ -15,12 +16,18 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 
 	cmdSources := update.NewUpdateSourcesCmd(a.cfg, sourcesUC)
 
+	sbomUC, err := sbom.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdSbom := update.NewUpdateSbomCmd(a.cfg, sbomUC)
+
 	cmdProject, err := buildUpdateProjectCmd(a)
 	if err != nil {
 		return nil, err
 	}
 
-	return update.NewUpdateCmd(a.cfg, cmdSources, cmdProject), nil
+	return update.NewUpdateCmd(a.cfg, cmdSources, cmdSbom, cmdProject), nil
 }
 
 func buildUpdateProjectCmd(a *adapters) (update.CmdUpdateProject, error) {

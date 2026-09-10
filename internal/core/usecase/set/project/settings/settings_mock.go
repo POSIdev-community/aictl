@@ -7,6 +7,7 @@ package settings
 import (
 	"context"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/google/uuid"
@@ -96,6 +97,74 @@ func (_c *MockAI_GetDefaultSettings_Call) Return(scanSettings settings.ScanSetti
 }
 
 func (_c *MockAI_GetDefaultSettings_Call) RunAndReturn(run func(ctx context.Context) (settings.ScanSettings, error)) *MockAI_GetDefaultSettings_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetProject provides a mock function for the type MockAI
+func (_mock *MockAI) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
+	ret := _mock.Called(ctx, projectId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProject")
+	}
+
+	var r0 *project.Project
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*project.Project, error)); ok {
+		return returnFunc(ctx, projectId)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID) *project.Project); ok {
+		r0 = returnFunc(ctx, projectId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*project.Project)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = returnFunc(ctx, projectId)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAI_GetProject_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProject'
+type MockAI_GetProject_Call struct {
+	*mock.Call
+}
+
+// GetProject is a helper method to define mock.On call
+//   - ctx context.Context
+//   - projectId uuid.UUID
+func (_e *MockAI_Expecter) GetProject(ctx interface{}, projectId interface{}) *MockAI_GetProject_Call {
+	return &MockAI_GetProject_Call{Call: _e.mock.On("GetProject", ctx, projectId)}
+}
+
+func (_c *MockAI_GetProject_Call) Run(run func(ctx context.Context, projectId uuid.UUID)) *MockAI_GetProject_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uuid.UUID
+		if args[1] != nil {
+			arg1 = args[1].(uuid.UUID)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAI_GetProject_Call) Return(project1 *project.Project, err error) *MockAI_GetProject_Call {
+	_c.Call.Return(project1, err)
+	return _c
+}
+
+func (_c *MockAI_GetProject_Call) RunAndReturn(run func(ctx context.Context, projectId uuid.UUID) (*project.Project, error)) *MockAI_GetProject_Call {
 	_c.Call.Return(run)
 	return _c
 }

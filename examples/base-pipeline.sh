@@ -27,7 +27,7 @@ branch_id=$(aictl create branch $branch_name --safe -v) || clearAndExit $?
 aictl ctx set -b $branch_id || clearAndExit $?
 
 aictl update sources $sources_path -v || clearAndExit $?
-scan_id=$(aictl scan start branch $branch_id -v) || clearAndExit $?
+scan_id=$(aictl scan branch $branch_id -v) || clearAndExit $?
 
 aictl scan await $scan_id -v || clearAndExit $?
 aictl get scan report sarif $scan_id -o $report_path --include-glossary --localization en -v || clearAndExit $?

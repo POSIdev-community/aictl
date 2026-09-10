@@ -43,6 +43,10 @@ type noopCreateProjectUC struct{}
 
 func (noopCreateProjectUC) Execute(context.Context, string, bool) error { return nil }
 
+type noopCreateSbomProjectUC struct{}
+
+func (noopCreateSbomProjectUC) Execute(context.Context, string, string, bool) error { return nil }
+
 func TestCreateBranchCmd(t *testing.T) {
 	t.Cleanup(resetSafeFlag)
 	projectID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
@@ -56,7 +60,7 @@ func TestCreateBranchCmd(t *testing.T) {
 		resetSafeFlag()
 		cfg := cmdtest.MustCfg(t)
 		uc := &fakeCreateBranchUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		require.NoError(t, cmdtest.Execute(t, root.Command,
 			"branch", "feature-x",
 			"-p", projectID.String(),
@@ -80,7 +84,7 @@ func TestCreateBranchCmd(t *testing.T) {
 		resetSafeFlag()
 		cfg := cmdtest.MustCfg(t)
 		uc := &fakeCreateBranchUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		require.Error(t, cmdtest.Execute(t, root.Command, "branch", "main", "-s", "/no/such/path", "-p", projectID.String()))
 		require.Equal(t, 0, uc.called)
 	})
@@ -89,7 +93,7 @@ func TestCreateBranchCmd(t *testing.T) {
 		resetSafeFlag()
 		cfg := cmdtest.MustCfg(t)
 		uc := &fakeCreateBranchUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		cmdtest.WithStdin(t, "branch-from-stdin\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "branch", "-", "-p", projectID.String()))
 		})

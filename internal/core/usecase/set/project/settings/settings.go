@@ -8,13 +8,16 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/aiproj"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
+	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
+	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	GetVersion(ctx context.Context) (version.Version, error)
 	GetDefaultSettings(ctx context.Context) (domainsettings.ScanSettings, error)
 	GetProjectSettings(ctx context.Context, projectId uuid.UUID) (domainsettings.ScanSettings, error)
@@ -46,6 +49,10 @@ func (u *UseCase) Execute(ctx context.Context, rawAiproj []byte) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	if err = usecaseutils.RequireSourceProject(ctx, u.aiAdapter, u.cfg.ProjectId(), project.ErrCannotGetSetSettingsOnSbom); err != nil {
+		return err
 	}
 
 	serverVersion, err := u.aiAdapter.GetVersion(ctx)

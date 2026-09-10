@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainproject "github.com/POSIdev-community/aictl/internal/core/domain/project"
 	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
@@ -22,6 +23,11 @@ type fakeAI struct {
 }
 
 func (f *fakeAI) InitializeWithRetry(context.Context) error { return nil }
+
+func (f *fakeAI) GetProject(_ context.Context, projectId uuid.UUID) (*domainproject.Project, error) {
+	p := domainproject.NewProject(projectId, "test")
+	return &p, nil
+}
 
 func (f *fakeAI) GetVersion(context.Context) (version.Version, error) { return f.version, nil }
 

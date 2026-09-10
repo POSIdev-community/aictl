@@ -46,12 +46,16 @@ func (cli *Adapter) AskConfirmation(ctx context.Context, question string) (bool,
 
 func (cli *Adapter) ShowProjects(ctx context.Context, projects []project.Project) {
 	log := logger.FromContext(ctx)
-	const format = "%-36s\t%s"
+	const format = "%-36s\t%-40s\t%s"
 
-	log.StdOutf(format, "ID", "NAME")
+	log.StdOutf(format, "ID", "NAME", "TYPE")
 
 	for _, p := range projects {
-		log.StdOutf(format, p.Id, p.Name)
+		typ := p.Type
+		if typ == "" {
+			typ = project.TypeSource
+		}
+		log.StdOutf(format, p.Id, p.Name, typ)
 	}
 }
 

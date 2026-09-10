@@ -67,7 +67,7 @@ aictl update sources ./src
 # priority на проекте (если нужно):
 # aictl update project settings --priority High
 
-scan_id=$(aictl scan start branch "$branch_id" --full-scan --scan-label ci-1)
+scan_id=$(aictl scan branch "$branch_id" --full-scan --scan-label ci-1)
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json
@@ -80,7 +80,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | `-p` / `--project` | `ctx -p` / UUID после `get projects` | Точный `get project --name` — **планируется** |
 | `--input` | `update sources <path>` | |
 | `-b` / `--branch-name` | `create branch` / `ctx -b` | Ветка создаётся, если нет |
-| `--scan-label` | `scan start --scan-label` | |
+| `--scan-label` | `scan branch|project --scan-label` | |
 | `--output` | каталог для `-o` | Дефолт ptai: `.ptai` |
 | `-i` / `--includes` | staging dir или `update sources --include` | `--include` — **планируется**; сейчас — подготовить дерево файлов |
 | `-e` / `--excludes` | `-e` / `--exclude-from` | **gitignore**, не Ant |
@@ -88,8 +88,8 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | `--fail-if-failed` | `scan check-policies --fail-on-policies-rejected` | |
 | `--fail-if-unstable` | — | Нет прямого аналога; смотреть statistic / policy |
 | `--async` | не вызывать `scan await` | |
-| `--full-scan` | `scan start --full-scan` | |
-| `--priority` | `update project settings --priority` или `scan start --priority` | На start — **планируется** |
+| `--full-scan` | `scan branch|project --full-scan` | |
+| `--priority` | `update project settings --priority` или `scan (obsolete) --priority` | На start — **планируется** |
 | Reporting flags | см. ниже | |
 
 ---
@@ -102,7 +102,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 aictl set project settings -f ./settings.json     # --settings-json
 aictl set project policies -f ./policy.json       # --policy-json
 aictl update sources ./src
-scan_id=$(aictl scan start branch "$branch_id")
+scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 ```

@@ -15,6 +15,7 @@ var (
 	tlsSkip     bool
 	cacert      string
 	verboseFlag bool
+	debugFlag   bool
 	logPath     string
 )
 
@@ -23,8 +24,20 @@ func AddConnectionPersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token (overrides context)")
 	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip TLS certificate verification")
 	cmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Path to PEM file with CA certificate(s) to trust (appended to system roots)")
-	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output")
+	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output (operational details)")
+	cmd.PersistentFlags().BoolVarP(&debugFlag, "debug", "V", false, "Debug output (includes error chains)")
 	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "Log file path")
+}
+
+func VerboseLevel() int {
+	level := logger.LevelQuiet
+	if verboseFlag {
+		level = logger.LevelVerbose
+	}
+	if debugFlag {
+		level = logger.LevelDebug
+	}
+	return level
 }
 
 func UpdateConnectionConfig(cfg *config.Config) error {
@@ -93,7 +106,10 @@ func ChainRunE(funcs ...RunE) RunE {
 }
 
 func InitializeLogger(cmd *cobra.Command, _ []string) error {
-	l, _ := logger.NewLogger(verboseFlag, logPath)
+	l, err := logger.NewLogger(VerboseLevel(), logPath)
+	if err != nil {
+		return fmt.Errorf("initialize logger: %w", err)
+	}
 	ctx := logger.ContextWithLogger(cmd.Context(), l)
 
 	cmd.SetContext(ctx)

@@ -10,7 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
-	"github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
+	_utils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
@@ -71,7 +71,7 @@ func (u *UseCase) Execute(ctx context.Context, scanId uuid.UUID, reportType repo
 	u.cliAdapter.ShowTextf(ctx, "'%s' scan report got", reportType.String())
 
 	if fullDestPath != "" {
-		if err := utils.CopyFileToPath(r, fullDestPath); err != nil {
+		if err := _utils.CopyFileToPath(r, fullDestPath); err != nil {
 			return fmt.Errorf("copy report to path %s: %w", fullDestPath, err)
 		}
 
