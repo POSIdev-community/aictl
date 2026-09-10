@@ -2,14 +2,11 @@ package set
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	_utils "github.com/POSIdev-community/aictl/internal/presenter/.utils"
-	"github.com/POSIdev-community/aictl/pkg/fshelper"
 )
 
 type CmdSetProjectSettings struct {
@@ -34,33 +31,12 @@ func NewSetProjectSettingsCmd(uc UseCaseSetProjectSettings) CmdSetProjectSetting
   aictl set project settings '{"Version":"1.0"}' -p <project-id>`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if filePath == "" {
-				args = _utils.ReadArgsFromStdin(args)
-				if len(args) == 0 {
-					return fmt.Errorf("aiproj data required")
-				}
-
-				rawAiproj = []byte(args[0])
-			} else {
-				if !fshelper.PathExists(filePath) {
-					return fmt.Errorf("file %s does not exist", filePath)
-				}
-
-				if !fshelper.IsFile(filePath) {
-					return fmt.Errorf("path %s does not a file", filePath)
-				}
-
-				content, err := os.ReadFile(filePath)
-				if err != nil {
-					return fmt.Errorf("read aiproj file: %w", err)
-				}
-
-				rawAiproj = content
+			content, err := _utils.ReadAiprojInput(filePath, args)
+			if err != nil {
+				return err
 			}
 
-			if !json.Valid(rawAiproj) {
-				return fmt.Errorf("invalid aiproj data: not valid json")
-			}
+			rawAiproj = content
 
 			return nil
 		},

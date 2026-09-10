@@ -24,6 +24,10 @@ func AddConnectionPersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token (overrides context)")
 	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip TLS certificate verification")
 	cmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Path to PEM file with CA certificate(s) to trust (appended to system roots)")
+	AddVerbosePersistentFlags(cmd)
+}
+
+func AddVerbosePersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output (operational details)")
 	cmd.PersistentFlags().BoolVarP(&debugFlag, "debug", "V", false, "Debug output (includes error chains)")
 	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "Log file path")

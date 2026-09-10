@@ -455,6 +455,59 @@ aictl ctx clear -y
   -y, --yes    не спрашивать подтверждение
 ```
 
+### `aictl check`
+
+Офлайн-проверки локальных файлов и конфигурации (подключение к AI-серверу не требуется).
+
+**Usage:**
+
+```
+aictl check [flags]
+```
+
+**Пример:**
+
+```bash
+aictl check aiproj -f ./aiproj.json
+```
+
+**Флаги:**
+
+```
+  -h, --help              справка
+  -l, --log-path string   путь к файлу логов
+  -v, --verbose           подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
+```
+
+### `aictl check aiproj`
+
+Проверка aiproj/JSON по JSON Schema без обращения к серверу. Ввод как у `set project settings`: `-f`, позиционный JSON или stdin. Опционально `--schema-version` (иначе auto-detect). При `--json` результат (pretty) пишется в stdout; детали schema-ошибок — в JSON, в stderr короткий текст класса ошибки. Input-ошибки (нет файла, не JSON и т.п.) — только human в stderr.
+
+**Usage:**
+
+```
+aictl check aiproj [flags]
+```
+
+**Пример:**
+
+```bash
+aictl check aiproj -f ./aiproj.json
+aictl check aiproj -f ./aiproj.json --schema-version 1.11
+aictl check aiproj -f ./aiproj.json --json
+aictl check aiproj -f ./aiproj.json -v
+```
+
+**Флаги:**
+
+```
+  -f, --file string              путь к aiproj.json
+  -h, --help                     справка
+      --json                     pretty JSON результат в stdout
+      --schema-version string    версия схемы (1.8, 1.9, 1.10, 1.11); по умолчанию auto-detect
+```
+
 ### `aictl create`
 
 Создание ресурсов на сервере (проект, ветка). Общий флаг `--safe` — не падать, если ресурс уже есть.
