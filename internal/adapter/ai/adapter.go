@@ -132,6 +132,10 @@ func (a *Adapter) UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath 
 	return a.activeClient.UpdateSbom(ctx, projectId, sbomPath)
 }
 
+func (a *Adapter) UpdateScaFeeds(ctx context.Context, path, version string) error {
+	return a.activeClient.UpdateScaFeeds(ctx, path, version)
+}
+
 func (a *Adapter) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
 	return a.activeClient.GetDefaultTemplateId(ctx, reportType)
 }

@@ -4,6 +4,7 @@ import (
 	updateProjectLanguages "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/languages"
 	updateProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sbom"
+	"github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources"
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
 )
@@ -22,12 +23,18 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 	}
 	cmdSbom := update.NewUpdateSbomCmd(a.cfg, sbomUC)
 
+	scaFeedsUC, err := scafeeds.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdScaFeeds := update.NewUpdateScaFeedsCmd(scaFeedsUC)
+
 	cmdProject, err := buildUpdateProjectCmd(a)
 	if err != nil {
 		return nil, err
 	}
 
-	return update.NewUpdateCmd(a.cfg, cmdSources, cmdSbom, cmdProject), nil
+	return update.NewUpdateCmd(a.cfg, cmdSources, cmdSbom, cmdScaFeeds, cmdProject), nil
 }
 
 func buildUpdateProjectCmd(a *adapters) (update.CmdUpdateProject, error) {

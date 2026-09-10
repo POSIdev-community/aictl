@@ -137,6 +137,8 @@ aictl ctx clear -y
 
 `create sbom-project --file` сразу загружает SBOM; для повторной загрузки без пересоздания проекта — `aictl update sbom ./sbom.json`. `get projects` показывает колонку `TYPE` (`source` / `sbom`).
 
+Загрузка SCA feeds (AIE ≥ 6.3): `aictl update sca-feeds ./feeds.zip --version 47`.
+
 ## Миграция с других CLI
 
 ### aisa → aictl
@@ -2204,7 +2206,7 @@ aictl set project exclusions -f ./exclusions.txt
 
 ### `aictl update`
 
-Обновление ресурсов: исходники, языки, настройки скана проекта.
+Обновление ресурсов: исходники, SBOM, SCA feeds, языки, настройки скана проекта.
 
 **Usage:**
 
@@ -2216,6 +2218,7 @@ aictl update [flags]
 
 ```bash
 aictl update sources ./src
+aictl update sca-feeds ./feeds.zip --version 47
 ```
 
 **Флаги:**
@@ -2265,6 +2268,41 @@ aictl update sources ./src -e '**/test/**'
   -t, --token string      токен доступа к AI (переопределяет context)
   -u, --uri string        URI AI-сервера (переопределяет context)
   -v, --verbose           подробный вывод
+  -V, --debug           debug-вывод (цепочки ошибок)
+```
+
+### `aictl update sca-feeds`
+
+Загрузить zip-архив SCA feeds на сервер (AIE ≥ 6.3). На младших версиях — ошибка. Проект/ветка не нужны. Hash (MD5) считается локально.
+
+**Usage:**
+
+```
+aictl update sca-feeds <path> --version <version> [flags]
+```
+
+**Пример:**
+
+```bash
+aictl update sca-feeds ./AI.SCA.Feeds.47.zip --version 47
+aictl update sca-feeds ./feeds.zip --version 1.2.3 -v
+```
+
+**Флаги:**
+
+```
+  -h, --help              справка
+      --version string    версия пакета (обязательный)
+```
+
+**Унаследованные флаги:**
+
+```
+  -l, --log-path string   путь к файлу логов
+      --tls-skip          не проверять TLS-сертификат сервера
+  -t, --token string      токен доступа к AI (переопределяет context)
+  -u, --uri string        URI AI-сервера (переопределяет context)
+  -v, --verbose           подробный вывод (прогресс и сообщение об успехе)
   -V, --debug           debug-вывод (цепочки ошибок)
 ```
 

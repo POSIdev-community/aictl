@@ -4,7 +4,7 @@ Update resources
 
 ### Synopsis
 
-Update project sources, SBOM files, and settings on the server.
+Update project sources, SBOM files, SCA feeds, and settings on the server.
 
 ### Options
 
@@ -24,5 +24,6 @@ Update project sources, SBOM files, and settings on the server.
 * [aictl](aictl.md)	 - Application Inspector ConTroL tool
 * [aictl update project](aictl_update_project.md)	 - Update project
 * [aictl update sbom](aictl_update_sbom.md)	 - Update SBOM
+* [aictl update sca-feeds](aictl_update_sca-feeds.md)	 - Upload SCA feeds package
 * [aictl update sources](aictl_update_sources.md)	 - Update sources
 

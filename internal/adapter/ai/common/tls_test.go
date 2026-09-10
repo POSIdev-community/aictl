@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"math/big"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -111,11 +112,24 @@ func TestNewHTTPTransport(t *testing.T) {
 }
 
 func TestNewHTTPTransport_CloneSafeForHTTPS(t *testing.T) {
-	tr, err := NewHTTPTransport(false, "")
-	require.NoError(t, err)
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
 
-	client := &http.Client{Transport: tr.Clone()}
-	resp, err := client.Get("https://example.com")
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw})
+	caPath := filepath.Join(t.TempDir(), "server-ca.pem")
+	require.NoError(t, os.WriteFile(caPath, certPEM, 0o600))
+
+	tr, err := NewHTTPTransport(false, caPath)
+	require.NoError(t, err)
+	require.True(t, tr.ForceAttemptHTTP2)
+
+	cloned := tr.Clone()
+	require.True(t, cloned.ForceAttemptHTTP2, "Clone must preserve HTTP/2 settings")
+
+	client := &http.Client{Transport: cloned}
+	resp, err := client.Get(server.URL)
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())
 	require.Equal(t, http.StatusOK, resp.StatusCode)

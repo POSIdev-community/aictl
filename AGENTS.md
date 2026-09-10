@@ -130,6 +130,8 @@ flowchart LR
 
 **SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete).
 
+**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `update sca-feeds <zip> --version <ver>` → `POST /api/packages/sca_feeds` (multipart: package + version/fileName/fileSize + MD5 hash lowercase). На 5.x / 6.0 / 6.1–6.2 — ошибка `SCA feeds upload is supported starting from AIE 6.3`.
+
 ## DI (composition root)
 
 `internal/di/container.go` — точка сборки; wiring разбит по файлам:

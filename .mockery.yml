@@ -34,3 +34,6 @@ packages:
   github.com/POSIdev-community/aictl/internal/core/usecase/get/reporttemplates:
     config:
       all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds:
+    config:
+      all: true

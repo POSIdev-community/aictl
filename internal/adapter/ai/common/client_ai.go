@@ -40,6 +40,7 @@ type ClientAi interface {
 	GetProjects(ctx context.Context) ([]project.Project, error)
 	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath string) error
+	UpdateScaFeeds(ctx context.Context, path, version string) error
 	StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error)
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)
