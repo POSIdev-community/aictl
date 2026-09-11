@@ -64,10 +64,9 @@ func UpdateConnectionConfig(cfg *config.Config) error {
 	}
 
 	if tlsSkip {
-		if cfg.CACertPath() != "" {
-			return fmt.Errorf("cannot use 'tls-skip' together with configured cacert")
+		if err := cfg.SetTLSSkip(tlsSkip); err != nil {
+			return err
 		}
-		cfg.SetTLSSkip(tlsSkip)
 	}
 
 	if cacert != "" {

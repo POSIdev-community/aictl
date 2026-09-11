@@ -4,7 +4,7 @@ Set current aictl configuration
 
 ### Synopsis
 
-Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. Clear cacert with: aictl ctx unset --cacert.
+Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. If the other option is already stored in context, unset it first (aictl ctx unset --tls-skip or aictl ctx unset --cacert).
 
 ```
 aictl ctx set [flags]

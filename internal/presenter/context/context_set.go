@@ -33,7 +33,7 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Set current aictl configuration",
-		Long:  `Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. Clear cacert with: aictl ctx unset --cacert.`,
+		Long:  `Update one or more fields in the local aictl context. At least one flag is required. Do not pass both --tls-skip and --no-tls-skip. Do not pass --cacert together with --tls-skip. If the other option is already stored in context, unset it first (aictl ctx unset --tls-skip or aictl ctx unset --cacert).`,
 		Example: `  aictl ctx set -u https://ai.example -t <token>
   aictl ctx set -p <project-id> -b <branch-id>
   aictl ctx set --cacert /path/to/ca.pem
@@ -64,14 +64,15 @@ func NewConfigSetCommand(cfg *config.Config, uc UseCaseConfigSet) CmdConfigSet {
 			}
 
 			if tlsSkipFlag {
-				if cfg.CACertPath() != "" {
-					return validation.NewError("cannot enable 'tls-skip' while 'cacert' is set; unset cacert first")
+				if err := cfg.SetTLSSkip(true); err != nil {
+					return err
 				}
-				cfg.SetTLSSkip(true)
 			}
 
 			if noTlsSkipFlag {
-				cfg.SetTLSSkip(false)
+				if err := cfg.SetTLSSkip(false); err != nil {
+					return err
+				}
 			}
 
 			if cacertFlag != "" {

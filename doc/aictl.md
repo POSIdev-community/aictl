@@ -102,8 +102,10 @@ aictl ctx set -u https://ai.example -t "$TOKEN" --tls-skip
 project_id=$(aictl create project MyApp --safe)
 aictl ctx set -p "$project_id"
 
-# при наличии aiproj:
+# при наличии aiproj (полная замена настроек проекта):
 # aictl set project settings -f ./aiproj.json
+# частичный patch priority/agents (AIE ≥ 6.0):
+# aictl update project settings --priority High
 
 branch_id=$(aictl create branch default --safe)
 aictl ctx set -b "$branch_id"
@@ -184,9 +186,11 @@ aictl get version -u … -t …
 | Код | Когда |
 |-----|--------|
 | **0** | Успех |
-| **1** | Ошибка валидации входных данных, «fail»-условия (`--fail-on-scan-failed`, `--fail-on-policies-rejected` и т.п.), пустой ответ, где это считается ошибкой сценария |
+| **1** | Ошибка валидации входных данных, «fail»-условия (`--fail-on-scan-failed`, `--fail-on-policies-rejected` и т.п.), пустой ответ там, где это ошибка сценария |
 | **2** | Ошибки API / сети / аутентификации / авторизации / not found / ответ сервера |
 | **-1** | Неклассифицированная ошибка |
+
+Для CI ориентируйтесь на **0 / 1 / 2**. Код **-1** означает, что ошибка не попала в типизированные категории клиента.
 
 ## Справочник команд
 
@@ -355,7 +359,7 @@ aictl ctx show
 
 ### `aictl ctx set`
 
-Записать поля в `~/.config/aictl/context.yaml`. Нужен хотя бы один флаг; `--tls-skip` и `--no-tls-skip` вместе нельзя; `--cacert` и `--tls-skip` вместе нельзя. Сброс пути CA: `aictl ctx unset --cacert` (не через пустой `--cacert`).
+Записать поля в `~/.config/aictl/context.yaml`. Нужен хотя бы один флаг; `--tls-skip` и `--no-tls-skip` вместе нельзя; `--cacert` и `--tls-skip` вместе нельзя (в том числе если другой параметр уже сохранён в context — сначала `aictl ctx unset --tls-skip` или `aictl ctx unset --cacert`). Сброс пути CA: `aictl ctx unset --cacert` (не через пустой `--cacert`).
 
 **Usage:**
 
@@ -2039,7 +2043,7 @@ aictl get scan report xml <scan-id> -o ./out.xml -f
 
 ### `aictl set`
 
-Запись конфигурации ресурсов (политики, exclusions, aiproj).
+Полная **замена** конфигурации ресурсов проекта (aiproj, политики, exclusions). Не путать с `update project settings` — там частичный patch приоритета/агентов.
 
 **Usage:**
 
@@ -2101,7 +2105,7 @@ aictl set project policies -f ./policies.json
 
 ### `aictl set project settings`
 
-Загрузить настройки проекта из aiproj/JSON файла (`-f`).
+Полностью **заменить** настройки проекта содержимым aiproj/JSON (`-f`, позиционный аргумент или stdin).
 
 **Usage:**
 
@@ -2206,7 +2210,7 @@ aictl set project exclusions -f ./exclusions.txt
 
 ### `aictl update`
 
-Обновление ресурсов: исходники, SBOM, SCA feeds, языки, настройки скана проекта.
+Обновление ресурсов без полной замены aiproj: исходники, SBOM, SCA feeds, языки, **частичный** patch настроек скана (`update project settings`). Полная замена aiproj — через `set project settings`.
 
 **Usage:**
 
@@ -2342,7 +2346,7 @@ aictl update project settings --priority High
 
 ### `aictl update project settings`
 
-Частично обновить настройки скана проекта (приоритет, агенты). Нужен хотя бы один флаг.
+Частично обновить настройки скана проекта (приоритет, предпочтительные агенты) без замены всего aiproj. Нужен хотя бы один флаг. Требуется AIE ≥ 6.0.
 
 **Usage:**
 
