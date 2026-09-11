@@ -2,6 +2,8 @@
 
 **aictl** (Application Inspector ConTroL) — CLI для управления PT Application Inspector. Проект построен на **hexagonal architecture** с ручным DI. Архитектурные границы проверяются `go-arch-lint check` по всему репозиторию (`.go-arch-lint.yml`, `workdir: .`).
 
+План устранения известного долга: [`doc/adr/0003-architecture-and-cli-refactoring.md`](doc/adr/0003-architecture-and-cli-refactoring.md).
+
 ## Слои и поток данных
 
 ```mermaid
@@ -15,69 +17,77 @@ flowchart TB
     presenter -->|Execute| core
     core -->|ports: AI, CLI, Config| adapter
     core --> domain["internal/core/domain"]
+    core --> apperror["internal/core/apperror"]
     adapter --> domain
+    adapter --> apperror
     adapter --> pkgClientai["pkg/clientai (OpenAPI codegen)"]
-    adapter --> pkgLib["pkg/errs, pkg/logger, …"]
-    app -->|exit codes| pkgLib
+    adapter --> pkgLib["pkg/logger, gitignore, …"]
+    app -->|exit codes| apperror
+    app -->|exit codes| domain
 ```
 
 Типичный путь команды:
 
 1. `cmd/run/main.go` — signal context, `application.NewApplication()`, `Run()`.
-2. `internal/application/application.go` — загрузка context config, `di.InitializeCmd()`, cobra `ExecuteContext`, маппинг exit code.
+2. `internal/application/application.go` — загрузка context config, `di.InitializeCmd()`, cobra `ExecuteContext`, маппинг exit code в `exitcode.go`.
 3. `internal/presenter/*` — cobra-команды: флаги, `PersistentPreRunE` (logger, overlay флагов на config), вызов use case.
-4. `internal/core/usecase/*` — бизнес-логика; зависит только от **локальных port-интерфейсов** и domain.
+4. `internal/core/usecase/*` — бизнес-логика; зависит только от **локальных port-интерфейсов**, domain и при необходимости `apperror`.
 5. `internal/adapter/*` — реализация портов: HTTP к AI-серверу, YAML context, stdout/stderr.
 
-Presenter **не** импортирует adapter напрямую — только use case через интерфейс в конструкторе cobra-команды.
+Presenter **не** импортирует adapter напрямую — только use case через интерфейс в конструкторе cobra-команды. Presenter также **не** импортирует `apperror` (arch-lint).
 
 ## Структура каталогов
 
-| Путь                                                          | Назначение                                                                        |
-|---------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| `cmd/run/`                                                    | Точка входа                                                                       |
-| `cmd/doc/`                                                    | Генерация markdown-документации команд                                            |
-| `internal/application/`                                       | Composition root: bootstrap, exit codes                                           |
-| `internal/di/`                                                | Ручной wiring: adapters → use cases → presenters                                  |
-| `internal/presenter/`                                         | Cobra CLI, grouped: `context`, `create`, `delete`, `get`, `scan`, `set`, `update` |
-| `internal/core/usecase/`                                      | Use cases (по одному пакету на команду/сценарий)                                  |
-| `internal/core/domain/`                                       | Domain models, validation, без зависимостей от `pkg/`                             |
-| `internal/adapter/ai/`                                        | Фасад AI + версионирование 5.x / 6.0 / 6.1–6.2 / 6.3+                            |
-| `internal/adapter/ai/{5_x,6_0,6_1,6_x}/`                      | Маппинг domain ↔ OpenAPI types                                                    |
-| `internal/adapter/ai/client/`                                 | BaseClient, retry, JWT helpers                                                    |
-| `internal/adapter/cli/`                                       | Вывод в терминал, подтверждения                                                   |
-| `internal/adapter/config/`                                    | Чтение/запись `context.yaml`                                                      |
-| `pkg/clientai/{5_x,6_0,6_1,6_x}/`                             | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`)                     |
-| `pkg/errs/`                                                   | Сетевые/API ошибки и их exit codes                                                |
-| `pkg/logger/`, `pkg/fshelper/`, `pkg/version/`, `pkg/metric/` | Утилиты без зависимостей от `internal/`                                           |
+| Путь | Назначение |
+|------|------------|
+| `cmd/run/` | Точка входа |
+| `cmd/doc/` | Генерация markdown-документации команд |
+| `internal/application/` | Composition root: bootstrap, exit codes (`exitcode.go`) |
+| `internal/di/` | Ручной wiring: adapters → use cases → presenters (`check`, `context`, `create`, `delete`, `get`, `scan`, `set`, `update`) |
+| `internal/presenter/` | Cobra CLI: `check`, `context` (`ctx`), `create`, `delete`, `get`, `scan`, `set`, `update` |
+| `internal/core/usecase/` | Use cases (по одному пакету на команду/сценарий); helpers в `usecase/.utils/` |
+| `internal/core/domain/` | Domain models, validation; **без** зависимостей от `pkg/` и `apperror` |
+| `internal/core/apperror/` | Типизированные API/сеть/fail ошибки (не domain) |
+| `internal/adapter/ai/` | Фасад AI + выбор клиента по версии сервера |
+| `internal/adapter/ai/common/` | Shared: `BaseClient`, TLS/HTTP transport, JWT retry, `ClientAi`, init helpers, upload/filters/license |
+| `internal/adapter/ai/{v5_x,v6_0,v6_1,v6_x}/` | Маппинг domain ↔ OpenAPI types (значительное дублирование) |
+| `internal/adapter/ai/client/` | **Leftover** (не shared-слой); не класть новый код сюда — в `common/` |
+| `internal/adapter/cli/` | Вывод в терминал, подтверждения |
+| `internal/adapter/config/` | Чтение/запись `context.yaml` |
+| `pkg/clientai/{v5_x,v6_0,v6_1,v6_x}/` | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`) |
+| `pkg/logger/`, `pkg/fshelper/`, `pkg/gitignore/`, `pkg/version/`, `pkg/metric/` | Утилиты без зависимостей от `internal/` |
+| `tests/e2e/`, `tests/integration/` | Внешние/интеграционные тесты (e2e — build tag `e2e`) |
 
 ## Правила зависимостей (go-arch-lint)
 
-Компоненты и разрешённые зависимости:
+Компоненты и разрешённые зависимости (см. `.go-arch-lint.yml`):
 
 | Компонент | Может зависеть от |
 |-----------|-------------------|
 | `domain` | только `domain` |
-| `core` (use cases) | `core`, `domain`, `pkg_lib` |
+| `apperror` | только `apperror` |
+| `core` (use cases) | `apperror`, `core`, `domain`, `pkg_lib` |
 | `presenter` | `core`, `presenter`, `domain`, `pkg_lib` |
-| `adapter` | `adapter`, `domain`, `pkg_clientai`, `pkg_lib` |
-| `di` | всё внутри `internal/` + `pkg_*` |
-| `application` | `adapter`, `application`, `core`, `di`, `presenter`, `domain`, `pkg_lib` |
+| `adapter` | `adapter`, `apperror`, `domain`, `pkg_clientai`, `pkg_lib` |
+| `di` | `adapter`, `application`, `core`, `di`, `presenter`, `domain`, `pkg_clientai`, `pkg_lib` |
+| `application` | `adapter`, `application`, `apperror`, `core`, `di`, `presenter`, `domain`, `pkg_lib` |
 | `cmd` | `application`, `pkg_lib` |
 | `pkg_clientai` | только `pkg_clientai` |
-| `pkg_lib` | только `pkg_lib` |
+| `pkg_lib` | только `pkg_lib` (`logger`, `fshelper`, `gitignore`, `metric`, `version`) |
+| `tests` | `tests`, `adapter`, `apperror`, `domain`, `pkg_lib` |
 
 **Критично для агентов:**
 
 - Use cases и domain **не импортируют** `pkg/clientai` — маппинг API только в `internal/adapter/ai/`.
 - `pkg/` не импортирует `internal/`.
-- Validation errors живут в `internal/core/domain/validation/`; domain не зависит от `pkg/errs`.
+- Validation errors живут в `internal/core/domain/validation/`; domain **не** зависит от `apperror`.
+- Сетевые/API/fail ошибки — в `internal/core/apperror/`; маппинг в exit codes — **только** в `internal/application/exitcode.go`.
 
 Перед PR: `go-arch-lint check`, `golangci-lint run`, `go test ./...`.
 
 ## Ports (интерфейсы use case)
 
-Каждый use case объявляет **свои** минимальные интерфейсы `AI`, `CLI`, иногда `Config` — это осознанный ISP (Interface Segregation). Mockery генерирует моки рядом с исходником (`{file}_mock.go`, пакет use case); в `.mockery.yml` перечислены только пакеты с тестами.
+Каждый use case объявляет **свои** минимальные интерфейсы `AI`, `CLI`, иногда `Config` — осознанный ISP. Mockery генерирует моки рядом с исходником (`{file}_mock.go`); в `.mockery.yml` перечислены пакеты с тестами (~9 пакетов).
 
 Пример (`get/healthcheck`):
 
@@ -91,55 +101,53 @@ type CLI interface {
 }
 ```
 
-`internal/adapter/ai.Adapter` реализует монолитный `ClientAi` (~25 методов) и делегирует в `activeClient` (5.x, 6.0, 6.1–6.2 или 6.3+). Формальной связи между `ClientAi` и портами use case **нет** — compile-time проверка только через DI.
+`internal/adapter/ai.Adapter` делегирует в `activeClient`; тип `ClientAi` объявлен в `common/client_ai.go` (~47 методов). Формальной связи между `ClientAi` и портами use case **нет** — compile-time проверка только через DI.
 
 ### Initialize vs InitializeWithRetry
 
 | Метод | Поведение |
 |-------|-----------|
-| `Initialize` | Выбор 5.x / 6.0 / 6.1–6.2 / 6.3+ клиента, проверка версии и лицензии |
+| `Initialize` | Table-driven выбор клиента `v6_x` → `v6_1` → `v6_0` → `v5_x`, проверка версии и лицензии (`init.go` + `common.Initializer`) |
 | `InitializeWithRetry` | `Initialize` + `AddJwtRetry()` на активном клиенте |
 
-**Несогласованность:** большинство use cases вызывают `InitializeWithRetry`; `create/branch` и `update/sources` — только `Initialize` (без JWT retry). При добавлении команд — следовать окружающим use cases той же группы или унифицировать на `InitializeWithRetry`.
+**Несогласованность (техдолг, ADR-0003):** большинство use cases вызывают `InitializeWithRetry`; `create/branch` и `update/sources` — только `Initialize`. В `create/branch` wrap ошибочно говорит `"initialize with retry"`. При добавлении команд — **предпочитать `InitializeWithRetry`**, пока исключения не унифицированы.
 
 ## AI adapter: версионирование 5.x / 6.0 / 6.1–6.2 / 6.3+
 
 ```mermaid
 flowchart LR
-    init["Adapter.Initialize"] --> try6x["tryInitializeClient6x"]
-    try6x -->|"version 6.3..7"| active6x["activeClient = 6_x"]
-    try6x -->|skip| reset0["BaseClient.Reset()"]
-    reset0 --> try61["tryInitializeClient61"]
-    try61 -->|"version 6.1..6.3"| active61["activeClient = 6_1"]
-    try61 -->|skip| reset1["BaseClient.Reset()"]
-    reset1 --> try60["tryInitializeClient60"]
-    try60 -->|"version 6.0..6.1"| active60["activeClient = 6_0"]
-    try60 -->|skip| reset2["BaseClient.Reset()"]
-    reset2 --> try5["tryInitializeClient5x"]
-    try5 -->|version 5.x| active5["activeClient = 5_x"]
+    init["Adapter.Initialize"] --> loop["for clientInitializers"]
+    loop -->|"v6_x match 6.3..7"| active6x["activeClient = v6_x"]
+    loop -->|"no match"| reset0["BaseClient.Reset()"]
+    reset0 --> loop
+    loop -->|"v6_1 match 6.1..6.3"| active61["activeClient = v6_1"]
+    loop -->|"v6_0 match 6.0..6.1"| active60["activeClient = v6_0"]
+    loop -->|"v5_x match 5.x"| active5["activeClient = v5_x"]
 ```
 
-- Поддерживаемый диапазон версий сервера: **5.0.0 ≤ ver < 7.0.0** (`adapter.go`, `init.go`).
-- Порядок попыток: **6.3+** (`6_x`) → **6.1–6.2** (`6_1`) → **6.0.x** (`6_0`) → **5.x** (`5_x`). При несовпадении версии — `BaseClient.Reset()` и следующая попытка.
-- Границы: `6_0` для `[6.0.0, 6.1.0)`, `6_1` для `[6.1.0, 6.3.0)`, `6_x` для `[6.3.0, 7.0.0)`.
-- Все клиенты делят один `client.BaseClient` (JWT, HTTP clients). **Параллельное использование двух клиентов невозможно** — shared mutable state.
-- Ручной код маппинга: `internal/adapter/ai/{5_x,6_0,6_1,6_x}/client.go` (~1000 строк каждый, значительное дублирование).
-- Codegen: `pkg/clientai/{5_x,6_0,6_1,6_x}/` — перегенерация через `go generate` в `gen.go`.
+- Поддерживаемый диапазон: **5.0.0 ≤ ver < 7.0.0**.
+- Порядок попыток: **6.3+** (`v6_x`) → **6.1–6.2** (`v6_1`) → **6.0.x** (`v6_0`) → **5.x** (`v5_x`). При несовпадении — `BaseClient.Reset()` и следующий initializer.
+- Границы: `v6_0` → `[6.0.0, 6.1.0)`, `v6_1` → `[6.1.0, 6.3.0)`, `v6_x` → `[6.3.0, 7.0.0)`.
+- Все клиенты делят один `common.BaseClient` (JWT, HTTP). **Параллельное использование двух клиентов невозможно** — shared mutable state.
+- Ручной маппинг: `internal/adapter/ai/v*/client.go` (~1250–1400 строк каждый, сильное дублирование).
+- Codegen: `pkg/clientai/v*/` — `go generate` в `gen.go`.
 
-При правках scan/settings/report — проверять **все четыре** адаптера или выносить shared helpers в `internal/adapter/ai/client/` или новый shared-пакет внутри `adapter/ai/`.
+При правках scan/settings/report — проверять **все четыре** адаптера или выносить shared helpers в **`internal/adapter/ai/common/`** (не в `client/`).
 
-**SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete).
+**TLS:** `common/tls.go` — clone `http.DefaultTransport` (сохраняет HTTP/2), `--cacert` vs `--tls-skip` mutually exclusive; CA PEM **дописывается** к system roots.
 
-**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `update sca-feeds <zip> --version <ver>` → `POST /api/packages/sca_feeds` (multipart: package + version/fileName/fileSize + MD5 hash lowercase). На 5.x / 6.0 / 6.1–6.2 — ошибка `SCA feeds upload is supported starting from AIE 6.3`.
+**SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete, ещё в CLI для совместимости).
 
-**License on scan start:** после `IsValid` на Initialize лицензия кэшируется; перед `scan branch` / `scan project` / `scan sbom` сверяются project settings — нелицензированные языки hard-fail (кроме sbom), SCA/Components/MOLOT soft-disable с persist + warn на stderr (логика как у infr-agent).
+**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `update sca-feeds <zip> --version <ver>` → `POST /api/packages/sca_feeds` (multipart: package + version/fileName/fileSize + MD5 hash lowercase). На младших версиях — ошибка `SCA feeds upload is supported starting from AIE 6.3`.
+
+**License on scan start:** после `IsValid` на Initialize лицензия кэшируется; перед `scan branch` / `scan project` / `scan sbom` сверяются project settings — нелицензированные языки hard-fail (кроме sbom), SCA/Components/MOLOT soft-disable с persist + warn на stderr.
 
 ## DI (composition root)
 
-`internal/di/container.go` — точка сборки; wiring разбит по файлам:
+`internal/di/container.go` — точка сборки; wiring по файлам:
 
 - `adapters.go` — `config.Adapter`, `cli.Adapter`, `ai.Adapter`
-- `context.go`, `create.go`, `delete.go`, `get.go`, `scan.go`, `set.go`, `update.go` — use case → presenter
+- `check.go`, `context.go`, `create.go`, `delete.go`, `get.go`, `scan.go`, `set.go`, `update.go`
 
 Паттерн в каждом `build*Cmd`:
 
@@ -148,64 +156,88 @@ uc, err := someUseCase.NewUseCase(a.ai, a.cli, a.cfg)
 cmd := presenter.NewSomeCmd(uc)
 ```
 
-**Дублирование bootstrap:** `application.NewApplication()` загружает config через `adapter/config` до DI; в `di/adapters.go` создаётся ещё один `configAdapter` для context-команд. Это известный нюанс — не объединять без явной задачи.
+**Дублирование bootstrap:** `application.NewApplication()` загружает config через `adapter/config` до DI; в `di/adapters.go` создаётся ещё один `configAdapter` для `ctx`-команд. Известный нюанс — не объединять без явной задачи (ADR-0003 фаза 5).
 
 ## Config и context
 
 - Domain model: `internal/core/domain/config/` — URI, token, TLS skip, CA cert path (`--cacert`), project/branch UUID.
 - Persistence: `~/.config/aictl/context.yaml` (через `adapter/config`).
-- CLI overlay: глобальные флаги `-u/--uri`, `-t/--token`, `--tls-skip`, `--cacert` на connection-командах через `presenter/.utils/cmd.go` → `UpdateConnectionConfig` + `cfg.Validate()`. `--cacert` и `--tls-skip` взаимоисключающие; сброс пути CA — `ctx unset --cacert`.
-- Ошибки чтения `context.yaml` сейчас **молча** возвращают пустой config (TODO: logging).
+- CLI: команда **`ctx`** (пакет presenter — `context`).
+- Overlay: `-u/--uri`, `-t/--token`, `--tls-skip`, `--cacert` на connection-командах через `presenter/.utils/cmd.go` → `UpdateConnectionConfig` + `cfg.Validate()`. `--cacert` и `--tls-skip` взаимоисключающие; сброс CA — `ctx unset --cacert`.
+- Ошибки чтения/unmarshal `context.yaml` сейчас **молча** возвращают пустой config (`// TODO add log`) — техдолг ADR-0003.
 
 ## Обработка ошибок и exit codes
 
-Два места маппинга (намеренное разделение слоёв):
+Единая точка маппинга: `internal/application/exitcode.go`.
 
-| Слой | Файл | Exit code |
-|------|------|-----------|
-| Validation (`domain/validation`) | `internal/application/exitcode.go` | **1** |
-| Сетевые/API (`pkg/errs`) | `pkg/errs/utils.go` | **1** (nil response), **2** (auth, 4xx, 5xx, not found), **-1** (unknown) |
+| Категория | Типы | Exit code |
+|-----------|------|-----------|
+| Validation | `domain/validation.*` | **1** |
+| Fail flags / сценарий | `apperror.FailError`, `EmptyResponseError` | **1** |
+| API / auth / not found / server | `AuthenticationError`, `AuthorizationError`, `BadRequest*`, `NotFound*`, `ServerResponseError`, `UnknownResponseError`, `*ApiErrorModel*` | **2** |
+| Прочее | нераспознанные / domain sentinels без `%w` / plain `fmt.Errorf` | **-1** |
 
-Use cases оборачивают ошибки через `fmt.Errorf("…: %w", err)` — для `errors.As` в мапперах важно сохранять цепочку `%w`.
+Use cases оборачивают через `fmt.Errorf("…: %w", err)` — для `errors.As` важна цепочка `%w` (не `%s` / `%v` для typed errors).
 
-Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`.
+Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `MessageError`.
+
+**Известный долг:** часть version-gate / presenter validation (например label) и stubs с `fmt.Errorf("%s", const)` попадают в **-1** вместо **1**. При новых ошибках — сразу `validation` или `%w` на sentinel/`apperror`.
 
 ## Presenter conventions
 
 - Каждая команда: struct с `*cobra.Command`, конструктор `New*Cmd(useCase)`.
-- Use case передаётся как **локальный интерфейс** с методом `Execute(ctx, …)`.
+- Use case — **локальный интерфейс** с `Execute(ctx, …)`.
 - Connection-команды: `_utils.AddConnectionPersistentFlags`, `_utils.ChainRunE(_utils.UpdateConfig(cfg), …)`.
+- Offline: `check aiproj` — без connection flags.
 - Root: `PersistentPreRunE: _utils.InitializeLogger` — logger в context (`pkg/logger`).
 - При ошибке use case: `cmd.SilenceUsage = true`, wrap с именем команды.
+- Helpers: `presenter/.utils/` (имя с точкой — историческое).
+
+### CLI semantics (важно для UX)
+
+| Группа | Смысл |
+|--------|--------|
+| `set project settings/policies/exclusions` | **Полная замена** ресурса (aiproj / JSON / text) |
+| `update project settings` | **Patch** priority / preferred agents (AIE ≥ 6.0) |
+| `update project languages` | Пересчёт языков на сервере |
+| `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов |
+| `scan branch` / `scan project` / `scan sbom` | Канонический старт скана |
+| `scan start *` | Obsolete, совместимость |
 
 ## Тестирование
 
-Покрытие минимальное (4 test-файла на ~190 hand-written Go в `internal/`):
+Покрытие заметно шире ранних оценок: порядка **~90+** `*_test.go` под `internal/` плюс `tests/e2e` и `tests/integration`. Моки Mockery (~9) используются в соответствующих пакетах.
 
-- `internal/adapter/ai/client/retry_test.go`
-- `internal/adapter/ai/client_test.go` — version range bounds для `v5_x` / `v6_0` / `v6_1` / `v6_x`
-- `internal/core/usecase/get/scan/report/defaultreport/default_report_test.go`
-- `internal/core/usecase/set/project/settings/settings_test.go`
+Ориентиры:
 
-Mockery-моки (~48 файлов) сгенерированы, но почти не используются. При добавлении тестов — приоритет: init flow 6.3→6.1→6.0→5x, exit code mapping, critical use cases.
+- `internal/adapter/ai/client_test.go`, `common/init_test.go` — version bounds / init;
+- `internal/adapter/ai/common/tls_test.go` — TLS / HTTP/2 / cacert;
+- `internal/application/exitcode_*.go` — exit mapping;
+- use case / presenter tests по критичным командам;
+- e2e: `tests/e2e` (build tag `e2e`, внешние стенды).
+
+При добавлении тестов — приоритет: init 6.3→6.1→6.0→5x, exit codes, scan/license, новые version gates.
 
 ## Рекомендации при изменениях
 
-1. **Новая команда:** domain (если нужны типы) → use case с локальными ports → presenter cobra → wiring в `internal/di/*.go`.
-2. **Новый AI-метод:** добавить в `ClientAi` + `Adapter` delegate → реализовать в **четырёх** `5_x/client.go`, `6_0/client.go`, `6_1/client.go` и `6_x/client.go` → добавить в port нужных use cases.
-3. **OpenAPI изменился:** обновить `swagger.yaml`, `go generate` в `pkg/clientai/{5_x,6_0,6_1,6_x}/`, затем adapter mapping.
-4. **Не нарушать arch-lint:** use case не должен импортировать adapter или `pkg/clientai`.
-5. **Shared logic 5x/6.0/6.1/6.x:** выносить в `internal/adapter/ai/client/` или internal shared helper — главный источник регрессий при дублировании.
-6. **Exit codes:** validation → `exitcode.go`; network/API → `pkg/errs`.
+1. **Новая команда:** domain (если нужны типы) → use case с локальными ports → presenter cobra → wiring в `internal/di/*.go` (+ `check.go` для offline).
+2. **Новый AI-метод:** `common.ClientAi` + `Adapter` delegate → реализовать в **четырёх** `v5_x` / `v6_0` / `v6_1` / `v6_x` (или stub с typed unsupported) → port use case.
+3. **OpenAPI изменился:** обновить `swagger.yaml`, `go generate` в `pkg/clientai/v*/`, затем adapter mapping.
+4. **Не нарушать arch-lint:** use case не импортирует adapter или `pkg/clientai`.
+5. **Shared logic 5x/6.0/6.1/6.x:** выносить в **`internal/adapter/ai/common/`** — главный источник регрессий при дублировании.
+6. **Exit codes:** validation / fail → `exitcode.go` через typed errors; API → `apperror`; не глотать identity через `fmt.Errorf("%s", err)`.
+7. **Init:** по умолчанию `InitializeWithRetry`.
 
 ## CI
 
 GitHub Actions: `arch-lint`, `golangci-lint`, `test`, `check-doc` (генерация `doc/gen/`).
 
-Optional local setup: root `devenv.nix` / `.envrc` — **not a team standard yet**; use only if already adopted. Do not require devenv for contributors.
+Optional local setup: root `devenv.nix` / `.envrc` — **not a team standard yet**; use only if already adopted. Do not require devenv for contributors. `go.work` может ссылаться на соседние модули локально — не коммитить чужие пути как обязательные.
 
-## Документация для пользователей
+## Документация
 
-- `doc/aictl.md` — пользовательский гайд (обзор, установка, все команды и флаги)
+- `doc/aictl.md` — пользовательский гайд (обзор, установка, коды выхода, команды)
 - `doc/gen/` — автоген markdown по cobra (`task doc` / `check-doc`)
 - `doc/migration/` — миграция с aisa / ptai-cli-plugin
+- `doc/adr/` — ADR (в т.ч. 0003 — рефакторинг архитектуры/CLI)
+- `AGENTS.md` — этот файл (для агентов и контрибьюторов)

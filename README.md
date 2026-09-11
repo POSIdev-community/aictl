@@ -4,6 +4,7 @@ ___
 ### Documentation
 
 - [User guide (commands & flags)](doc/aictl.md)
+- [Architecture guide for agents / contributors](AGENTS.md)
 - [Migration: aisa → aictl](doc/migration/aisa-to-aictl.md)
 - [Migration: ptai-cli-plugin → aictl](doc/migration/ptai-cli-plugin-to-aictl.md)
 - [Gap analysis](doc/migration/gap-analysis.md)
