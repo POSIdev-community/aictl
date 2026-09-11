@@ -1,10 +1,10 @@
 ## aictl scan start project
 
-Start project scan (obsolete)
+Start project scan (deprecated)
 
 ### Synopsis
 
-Obsolete: use 'aictl scan project'. Start a scan on an entire project. Project id comes from the argument or context.
+Deprecated: use 'aictl scan project'. Start a scan on an entire project. Project id comes from the argument or context.
 
 ```
 aictl scan start project <project-id> [flags]
@@ -39,5 +39,5 @@ aictl scan start project <project-id> [flags]
 
 ### SEE ALSO
 
-* [aictl scan start](aictl_scan_start.md)	 - Start scan (obsolete)
+* [aictl scan start](aictl_scan_start.md)	 - Start scan (deprecated)
 

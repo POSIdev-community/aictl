@@ -63,6 +63,11 @@ func (app *Application) GenerateDoc(dirPath string) error {
 		return fmt.Errorf("error recreating directory: %v", err)
 	}
 
+	// cobra GenMarkdownTree skips Deprecated commands (same as shell completion).
+	// Keep them in doc/gen while they remain callable compatibility aliases.
+	restore := revealDeprecatedCommandsForDocs(app.cmd.Command)
+	defer restore()
+
 	if err := doc.GenMarkdownTree(app.cmd.Command, dirPath); err != nil {
 		return fmt.Errorf("generate doc: %w", err)
 	}

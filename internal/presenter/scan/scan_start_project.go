@@ -21,9 +21,10 @@ type UseCaseScanStartProject interface {
 
 func NewScanStartProjectCmd(cfg *config.Config, uc UseCaseScanStartProject) CmdScanStartProject {
 	cmd := &cobra.Command{
-		Use:   "project <project-id>",
-		Short: "Start project scan (obsolete)",
-		Long:  `Obsolete: use 'aictl scan project'. Start a scan on an entire project. Project id comes from the argument or context.`,
+		Use:        "project <project-id>",
+		Short:      "Start project scan (deprecated)",
+		Long:       `Deprecated: use 'aictl scan project'. Start a scan on an entire project. Project id comes from the argument or context.`,
+		Deprecated: "use 'aictl scan project'",
 		Example: `  aictl scan start project <project-id>
   aictl scan start project --scan-label release --full-scan`,
 		Args: cobra.MaximumNArgs(1),

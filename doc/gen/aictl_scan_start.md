@@ -1,10 +1,10 @@
 ## aictl scan start
 
-Start scan (obsolete)
+Start scan (deprecated)
 
 ### Synopsis
 
-Obsolete: use 'aictl scan branch' or 'aictl scan project'. Start a full or incremental scan on a project or branch.
+Deprecated: use 'aictl scan branch' or 'aictl scan project'. Start a full or incremental scan on a project or branch.
 
 ```
 aictl scan start [flags]
@@ -33,6 +33,6 @@ aictl scan start [flags]
 ### SEE ALSO
 
 * [aictl scan](aictl_scan.md)	 - Manage scans
-* [aictl scan start branch](aictl_scan_start_branch.md)	 - Start branch scan (obsolete)
-* [aictl scan start project](aictl_scan_start_project.md)	 - Start project scan (obsolete)
+* [aictl scan start branch](aictl_scan_start_branch.md)	 - Start branch scan (deprecated)
+* [aictl scan start project](aictl_scan_start_project.md)	 - Start project scan (deprecated)
 

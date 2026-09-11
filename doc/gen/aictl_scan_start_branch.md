@@ -1,10 +1,10 @@
 ## aictl scan start branch
 
-Start branch scan (obsolete)
+Start branch scan (deprecated)
 
 ### Synopsis
 
-Obsolete: use 'aictl scan branch'. Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.
+Deprecated: use 'aictl scan branch'. Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.
 
 ```
 aictl scan start branch <branch-id> [flags]
@@ -40,5 +40,5 @@ aictl scan start branch <branch-id> [flags]
 
 ### SEE ALSO
 
-* [aictl scan start](aictl_scan_start.md)	 - Start scan (obsolete)
+* [aictl scan start](aictl_scan_start.md)	 - Start scan (deprecated)
 

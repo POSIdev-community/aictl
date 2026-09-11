@@ -202,7 +202,7 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `Messa
 | `update project languages` | Пересчёт языков на сервере |
 | `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов |
 | `scan branch` / `scan project` / `scan sbom` | Канонический старт скана |
-| `scan start *` | Obsolete, совместимость |
+| `scan start *` | Deprecated: скрыт из completion/help родителя, в `doc/gen` и `doc/aictl.md` остаётся; при вызове — warning |
 
 ## Тестирование
 

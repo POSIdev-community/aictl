@@ -2524,9 +2524,9 @@ aictl scan sbom -p <project-id> --scan-label nightly
       --scan-label string   метка скана (до 40 символов)
 ```
 
-### `aictl scan start` (устарело)
+### `aictl scan start` (deprecated)
 
-Устарело: используйте `aictl scan branch` / `aictl scan project`. Команды `scan start *` сохранены для совместимости.
+**Deprecated:** используйте `aictl scan branch` / `aictl scan project`. Команды `scan start *` сохранены для совместимости, скрыты из shell-автодополнения и help родителя; при вызове печатается предупреждение.
 
 ### `aictl scan await`
 
