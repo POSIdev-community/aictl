@@ -2444,6 +2444,11 @@ aictl scan await <scan-id>
 
 Запустить скан ветки (source-проекты). Печатает id скана.
 
+Перед стартом aictl сверяет project settings с лицензией (`GET /api/license`, кэш после подключения):
+нелицензированные языки — ошибка (exit 1); модули SCA / Components / MaliciousCode вне лицензии
+выключаются в настройках проекта навсегда, на stderr пишется предупреждение, скан продолжается.
+Если после фильтра не остаётся ни одного white-box модуля — ошибка без изменения settings.
+
 **Usage:**
 
 ```
@@ -2493,6 +2498,7 @@ aictl scan project <project-id> --full-scan
 ### `aictl scan sbom`
 
 Запустить скан SBOM-проекта (AIE ≥ 6.3). Печатает id скана. Без `--full-scan` (всегда incremental).
+Перед стартом — та же фильтрация лицензируемых модулей, что у `scan branch` / `scan project`, но **без** проверки языков.
 
 **Usage:**
 

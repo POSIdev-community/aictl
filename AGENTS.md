@@ -132,6 +132,8 @@ flowchart LR
 
 **SCA feeds (AIE ≥ 6.3, только `v6_x`):** `update sca-feeds <zip> --version <ver>` → `POST /api/packages/sca_feeds` (multipart: package + version/fileName/fileSize + MD5 hash lowercase). На 5.x / 6.0 / 6.1–6.2 — ошибка `SCA feeds upload is supported starting from AIE 6.3`.
 
+**License on scan start:** после `IsValid` на Initialize лицензия кэшируется; перед `scan branch` / `scan project` / `scan sbom` сверяются project settings — нелицензированные языки hard-fail (кроме sbom), SCA/Components/MOLOT soft-disable с persist + warn на stderr (логика как у infr-agent).
+
 ## DI (composition root)
 
 `internal/di/container.go` — точка сборки; wiring разбит по файлам:

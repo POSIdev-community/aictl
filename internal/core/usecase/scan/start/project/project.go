@@ -7,15 +7,20 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	domainproject "github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scantype"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
+	GetLicense(ctx context.Context) (*domainlicense.License, error)
 	GetProject(ctx context.Context, projectId uuid.UUID) (*domainproject.Project, error)
+	GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error)
+	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error
 	StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error)
 }
 
@@ -49,6 +54,10 @@ func (u *UseCase) Execute(ctx context.Context, scanLabel string, scanType scanty
 	}
 
 	if err = usecaseutils.RequireSourceProject(ctx, u.aiAdapter, u.cfg.ProjectId(), domainproject.ErrCannotRunProjectScanOnSbom); err != nil {
+		return err
+	}
+
+	if err = usecaseutils.ApplyLicenseToProjectSettings(ctx, u.aiAdapter, u.cliAdapter, u.cfg.ProjectId(), usecaseutils.ApplyLicenseOptions{}); err != nil {
 		return err
 	}
 

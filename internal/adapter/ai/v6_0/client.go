@@ -19,6 +19,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -1331,23 +1332,23 @@ func (a *ClientAI60) GetHealthcheck(ctx context.Context) (bool, error) {
 	return health, nil
 }
 
-func (a *ClientAI60) CheckLicense(ctx context.Context) error {
+func (a *ClientAI60) CheckLicense(ctx context.Context) (*domainlicense.License, error) {
 	response, err := a.GetApiLicenseWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
-		return fmt.Errorf("ai check license request: %w", err)
+		return nil, fmt.Errorf("ai check license request: %w", err)
 	}
 
 	statusCode := response.StatusCode()
 	responseBody := string(response.Body)
 	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
-		return fmt.Errorf("ai check license: %w", err)
+		return nil, fmt.Errorf("ai check license: %w", err)
 	}
 
-	if !*response.JSON200.IsValid {
-		return fmt.Errorf("license is invalid")
+	if response.JSON200 == nil || response.JSON200.IsValid == nil || !*response.JSON200.IsValid {
+		return nil, fmt.Errorf("license is invalid")
 	}
 
-	return nil
+	return common.LicenseFromLanguages(common.MapLanguageGroups(response.JSON200.Languages)), nil
 }
 
 func (a *ClientAI60) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {

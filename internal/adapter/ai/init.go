@@ -23,6 +23,8 @@ func (a *Adapter) Initialize(ctx context.Context) error {
 	state := common.InitState{}
 	var candidateErrs []error
 
+	a.cachedLicense = nil
+
 	for _, init := range clientInitializers {
 		client, nextState, matched, err := init.TryInitialize(ctx, a.baseClient, a.cfg, state)
 		state = nextState
@@ -30,7 +32,13 @@ func (a *Adapter) Initialize(ctx context.Context) error {
 			a.serverVersion = state.Version
 			a.activeClient = client
 
-			return a.activeClient.CheckLicense(ctx)
+			lic, licErr := a.activeClient.CheckLicense(ctx)
+			if licErr != nil {
+				return licErr
+			}
+			a.cachedLicense = lic
+
+			return nil
 		}
 		if err != nil {
 			candidateErrs = append(candidateErrs, err)

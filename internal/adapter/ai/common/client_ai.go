@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
+	"github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
@@ -66,6 +67,7 @@ type ClientAi interface {
 	StopScan(ctx context.Context, scanResultId uuid.UUID) error
 	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error
 	GetHealthcheck(ctx context.Context) (bool, error)
-	CheckLicense(ctx context.Context) error
+	// CheckLicense validates IsValid and returns the mapped license for caching.
+	CheckLicense(ctx context.Context) (*license.License, error)
 	GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error)
 }

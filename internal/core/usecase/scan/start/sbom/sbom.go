@@ -7,14 +7,19 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
+	GetLicense(ctx context.Context) (*domainlicense.License, error)
 	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
+	GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error)
+	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error
 	StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error)
 }
 
@@ -48,6 +53,12 @@ func (u *UseCase) Execute(ctx context.Context, scanLabel string) error {
 	}
 
 	if err = usecaseutils.RequireSbomProject(ctx, u.aiAdapter, u.cfg.ProjectId(), project.ErrCannotRunSbomScanOnSource); err != nil {
+		return err
+	}
+
+	if err = usecaseutils.ApplyLicenseToProjectSettings(ctx, u.aiAdapter, u.cliAdapter, u.cfg.ProjectId(), usecaseutils.ApplyLicenseOptions{
+		SkipLanguageCheck: true,
+	}); err != nil {
 		return err
 	}
 

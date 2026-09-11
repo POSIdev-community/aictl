@@ -19,6 +19,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -1331,23 +1332,47 @@ func (a *ClientAI6x) GetHealthcheck(ctx context.Context) (bool, error) {
 	return health, nil
 }
 
-func (a *ClientAI6x) CheckLicense(ctx context.Context) error {
+func (a *ClientAI6x) CheckLicense(ctx context.Context) (*domainlicense.License, error) {
 	response, err := a.GetApiLicenseWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
-		return fmt.Errorf("ai check license request: %w", err)
+		return nil, fmt.Errorf("ai check license request: %w", err)
 	}
 
 	statusCode := response.StatusCode()
 	responseBody := string(response.Body)
 	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
-		return fmt.Errorf("ai check license: %w", err)
+		return nil, fmt.Errorf("ai check license: %w", err)
 	}
 
-	if !*response.JSON200.IsValid {
-		return fmt.Errorf("license is invalid")
+	if response.JSON200 == nil || response.JSON200.IsValid == nil || !*response.JSON200.IsValid {
+		return nil, fmt.Errorf("license is invalid")
 	}
 
-	return nil
+	model := response.JSON200
+	languages := common.MapLanguageGroups(model.Languages)
+
+	var modules []common.LicensedModuleInput
+	modulesPresent := model.LicensedModules != nil
+	if modulesPresent {
+		for _, m := range *model.LicensedModules {
+			entry := common.LicensedModuleInput{}
+			if m.Id != nil {
+				entry.ID = string(*m.Id)
+			}
+			if m.Enabled != nil {
+				entry.Enabled = *m.Enabled
+			}
+			if m.ScanModuleTypes != nil {
+				entry.ScanModuleTypes = make([]string, len(*m.ScanModuleTypes))
+				for i, t := range *m.ScanModuleTypes {
+					entry.ScanModuleTypes[i] = string(t)
+				}
+			}
+			modules = append(modules, entry)
+		}
+	}
+
+	return common.LicenseFromAPI(languages, modules, modulesPresent), nil
 }
 
 func (a *ClientAI6x) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {

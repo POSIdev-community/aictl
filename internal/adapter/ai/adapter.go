@@ -10,6 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
@@ -36,6 +37,7 @@ type Adapter struct {
 	activeClient  ClientAi
 	cfg           *config.Config
 	serverVersion version.Version
+	cachedLicense *domainlicense.License
 }
 
 func NewAdapter(cfg *config.Config) (*Adapter, error) {
@@ -243,8 +245,12 @@ func (a *Adapter) GetHealthcheck(ctx context.Context) (bool, error) {
 	return a.activeClient.GetHealthcheck(ctx)
 }
 
-func (a *Adapter) CheckLicense(ctx context.Context) error {
-	return a.activeClient.CheckLicense(ctx)
+func (a *Adapter) GetLicense(_ context.Context) (*domainlicense.License, error) {
+	if a.cachedLicense == nil {
+		return nil, fmt.Errorf("license is not loaded")
+	}
+
+	return a.cachedLicense, nil
 }
 
 func (a *Adapter) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {
