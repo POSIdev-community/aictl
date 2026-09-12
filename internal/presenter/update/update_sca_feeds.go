@@ -19,7 +19,7 @@ type UseCaseUpdateScaFeeds interface {
 	Execute(ctx context.Context, path, version string) error
 }
 
-func NewUpdateScaFeedsCmd(uc UseCaseUpdateScaFeeds) CmdUpdateScaFeeds {
+func NewUpdateScaFeedsCmd(uc UseCaseUpdateScaFeeds, rollbackUC UseCaseRollbackScaFeeds) CmdUpdateScaFeeds {
 	var (
 		path    string
 		version string
@@ -28,9 +28,10 @@ func NewUpdateScaFeedsCmd(uc UseCaseUpdateScaFeeds) CmdUpdateScaFeeds {
 	cmd := &cobra.Command{
 		Use:   "sca-feeds <path>",
 		Short: "Upload SCA feeds package",
-		Long:  `Upload a SCA feeds zip archive to the server (AIE ≥ 6.3). Requires --version.`,
+		Long:  `Upload a SCA feeds zip archive to the server (AIE ≥ 6.3). Requires --version. Use subcommand rollback to revert current feeds.`,
 		Example: `  aictl update sca-feeds ./AI.SCA.Feeds.47.zip --version 47
-  aictl update sca-feeds ./feeds.zip --version 1.2.3`,
+  aictl update sca-feeds ./feeds.zip --version 1.2.3
+  aictl update sca-feeds rollback -y`,
 		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			path = strings.TrimSpace(args[0])
@@ -70,8 +71,8 @@ func NewUpdateScaFeedsCmd(uc UseCaseUpdateScaFeeds) CmdUpdateScaFeeds {
 		},
 	}
 
-	cmd.Flags().StringVar(&version, "version", "", "Package version (required)")
-	_ = cmd.MarkFlagRequired("version")
+	cmd.Flags().StringVar(&version, "version", "", "Package version (required for upload)")
+	cmd.AddCommand(NewUpdateScaFeedsRollbackCmd(rollbackUC))
 
 	return CmdUpdateScaFeeds{cmd}
 }

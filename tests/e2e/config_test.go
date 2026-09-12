@@ -28,6 +28,7 @@ func TestStandVersion(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
+		{name: "53", stand: "5.3", want: "5.3"},
 		{name: "54", stand: "5.4", want: "5.4"},
 		{name: "60", stand: "6.0", want: "6.0"},
 		{name: "61", stand: "6.1", want: "6.1"},

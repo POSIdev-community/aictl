@@ -5,6 +5,7 @@ import (
 	updateProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/update/project/settings"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sbom"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds"
+	scaFeedsRollback "github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds/rollback"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/update/sources"
 	"github.com/POSIdev-community/aictl/internal/presenter/update"
 )
@@ -27,7 +28,11 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmdScaFeeds := update.NewUpdateScaFeedsCmd(scaFeedsUC)
+	rollbackUC, err := scaFeedsRollback.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdScaFeeds := update.NewUpdateScaFeedsCmd(scaFeedsUC, rollbackUC)
 
 	cmdProject, err := buildUpdateProjectCmd(a)
 	if err != nil {

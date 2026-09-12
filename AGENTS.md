@@ -138,7 +138,7 @@ flowchart LR
 
 **SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete, ещё в CLI для совместимости).
 
-**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `update sca-feeds <zip> --version <ver>` → `POST /api/packages/sca_feeds` (multipart: package + version/fileName/fileSize + MD5 hash lowercase). На младших версиях — ошибка `SCA feeds upload is supported starting from AIE 6.3`.
+**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `get sca-feeds` (list / download by version), `update sca-feeds <zip> --version <ver>` (upload), `update sca-feeds rollback` (confirm / `-y`; stdout = новая version). Upload: `POST /api/packages/sca_feeds` (multipart + MD5). На младших версиях — `SCA feeds is supported starting from AIE 6.3`.
 
 **License on scan start:** после `IsValid` на Initialize лицензия кэшируется; перед `scan branch` / `scan project` / `scan sbom` сверяются project settings — нелицензированные языки hard-fail (кроме sbom), SCA/Components/MOLOT soft-disable с persist + warn на stderr.
 
@@ -201,6 +201,8 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `Messa
 | `update project settings` | **Patch** priority / preferred agents (AIE ≥ 6.0) |
 | `update project languages` | Пересчёт языков на сервере |
 | `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов |
+| `update sca-feeds rollback` | Откат current SCA feeds (predecessor выбирает сервер) |
+| `get sca-feeds` / `get sca-feeds <version>` | Список / скачивание SCA feeds |
 | `scan branch` / `scan project` / `scan sbom` | Канонический старт скана |
 | `scan start *` | Deprecated: скрыт из completion/help родителя, в `doc/gen` и `doc/aictl.md` остаётся; при вызове — warning |
 

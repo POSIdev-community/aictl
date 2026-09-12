@@ -15,6 +15,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
@@ -136,6 +137,18 @@ func (a *Adapter) UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath 
 
 func (a *Adapter) UpdateScaFeeds(ctx context.Context, path, version string) error {
 	return a.activeClient.UpdateScaFeeds(ctx, path, version)
+}
+
+func (a *Adapter) GetScaFeeds(ctx context.Context, statuses []scafeeds.Status) ([]scafeeds.Package, error) {
+	return a.activeClient.GetScaFeeds(ctx, statuses)
+}
+
+func (a *Adapter) DownloadScaFeeds(ctx context.Context, version string) (io.ReadCloser, string, error) {
+	return a.activeClient.DownloadScaFeeds(ctx, version)
+}
+
+func (a *Adapter) RollbackScaFeeds(ctx context.Context) (scafeeds.Package, error) {
+	return a.activeClient.RollbackScaFeeds(ctx)
 }
 
 func (a *Adapter) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {

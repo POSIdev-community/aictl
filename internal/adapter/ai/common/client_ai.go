@@ -12,6 +12,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
@@ -42,6 +43,9 @@ type ClientAi interface {
 	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath string) error
 	UpdateScaFeeds(ctx context.Context, path, version string) error
+	GetScaFeeds(ctx context.Context, statuses []scafeeds.Status) ([]scafeeds.Package, error)
+	DownloadScaFeeds(ctx context.Context, version string) (io.ReadCloser, string, error)
+	RollbackScaFeeds(ctx context.Context) (scafeeds.Package, error)
 	StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error)
 	GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error)
 	GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error)

@@ -50,6 +50,10 @@ type noopUpdateScaFeedsUC struct{}
 
 func (noopUpdateScaFeedsUC) Execute(context.Context, string, string) error { return nil }
 
+type noopRollbackScaFeedsUC struct{}
+
+func (noopRollbackScaFeedsUC) Execute(context.Context, bool) error { return nil }
+
 func TestUpdateSourcesCmd(t *testing.T) {
 	t.Cleanup(resetUpdateFlags)
 	projectID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
@@ -69,7 +73,7 @@ func TestUpdateSourcesCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}), projectCmd)
+		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
 		require.NoError(t, cmdtest.Execute(t, root.Command,
 			"sources", srcDir,
 			"-p", projectID.String(),
@@ -96,7 +100,7 @@ func TestUpdateSourcesCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}), projectCmd)
+		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, uc), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
 		require.Error(t, cmdtest.Execute(t, root.Command, "sources", "/no/such/path"))
 		require.Equal(t, 0, uc.called)
 	})

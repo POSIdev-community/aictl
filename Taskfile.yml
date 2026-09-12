@@ -124,6 +124,7 @@ tasks:
   install:
     desc: Install aictl binary (and bash completion on Linux)
     cmds:
+      - task: build
       - task: install:os
       - task: install:completion
 

@@ -139,7 +139,7 @@ aictl ctx clear -y
 
 `create sbom-project --file` сразу загружает SBOM; для повторной загрузки без пересоздания проекта — `aictl update sbom ./sbom.json`. `get projects` показывает колонку `TYPE` (`source` / `sbom`).
 
-Загрузка SCA feeds (AIE ≥ 6.3): `aictl update sca-feeds ./feeds.zip --version 47`.
+SCA feeds (AIE ≥ 6.3): `aictl get sca-feeds`, `aictl get sca-feeds <version> [-o path]`, `aictl update sca-feeds ./feeds.zip --version 47`, `aictl update sca-feeds rollback -y`.
 
 ## Миграция с других CLI
 
@@ -1157,6 +1157,48 @@ aictl get report-templates --localization ru
   -v, --verbose           подробный вывод
   -V, --debug           debug-вывод (цепочки ошибок)
 ```
+
+### `aictl get sca-feeds`
+
+Список или скачивание SCA feeds пакетов (AIE ≥ 6.3). Без аргументов — таблица; с `<version>` — download. `-o`: путь к новому файлу или существующей директории.
+
+**Usage:**
+
+```
+aictl get sca-feeds [--status ...] [flags]
+aictl get sca-feeds <version> [-o path] [flags]
+```
+
+**Пример:**
+
+```bash
+aictl get sca-feeds
+aictl get sca-feeds --status current --status active
+aictl get sca-feeds 1.2.3 -o ./feeds.zip
+aictl get sca-feeds 1.2.3 -o ./feeds.zip -v
+```
+
+С `-v` при скачивании на stderr печатается прогресс (`downloading sca feeds: N%` каждые 10%) и путь сохранённого файла.
+
+**Флаги:**
+
+```
+  -h, --help            справка
+  -o, --output string   путь файла или существующая директория (только download)
+      --status stringArray   фильтр статуса (repeatable): active, current, archived, rolled_back
+```
+
+**Унаследованные флаги:**
+
+```
+  -l, --log-path string   путь к файлу логов
+      --tls-skip          не проверять TLS-сертификат сервера
+  -t, --token string      токен доступа к AI (переопределяет context)
+  -u, --uri string        URI AI-сервера (переопределяет context)
+  -v, --verbose           подробный вывод (прогресс скачивания и путь файла)
+  -V, --debug           debug-вывод (цепочки ошибок)
+```
+
 
 ### `aictl get scan`
 
@@ -2279,10 +2321,13 @@ aictl update sources ./src -e '**/test/**'
 
 Загрузить zip-архив SCA feeds на сервер (AIE ≥ 6.3). На младших версиях — ошибка. Проект/ветка не нужны. Hash (MD5) считается локально.
 
+Подкоманда `rollback` откатывает текущий пакет на предыдущую версию (выбирает сервер). Новая version — в stdout; human-readable сообщение — в stderr при `-v`.
+
 **Usage:**
 
 ```
 aictl update sca-feeds <path> --version <version> [flags]
+aictl update sca-feeds rollback [-y]
 ```
 
 **Пример:**
@@ -2290,13 +2335,15 @@ aictl update sca-feeds <path> --version <version> [flags]
 ```bash
 aictl update sca-feeds ./AI.SCA.Feeds.47.zip --version 47
 aictl update sca-feeds ./feeds.zip --version 1.2.3 -v
+aictl update sca-feeds rollback -y
 ```
 
 **Флаги:**
 
 ```
   -h, --help              справка
-      --version string    версия пакета (обязательный)
+      --version string    версия пакета (обязательный для upload)
+  -y, --yes               (rollback) пропустить подтверждение
 ```
 
 **Унаследованные флаги:**

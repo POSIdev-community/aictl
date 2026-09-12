@@ -30,6 +30,7 @@ Retrieve AI resources from the server: projects, branches, scans, reports, agent
 * [aictl get projects](aictl_get_projects.md)	 - Get AI projects
 * [aictl get queue](aictl_get_queue.md)	 - Get scan queue
 * [aictl get report-templates](aictl_get_report-templates.md)	 - Get report templates
+* [aictl get sca-feeds](aictl_get_sca-feeds.md)	 - List or download SCA feeds packages
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
 * [aictl get scanning](aictl_get_scanning.md)	 - Get active scans
 * [aictl get scans](aictl_get_scans.md)	 - Get AI scans

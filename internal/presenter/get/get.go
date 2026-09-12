@@ -30,7 +30,8 @@ func NewGetCmd(
 	cmdGetVersion CmdGetVersion,
 	cmdGetQueue CmdGetQueue,
 	cmdGetScanning CmdGetScanning,
-	cmdGetReportTemplates CmdGetReportTemplates) *CmdGet {
+	cmdGetReportTemplates CmdGetReportTemplates,
+	cmdGetScaFeeds CmdGetScaFeeds) *CmdGet {
 
 	cmd := &cobra.Command{
 		Use:               "get",
@@ -51,6 +52,7 @@ func NewGetCmd(
 	cmd.AddCommand(cmdGetQueue.Command)
 	cmd.AddCommand(cmdGetScanning.Command)
 	cmd.AddCommand(cmdGetReportTemplates.Command)
+	cmd.AddCommand(cmdGetScaFeeds.Command)
 
 	_utils.AddConnectionPersistentFlags(cmd)
 

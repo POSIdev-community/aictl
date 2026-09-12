@@ -1,4 +1,8 @@
 stands:
+  "5.3":
+    url: https://aie-53.example.com
+    token: "<token>"
+    aiproj_version: "1.9"
   "5.4":
     url: https://aie-54.example.com
     token: "<token>"

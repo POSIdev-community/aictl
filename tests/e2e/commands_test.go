@@ -20,7 +20,7 @@ import (
 // Skipped (no safe happy-path without extra fixtures / version support):
 //   - get scan report <custom-template> — needs a real template name on the server
 //   - get scan sbom — e2e aiproj has only StaticCodeAnalysis (API returns sbom not found)
-//   - get/update project settings — not on AIE 5.4
+//   - get/update project settings — not on AIE 5.x
 //   - get scan report json-v2 — AIE 6.1+ only
 //   - get scan report xml — on AIE 6.1+ expect error (template removed)
 func TestLeafCommandsOutsideSmoke(t *testing.T) {
@@ -81,9 +81,12 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			run("update", "sources", filepath.Join(fixturesDir, "project"), "-p", projectID, "-b", branchID)
 
 			// stop: start a branch scan and stop it while still running.
+			// Await the stopped scan before starting another — otherwise AIE may
+			// still treat the branch as scheduled (SCAN_ALREADY_SCHEDULED flake).
 			stopScanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, stopScanID)
 			run("scan", "stop", stopScanID)
+			run("scan", "await", stopScanID, "-p", projectID)
 
 			scanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, scanID)
@@ -138,7 +141,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			}
 
 			// priority / preferred-agents / languages settings exist only on AIE 6.0+
-			if standName != standOrder54 {
+			if !isAIE5x(standName) {
 				commands = append(commands,
 					struct {
 						name string
@@ -152,6 +155,20 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 						name string
 						args []string
 					}{"update project languages", []string{"update", "project", "languages", "-p", projectID}},
+				)
+			}
+
+			// SCA feeds packages API exists only on AIE 6.3+
+			if standName == standOrder63 {
+				commands = append(commands,
+					struct {
+						name string
+						args []string
+					}{"get sca-feeds", []string{"get", "sca-feeds"}},
+					struct {
+						name string
+						args []string
+					}{"get sca-feeds --status current", []string{"get", "sca-feeds", "--status", "current"}},
 				)
 			}
 
@@ -208,7 +225,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				require.Error(t, err)
 			})
 
-			if standName == standOrder54 {
+			if isAIE5x(standName) {
 				t.Run("get scan report with-filters unsupported SecretDetection on 5.x", func(t *testing.T) {
 					args := []string{
 						"get", "scan", "report", "with-filters", "sarif", scanID, "-p", projectID,
@@ -298,7 +315,7 @@ func uiLikeReportFilterFlags(standName string) []string {
 		"--scan-module", "Configuration",
 		"--scan-module", "BlackBox",
 	}
-	if standName != standOrder54 {
+	if !isAIE5x(standName) {
 		flags = append(flags,
 			"--scan-module", "MaliciousCodeDetection",
 			"--scan-module", "SecretDetection",

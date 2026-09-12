@@ -16,7 +16,7 @@ func RequireProjectScanSettings(serverVersion version.Version) error {
 	}
 
 	if serverVersion.Less(minVersion) {
-		return validation.NewError("priority and preferred agents settings are not supported on server version 5.4")
+		return validation.NewError("priority and preferred agents settings are not supported on server version 5.x")
 	}
 
 	return nil
@@ -25,19 +25,20 @@ func RequireProjectScanSettings(serverVersion version.Version) error {
 func CopyFileToPath(srcFile io.ReadCloser, fullDestPath string) error {
 	destFile, err := os.Create(fullDestPath)
 	if err != nil {
-		return fmt.Errorf("create target file: %v", err)
+		return fmt.Errorf("create target file: %w", err)
 	}
 
-	defer func(destFile *os.File) {
-		err := destFile.Close()
-		if err != nil {
-			// TODO log it
-		}
-	}(destFile)
+	_, copyErr := io.Copy(destFile, srcFile)
+	closeErr := destFile.Close()
+	if copyErr != nil {
+		_ = os.Remove(fullDestPath)
 
-	_, err = io.Copy(destFile, srcFile)
-	if err != nil {
-		return fmt.Errorf("copy file: %v", err)
+		return fmt.Errorf("copy file: %w", copyErr)
+	}
+	if closeErr != nil {
+		_ = os.Remove(fullDestPath)
+
+		return fmt.Errorf("close target file: %w", closeErr)
 	}
 
 	return nil

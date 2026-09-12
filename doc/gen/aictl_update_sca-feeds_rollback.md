@@ -1,28 +1,27 @@
-## aictl update sca-feeds
+## aictl update sca-feeds rollback
 
-Upload SCA feeds package
+Roll back current SCA feeds package
 
 ### Synopsis
 
-Upload a SCA feeds zip archive to the server (AIE ≥ 6.3). Requires --version. Use subcommand rollback to revert current feeds.
+Roll back the current SCA feeds package to the previous version selected by the server (AIE ≥ 6.3). Prints the new version on stdout.
 
 ```
-aictl update sca-feeds <path> [flags]
+aictl update sca-feeds rollback [flags]
 ```
 
 ### Examples
 
 ```
-  aictl update sca-feeds ./AI.SCA.Feeds.47.zip --version 47
-  aictl update sca-feeds ./feeds.zip --version 1.2.3
+  aictl update sca-feeds rollback
   aictl update sca-feeds rollback -y
 ```
 
 ### Options
 
 ```
-  -h, --help             help for sca-feeds
-      --version string   Package version (required for upload)
+  -h, --help   help for rollback
+  -y, --yes    Skip confirmation prompt
 ```
 
 ### Options inherited from parent commands
@@ -39,6 +38,5 @@ aictl update sca-feeds <path> [flags]
 
 ### SEE ALSO
 
-* [aictl update](aictl_update.md)	 - Update resources
-* [aictl update sca-feeds rollback](aictl_update_sca-feeds_rollback.md)	 - Roll back current SCA feeds package
+* [aictl update sca-feeds](aictl_update_sca-feeds.md)	 - Upload SCA feeds package
 

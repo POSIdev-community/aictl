@@ -37,3 +37,12 @@ packages:
   github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds:
     config:
       all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/update/scafeeds/rollback:
+    config:
+      all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/scafeeds:
+    config:
+      all: true
+  github.com/POSIdev-community/aictl/internal/core/usecase/get/scafeeds/download:
+    config:
+      all: true

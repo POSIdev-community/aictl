@@ -10,6 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 )
 
@@ -74,6 +75,14 @@ type noopReportTemplatesUC struct{}
 func (noopReportTemplatesUC) Execute(context.Context, regexfilter.RegexFilter, bool, string) error {
 	return nil
 }
+
+type noopScaFeedsListUC struct{}
+
+func (noopScaFeedsListUC) Execute(context.Context, []scafeeds.Status) error { return nil }
+
+type noopScaFeedsDownloadUC struct{}
+
+func (noopScaFeedsDownloadUC) Execute(context.Context, string, string) error { return nil }
 
 type noopProjectAiprojUC struct{}
 
@@ -250,6 +259,7 @@ func buildGetRoot(t *testing.T, cfg *config.Config, ucs getUCs) *CmdGet {
 		NewGetQueueCmd(ucs.queue),
 		NewGetScanningCmd(ucs.scanning),
 		NewGetReportTemplatesCmd(ucs.reportTemplates),
+		NewGetScaFeedsCmd(noopScaFeedsListUC{}, noopScaFeedsDownloadUC{}),
 	)
 }
 
