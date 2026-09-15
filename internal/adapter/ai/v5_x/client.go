@@ -446,12 +446,20 @@ func (a *ClientAI5x) CreateProject(ctx context.Context, projectName string) (*uu
 }
 
 func (a *ClientAI5x) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
-	response, err := a.DeleteApiProjectsProjectId(ctx, projectId, a.AddJWTToHeader)
+	response, err := a.DeleteApiProjectsProjectIdWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter delete project request: %w", err)
 	}
 
-	if err = CheckResponse(response, "project"); err != nil {
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v5_x.ApiErrorTypePROJECTNOTFOUND {
+		return apperror.NewNotFoundByIdError("project", projectId.String())
+	}
+
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
 		return fmt.Errorf("ai adapter delete project: %w", err)
 	}
 
