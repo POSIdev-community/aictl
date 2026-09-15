@@ -849,7 +849,9 @@ aictl get project settings --json
 
 ### `aictl get project policies`
 
-Политики качества проекта.
+Политики качества проекта: на stdout — pretty-printed JSON-массив правил
+(без обёртки `SecurityPoliciesModel`). Удобно сохранить в файл и передать
+в `set project policies -f`.
 
 **Usage:**
 
@@ -861,6 +863,7 @@ aictl get project policies [flags]
 
 ```bash
 aictl get project policies
+aictl get project policies -p <project-id> > policies.json
 ```
 
 **Флаги:**
@@ -2183,6 +2186,12 @@ aictl set project settings -f ./aiproj.json
 ### `aictl set project policies`
 
 Задать политики качества (JSON файл, `-` или аргумент).
+
+API ожидает объект `SecurityPoliciesModel`
+(`checkSecurityPoliciesAccordance` + `securityPolicies` как JSON-*строка*).
+Можно передать и сам массив правил (как в aisa `--policy-settings-file`) —
+aictl обернёт его автоматически. Комментарии в файле правил сохраняются
+внутри `securityPolicies`.
 
 **Usage:**
 

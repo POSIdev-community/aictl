@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
 func resetConnectionFlags() {
@@ -201,4 +202,21 @@ func TestDebugLongFlagViaCobra(t *testing.T) {
 	require.True(t, debugFlag)
 	require.True(t, verboseFlag)
 	require.Equal(t, 2, VerboseLevel())
+}
+
+func TestInitializeLogger_PropagatesToParents(t *testing.T) {
+	t.Cleanup(resetConnectionFlags)
+	resetConnectionFlags()
+	verboseFlag = true
+
+	root := &cobra.Command{Use: "root"}
+	leaf := &cobra.Command{Use: "leaf"}
+	root.AddCommand(leaf)
+	root.SetContext(t.Context())
+	leaf.SetContext(root.Context())
+
+	require.NoError(t, InitializeLogger(leaf, nil))
+
+	require.True(t, logger.FromContext(leaf.Context()).IsVerbose())
+	require.True(t, logger.FromContext(root.Context()).IsVerbose())
 }

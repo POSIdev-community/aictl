@@ -115,7 +115,11 @@ func InitializeLogger(cmd *cobra.Command, _ []string) error {
 	}
 	ctx := logger.ContextWithLogger(cmd.Context(), l)
 
-	cmd.SetContext(ctx)
+	// PersistentPreRunE receives the leaf command; propagate so root.Context()
+	// (used by application error reporting) also sees the logger and verbosity.
+	for c := cmd; c != nil; c = c.Parent() {
+		c.SetContext(ctx)
+	}
 
 	return nil
 }

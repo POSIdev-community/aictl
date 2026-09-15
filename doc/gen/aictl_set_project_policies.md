@@ -4,7 +4,11 @@ Set project security policies
 
 ### Synopsis
 
-Replace project security policies with JSON from an argument, file, or stdin. Project id comes from context or -p.
+Replace project security policies. Project id comes from context or -p.
+
+Accepts the API SecurityPoliciesModel object, or a policies JSON array
+(as in aisa --policy-settings-file); arrays are wrapped automatically.
+Comments in the policies file are preserved inside securityPolicies.
 
 ```
 aictl set project policies [json|-] [flags]

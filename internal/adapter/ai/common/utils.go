@@ -16,6 +16,21 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
+// ReadErrorBody reads an HTTP error response body for user-facing messages.
+// Returns "" if r is nil or the read fails.
+func ReadErrorBody(r io.Reader) string {
+	if r == nil {
+		return ""
+	}
+
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
 type MultipartField struct {
 	Key   string
 	Value string

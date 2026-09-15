@@ -95,3 +95,34 @@ func TestReportCommandError_VerboseNoChainOnStderr(t *testing.T) {
 	require.Contains(t, string(content), "Project not found")
 	require.NotContains(t, string(content), "create project:")
 }
+
+func TestReportCommandError_BadRequestBodyOnlyWithVerbose(t *testing.T) {
+	body := `{"Message":"Invalid policy"}`
+	wrapped := fmt.Errorf("set project policies: %w", apperror.NewBadRequestError(body))
+
+	t.Run("quiet", func(t *testing.T) {
+		log, err := logger.NewLogger(logger.LevelQuiet, "")
+		require.NoError(t, err)
+		ctx := logger.ContextWithLogger(context.Background(), log)
+
+		stderr := captureStderr(t, func() {
+			code := reportCommandError(ctx, wrapped)
+			require.Equal(t, ExitCodeAPI, code)
+		})
+
+		require.Equal(t, "Bad Request error\n", stderr)
+	})
+
+	t.Run("verbose", func(t *testing.T) {
+		log, err := logger.NewLogger(logger.LevelVerbose, "")
+		require.NoError(t, err)
+		ctx := logger.ContextWithLogger(context.Background(), log)
+
+		stderr := captureStderr(t, func() {
+			code := reportCommandError(ctx, wrapped)
+			require.Equal(t, ExitCodeAPI, code)
+		})
+
+		require.Equal(t, "Bad Request error\n"+body+"\n", stderr)
+	})
+}

@@ -19,13 +19,14 @@ const (
 type contextKey struct{}
 
 type Logger struct {
-	z    *zap.Logger
-	file *zap.Logger // optional file-only sink (Error / Debug); nil if no --log-path
+	z     *zap.Logger
+	file  *zap.Logger // optional file-only sink (Error / Debug); nil if no --log-path
+	level int
 }
 
 // Wrap builds a Logger around an existing zap logger (tests / special sinks).
 func Wrap(z *zap.Logger) *Logger {
-	return &Logger{z: z}
+	return &Logger{z: z, level: LevelQuiet}
 }
 
 func NewLogger(verboseLevel int, logPath string) (*Logger, error) {
@@ -60,7 +61,12 @@ func NewLogger(verboseLevel int, logPath string) (*Logger, error) {
 	core := zapcore.NewTee(cores...)
 	z := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 
-	return &Logger{z: z, file: fileLogger}, nil
+	return &Logger{z: z, file: fileLogger, level: verboseLevel}, nil
+}
+
+// IsVerbose reports whether -v/--verbose or -V/--debug is enabled.
+func (log *Logger) IsVerbose() bool {
+	return log != nil && log.level >= LevelVerbose
 }
 
 func fileLevelEnabler(includeDebug bool) zap.LevelEnablerFunc {

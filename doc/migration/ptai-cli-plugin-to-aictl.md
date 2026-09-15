@@ -110,7 +110,7 @@ aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 | ptai | aictl |
 |------|-------|
 | `--settings-json` | `set project settings -f` |
-| `--policy-json` | `set project policies -f`; `[]` для очистки — уточнится при использовании |
+| `--policy-json` | `set project policies -f`; массив правил или полный `SecurityPoliciesModel`; `[]` очищает |
 | остальные флаги | как у `ui-ast` |
 
 Создание проекта при отсутствии: `create project` + `set project settings -f` (в ptai `json-ast` создаёт/обновляет из AIPROJ).

@@ -4,7 +4,7 @@ Get project security policies
 
 ### Synopsis
 
-Print project security policies. Project id comes from context or parent -p.
+Print project security policies as a formatted JSON array. Project id comes from context or parent -p.
 
 ```
 aictl get project policies [flags]

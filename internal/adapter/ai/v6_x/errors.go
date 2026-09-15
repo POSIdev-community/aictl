@@ -1,9 +1,9 @@
 package v6_x
 
 import (
-	"io"
 	"net/http"
 
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 )
@@ -17,14 +17,7 @@ func CheckResponse(rsp *http.Response, resourceName string) error {
 		return nil
 	}
 
-	var bytes []byte
-	var body string
-	_, err := rsp.Body.Read(bytes)
-	if err != nil {
-		if err != io.EOF {
-			body = ""
-		}
-	}
+	body := common.ReadErrorBody(rsp.Body)
 
 	return checkResponseCommon(rsp.StatusCode, body, nil, resourceName)
 }
