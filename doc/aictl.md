@@ -389,6 +389,7 @@ aictl ctx set -u https://ai.example -t "$TOKEN"
 ### `aictl ctx show`
 
 Показать текущий context (по умолчанию в удобном виде; опционально JSON/YAML).
+В обычном выводе заданный token маскируется (`<masked>`). В `--json` / `--yaml` token выводится как есть, незаданные поля — как `null` (не как `<unset>`).
 
 **Usage:**
 

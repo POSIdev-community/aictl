@@ -25,7 +25,7 @@ func NewConfigShowCommand(uc UseCaseConfigShow) CmdConfigShow {
 	cmd := &cobra.Command{
 		Use:   "show",
 		Short: "Show current aictl context",
-		Long:  `Print the local aictl context. Default output is human-readable; use --json or --yaml for machine-readable formats (mutually exclusive).`,
+		Long:  `Print the local aictl context. Default output is human-readable with a masked token; use --json or --yaml for machine-readable formats with the raw token (mutually exclusive). In JSON/YAML, unset fields are null instead of "<unset>".`,
 		Example: `  aictl ctx show
   aictl ctx show --json
   aictl ctx show --yaml`,

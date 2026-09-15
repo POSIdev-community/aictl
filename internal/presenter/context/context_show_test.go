@@ -21,6 +21,15 @@ func (f *fakeConfigShowUC) Execute(_ context.Context, json, yaml bool) error {
 }
 
 func TestConfigShowCommand(t *testing.T) {
+	t.Run("default", func(t *testing.T) {
+		uc := &fakeConfigShowUC{}
+		root := newCtxRoot(noopClearUC{}, noopSetUC{}, uc, noopUnsetUC{})
+		require.NoError(t, cmdtest.Execute(t, root.Command, "show"))
+		require.Equal(t, 1, uc.called)
+		require.False(t, uc.json)
+		require.False(t, uc.yaml)
+	})
+
 	t.Run("json", func(t *testing.T) {
 		uc := &fakeConfigShowUC{}
 		root := newCtxRoot(noopClearUC{}, noopSetUC{}, uc, noopUnsetUC{})

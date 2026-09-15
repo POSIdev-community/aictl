@@ -4,7 +4,7 @@ Show current aictl context
 
 ### Synopsis
 
-Print the local aictl context. Default output is human-readable; use --json or --yaml for machine-readable formats (mutually exclusive).
+Print the local aictl context. Default output is human-readable with a masked token; use --json or --yaml for machine-readable formats with the raw token (mutually exclusive). In JSON/YAML, unset fields are null instead of "<unset>".
 
 ```
 aictl ctx show [flags]

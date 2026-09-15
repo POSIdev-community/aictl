@@ -96,36 +96,15 @@ func (a *Adapter) StoreContext(cfg *config.Config) error {
 }
 
 func (a *Adapter) String(cfg *config.Config) (string, error) {
-	fileCfg := fileConfigFromDomainConfig(cfg).fillUnsetSettings()
-
-	str, err := fileCfg.string()
-	if err != nil {
-		return "", err
-	}
-
-	return str, nil
+	return fileConfigFromDomainConfig(cfg).string()
 }
 
 func (a *Adapter) StringJson(cfg *config.Config) (string, error) {
-	fileCfg := fileConfigFromDomainConfig(cfg).fillUnsetSettings()
-
-	str, err := fileCfg.stringJson()
-	if err != nil {
-		return "", err
-	}
-
-	return str, nil
+	return fileConfigFromDomainConfig(cfg).stringJson()
 }
 
 func (a *Adapter) StringYaml(cfg *config.Config) (string, error) {
-	fileCfg := fileConfigFromDomainConfig(cfg).fillUnsetSettings()
-
-	str, err := fileCfg.stringYaml()
-	if err != nil {
-		return "", err
-	}
-
-	return str, nil
+	return fileConfigFromDomainConfig(cfg).stringYaml()
 }
 
 func userConfigDir() (string, error) {
