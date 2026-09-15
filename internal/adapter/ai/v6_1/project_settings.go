@@ -102,7 +102,7 @@ func (a *ClientAI61) putPreferredAgentsSettings(ctx context.Context, projectId u
 
 func priorityFromSettings(s *settings.ScanSettings) v6_1.Priority {
 	if s.Priority == "" {
-		return v6_1.PriorityLow
+		return v6_1.PriorityMedium
 	}
 
 	return v6_1.Priority(s.Priority)

@@ -39,7 +39,7 @@ func (a *ClientAI6x) CreateSbomProject(ctx context.Context, projectName string) 
 	staticCodeAnalysisEnabled := false
 	preferredAgentsOnly := false
 	preferredAgents := []uuid.UUID{}
-	priority := v6_x.PriorityLow
+	priority := v6_x.PriorityMedium
 	targetType := v6_x.SbomBased
 	languages := []v6_x.LegacyProgrammingLanguageGroup{}
 

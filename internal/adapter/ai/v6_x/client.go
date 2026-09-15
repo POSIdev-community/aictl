@@ -409,7 +409,7 @@ func (a *ClientAI6x) CreateProject(ctx context.Context, projectName string) (*uu
 	staticCodeAnalysisEnabled := true
 	preferredAgentsOnly := false
 	preferredAgents := []uuid.UUID{}
-	priority := v6_x.PriorityLow
+	priority := v6_x.PriorityMedium
 
 	projectBaseModel := v6_x.PostApiProjectsBaseJSONRequestBody{
 		Name:       &projectName,
