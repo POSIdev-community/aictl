@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 )
 
@@ -33,6 +34,10 @@ func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 || args[0] == "" {
+				return validation.NewRequiredError("project-name")
+			}
+
 			projectName = args[0]
 
 			return nil

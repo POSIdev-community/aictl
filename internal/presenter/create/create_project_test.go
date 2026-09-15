@@ -2,11 +2,13 @@ package create
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
@@ -52,5 +54,17 @@ func TestCreateProjectCmd(t *testing.T) {
 		})
 		require.Equal(t, "from-stdin", uc.name)
 		require.False(t, uc.safe)
+	})
+
+	t.Run("missing_name", func(t *testing.T) {
+		resetSafeFlag()
+		uc := &fakeCreateProjectUC{}
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
+		err := cmdtest.Execute(t, root.Command, "project")
+		require.Error(t, err)
+		var requiredErr *validation.RequiredError
+		require.True(t, errors.As(err, &requiredErr))
+		require.Equal(t, "project-name", requiredErr.Field)
+		require.Equal(t, 0, uc.called)
 	})
 }
