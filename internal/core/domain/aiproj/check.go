@@ -30,11 +30,19 @@ const (
 )
 
 type Report struct {
-	OK      bool        `json:"ok"`
-	Version string      `json:"version"`
-	Errors  []Issue     `json:"errors"`
-	Kind    FailureKind `json:"-"`
+	OK          bool        `json:"ok"`
+	Version     string      `json:"version"`
+	ProjectName *string     `json:"projectName"`
+	Languages   *[]string   `json:"languages"`
+	Errors      []Issue     `json:"errors"`
+	Kind        FailureKind `json:"-"`
 }
+
+const (
+	errLanguagesRequired = "(root): ProgrammingLanguages is required"
+	errLanguagesNotArray = "(root): ProgrammingLanguages must be of type array"
+	errLanguagesItemType = "(root): ProgrammingLanguages items must be of type string"
+)
 
 func SupportedSchemaVersions() []string {
 	return []string{versions.V1_8, versions.V1_9, versions.V1_10, versions.V1_11}
@@ -66,7 +74,7 @@ func (r Report) HumanMessage() string {
 	case FailureVersionRequired:
 		return FailureVersionRequired.ShortMessage()
 	case FailureVersionMismatch, FailureUnsupportedSchemaVersion, FailureNotDetected:
-		if len(r.Errors) == 1 {
+		if len(r.Errors) >= 1 {
 			return r.Errors[0].Message
 		}
 
@@ -95,6 +103,15 @@ func (r Report) HumanMessage() string {
 
 // Check validates aiproj JSON. Empty schemaVersion means auto-detect via aiproj engine.
 func Check(data []byte, schemaVersion string) (Report, error) {
+	report, err := check(data, schemaVersion)
+	if err != nil {
+		return Report{}, err
+	}
+
+	return enrichReport(data, report), nil
+}
+
+func check(data []byte, schemaVersion string) (Report, error) {
 	if schemaVersion != "" {
 		if !isSupportedSchemaVersion(schemaVersion) {
 			msg := fmt.Sprintf(
@@ -166,6 +183,85 @@ func Check(data []byte, schemaVersion string) (Report, error) {
 	}
 
 	return Report{OK: true, Version: detected, Errors: []Issue{}}, nil
+}
+
+func enrichReport(data []byte, report Report) Report {
+	report.ProjectName = extractProjectName(data)
+
+	langs, langErr := extractLanguages(data)
+	report.Languages = langs
+
+	if langErr != "" {
+		report.Errors = appendIssueIfAbsent(report.Errors, langErr)
+		if report.OK {
+			report.OK = false
+			report.Kind = FailureSchemaInvalid
+		}
+	}
+
+	return report
+}
+
+func extractProjectName(data []byte) *string {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil
+	}
+
+	v, ok := raw["ProjectName"]
+	if !ok || string(v) == "null" {
+		return nil
+	}
+
+	var name string
+	if err := json.Unmarshal(v, &name); err != nil {
+		return nil
+	}
+
+	if name == "" {
+		return nil
+	}
+
+	return &name
+}
+
+func extractLanguages(data []byte) (*[]string, string) {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, errLanguagesRequired
+	}
+
+	v, ok := raw["ProgrammingLanguages"]
+	if !ok || string(v) == "null" {
+		return nil, errLanguagesRequired
+	}
+
+	var items []json.RawMessage
+	if err := json.Unmarshal(v, &items); err != nil {
+		return nil, errLanguagesNotArray
+	}
+
+	langs := make([]string, 0, len(items))
+	for _, item := range items {
+		var s string
+		if err := json.Unmarshal(item, &s); err != nil {
+			return nil, errLanguagesItemType
+		}
+
+		langs = append(langs, s)
+	}
+
+	return &langs, ""
+}
+
+func appendIssueIfAbsent(issues []Issue, msg string) []Issue {
+	for _, issue := range issues {
+		if issue.Message == msg {
+			return issues
+		}
+	}
+
+	return append(issues, Issue{Message: msg})
 }
 
 func isSupportedSchemaVersion(v string) bool {

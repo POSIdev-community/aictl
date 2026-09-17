@@ -46,6 +46,8 @@ func TestUseCase_OK_JSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(cli.stdout[0]), &payload))
 	require.Equal(t, true, payload["ok"])
 	require.Equal(t, "1.11", payload["version"])
+	require.Equal(t, "demo", payload["projectName"])
+	require.Equal(t, []any{"Go"}, payload["languages"])
 	require.Equal(t, []any{}, payload["errors"])
 }
 
@@ -94,6 +96,8 @@ func TestUseCase_Fail_JSON(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(cli.stdout[0]), &payload))
 	require.Equal(t, false, payload["ok"])
 	require.Equal(t, "1.11", payload["version"])
+	require.Nil(t, payload["projectName"])
+	require.Equal(t, []any{"Go"}, payload["languages"])
 	require.NotEmpty(t, payload["errors"])
 }
 

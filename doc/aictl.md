@@ -507,7 +507,7 @@ aictl check aiproj -f ./aiproj.json
 
 ### `aictl check aiproj`
 
-Проверка aiproj/JSON по JSON Schema без обращения к серверу. Ввод как у `set project settings`: `-f`, позиционный JSON или stdin. Опционально `--schema-version` (иначе auto-detect). При `--json` результат (pretty) пишется в stdout; детали schema-ошибок — в JSON, в stderr короткий текст класса ошибки. Input-ошибки (нет файла, не JSON и т.п.) — только human в stderr.
+Проверка aiproj/JSON по JSON Schema без обращения к серверу. Ввод как у `set project settings`: `-f`, позиционный JSON или stdin. Опционально `--schema-version` (иначе auto-detect). При `--json` результат (pretty) пишется в stdout (`ok`, `version`, `projectName`, `languages`, `errors`); `projectName`/`languages` — best-effort из сырого JSON (`null`, если значение не извлечь; пустой `ProgrammingLanguages` → `[]`); детали schema-ошибок — в JSON, в stderr короткий текст класса ошибки. Input-ошибки (нет файла, не JSON и т.п.) — только human в stderr.
 
 **Usage:**
 
