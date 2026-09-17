@@ -31,10 +31,14 @@ func NewCreateSbomProjectCmd(uc UseCaseCreateSbomProject) CmdCreateSbomProject {
 		Long:  `Create a new SBOM project and upload an SBOM file. The name may be passed as an argument or via stdin. With --safe, an existing SBOM project is updated instead of an error.`,
 		Example: `  aictl create sbom-project my-sbom --file ./sbom.json
   aictl create sbom-project my-sbom --file ./sbom.json --safe
-  echo my-sbom | aictl create sbom-project --file ./sbom.json`,
+  echo my-sbom | aictl create sbom-project - --file ./sbom.json`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 || args[0] == "" {
+				return validation.NewRequiredError("project-name")
+			}
+
 			projectName = args[0]
 
 			if filePath == "" {

@@ -34,10 +34,11 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 	cmd := &cobra.Command{
 		Use:   "branch <branch-name>",
 		Short: "Create a branch",
-		Long:  `Create a branch under a project. Optionally pack and upload sources from --scan-target with gitignore-style exclusions. Project id comes from context or -p.`,
+		Long:  `Create a branch under a project. The name may be passed as an argument or via stdin. Optionally pack and upload sources from --scan-target with gitignore-style exclusions. Project id comes from context or -p.`,
 		Example: `  aictl create branch main -p <project-id>
   aictl create branch main -p <project-id> -s ./src -e '*.tmp' --exclude-from .aictlignore
-  aictl create branch main --safe`,
+  aictl create branch main --safe
+  echo main | aictl create branch - -p <project-id>`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
@@ -69,6 +70,10 @@ func NewCreateBranchCmd(cfg *config.Config, uc UseCaseCreateBranch) CmdCreateBra
 			}
 
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 || args[0] == "" {
+				return validation.NewRequiredError("branch-name")
+			}
+
 			branchName = args[0]
 
 			return nil

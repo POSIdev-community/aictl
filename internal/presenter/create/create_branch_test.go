@@ -2,6 +2,7 @@ package create
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
@@ -98,5 +100,18 @@ func TestCreateBranchCmd(t *testing.T) {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "branch", "-", "-p", projectID.String()))
 		})
 		require.Equal(t, "branch-from-stdin", uc.branchName)
+	})
+
+	t.Run("missing_name", func(t *testing.T) {
+		resetSafeFlag()
+		cfg := cmdtest.MustCfg(t)
+		uc := &fakeCreateBranchUC{}
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, uc), NewCreateProjectCmd(noopCreateProjectUC{}), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
+		err := cmdtest.Execute(t, root.Command, "branch", "-p", projectID.String())
+		require.Error(t, err)
+		var requiredErr *validation.RequiredError
+		require.True(t, errors.As(err, &requiredErr))
+		require.Equal(t, "branch-name", requiredErr.Field)
+		require.Equal(t, 0, uc.called)
 	})
 }

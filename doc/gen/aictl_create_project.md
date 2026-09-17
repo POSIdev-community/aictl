@@ -15,7 +15,7 @@ aictl create project <project-name> [flags]
 ```
   aictl create project my-app
   aictl create project my-app --safe
-  echo my-app | aictl create project
+  echo my-app | aictl create project -
 ```
 
 ### Options

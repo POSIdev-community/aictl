@@ -15,7 +15,7 @@ aictl create sbom-project <project-name> [flags]
 ```
   aictl create sbom-project my-sbom --file ./sbom.json
   aictl create sbom-project my-sbom --file ./sbom.json --safe
-  echo my-sbom | aictl create sbom-project --file ./sbom.json
+  echo my-sbom | aictl create sbom-project - --file ./sbom.json
 ```
 
 ### Options
