@@ -6,27 +6,14 @@ COPY VERSION ./
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the rest of the application source code
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
     -ldflags="-X 'github.com/POSIdev-community/aictl/pkg/version.version=$(cat VERSION)' -s -w" \
-    -o /app/main ./cmd/run/main.go
+    -o /out/aictl ./cmd/run/main.go
 
-FROM alpine:latest
+FROM gcr.io/distroless/static:nonroot
 
-RUN addgroup -S aictl && adduser -S aictl -G aictl
+COPY --from=builder /out/aictl /usr/bin/aictl
 
-RUN apk --no-cache add ca-certificates bash curl jq
-RUN mkdir -p ~/.config/aictl
-
-WORKDIR /app
-
-# Copy the built binary from the builder stage
-COPY --from=builder /app/main ./aictl
-ENV PATH="/app:${PATH}"
-
-USER aictl
-
-# Command to run the application
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/usr/bin/aictl"]

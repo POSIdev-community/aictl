@@ -35,6 +35,24 @@ aictl работает с серверами Application Inspector в диапа
 aictl --version
 ```
 
+### Docker
+
+Образ на базе `gcr.io/distroless/static:nonroot` (`linux/amd64`): только бинарь `aictl`, без shell/`curl`/`jq`. Пользователь — `nonroot`; system CA уже в образе. Корпоративный CA в образ не вшивается — передайте PEM через volume и `--cacert` (или `ctx set --cacert`).
+
+```bash
+docker run --rm aictl:<ver> --version
+docker run --rm aictl:<ver> get healthcheck -u "$AI_URI" -t "$AI_TOKEN"
+
+# корпоративный CA
+docker run --rm \
+  -v "$PWD/corp-ca.pem:/certs/corp-ca.pem:ro" \
+  aictl:<ver> get healthcheck -u "$AI_URI" -t "$AI_TOKEN" --cacert /certs/corp-ca.pem
+```
+
+Аргументы после имени образа — подкоманды и флаги `aictl` (`ENTRYPOINT` = `/usr/bin/aictl`). Локальный context в контейнере: `/home/nonroot/.config/aictl/` (writable home Distroless).
+
+Локальная сборка: `task docker` (тег `aictl:<VERSION>` из файла `VERSION`).
+
 ### Токен доступа
 
 Токен создаётся в AIE: **Администрирование → Токены доступа**. Обязательно отметьте галочку **токен для CI/CD**.
