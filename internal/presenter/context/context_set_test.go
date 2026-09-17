@@ -57,7 +57,7 @@ func TestConfigSetCommand(t *testing.T) {
 
 	t.Run("no_tls_skip", func(t *testing.T) {
 		cfg := emptyCfg()
-		cfg.SetTLSSkip(true)
+		require.NoError(t, cfg.SetTLSSkip(true))
 		uc := &fakeConfigSetUC{}
 		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
 		require.NoError(t, cmdtest.Execute(t, root.Command, "set", "--no-tls-skip"))
@@ -86,5 +86,33 @@ func TestConfigSetCommand(t *testing.T) {
 		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
 		require.Error(t, cmdtest.Execute(t, root.Command, "set", "--cacert", ca, "--tls-skip"))
 		require.Equal(t, 0, uc.called)
+	})
+
+	t.Run("rejects_cacert_when_tls_skip_already_set", func(t *testing.T) {
+		ca := filepath.Join(t.TempDir(), "ca.pem")
+		require.NoError(t, os.WriteFile(ca, []byte("-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n"), 0o600))
+
+		cfg := emptyCfg()
+		require.NoError(t, cfg.SetTLSSkip(true))
+		uc := &fakeConfigSetUC{}
+		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
+		require.Error(t, cmdtest.Execute(t, root.Command, "set", "--cacert", ca))
+		require.Equal(t, 0, uc.called)
+		require.True(t, cfg.TLSSkip())
+		require.Empty(t, cfg.CACertPath())
+	})
+
+	t.Run("rejects_tls_skip_when_cacert_already_set", func(t *testing.T) {
+		ca := filepath.Join(t.TempDir(), "ca.pem")
+		require.NoError(t, os.WriteFile(ca, []byte("-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----\n"), 0o600))
+
+		cfg := emptyCfg()
+		require.NoError(t, cfg.SetCACertPath(ca))
+		uc := &fakeConfigSetUC{}
+		root := NewContextCmd(NewConfigClearCommand(noopClearUC{}), NewConfigSetCommand(cfg, uc), NewConfigShowCommand(noopShowUC{}), NewConfigUnsetCommand(noopUnsetUC{}))
+		require.Error(t, cmdtest.Execute(t, root.Command, "set", "--tls-skip"))
+		require.Equal(t, 0, uc.called)
+		require.False(t, cfg.TLSSkip())
+		require.Equal(t, ca, cfg.CACertPath())
 	})
 }

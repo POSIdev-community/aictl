@@ -57,7 +57,7 @@ func TestUseCase_Execute(t *testing.T) {
 				aiAdapter := defaultreport.NewMockAI(t)
 				aiAdapter.On("InitializeWithRetry", t.Context()).Return(nil).Once()
 				aiAdapter.On("GetDefaultTemplateId", t.Context(), reportType).Return(templateID, nil).Once()
-				aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n).Return(reportReader, nil).Once()
+				aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n, report.EmptyFilters()).Return(reportReader, nil).Once()
 
 				cliAdapter := defaultreport.NewMockCLI(t)
 				cliAdapter.On("ShowReader", reportReader).Return(nil).Once()
@@ -69,7 +69,7 @@ func TestUseCase_Execute(t *testing.T) {
 				uc, err := defaultreport.NewUseCase(aiAdapter, cliAdapter, cfg)
 				require.NoError(t, err)
 
-				require.NoError(t, uc.Execute(t.Context(), scanID, reportType, "", includeComments, includeDfd, includeGlossary, l10n))
+				require.NoError(t, uc.Execute(t.Context(), scanID, reportType, "", includeComments, includeDfd, includeGlossary, l10n, report.EmptyFilters()))
 			})
 		}
 	})
@@ -96,7 +96,7 @@ func TestUseCase_Execute(t *testing.T) {
 				aiAdapter := defaultreport.NewMockAI(t)
 				aiAdapter.On("InitializeWithRetry", t.Context()).Return(nil).Once()
 				aiAdapter.On("GetDefaultTemplateId", t.Context(), reportType).Return(templateID, nil).Once()
-				aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n).Return(reportReader, nil).Once()
+				aiAdapter.On("GetReport", t.Context(), projectID, scanID, templateID, includeComments, includeDfd, includeGlossary, l10n, report.EmptyFilters()).Return(reportReader, nil).Once()
 
 				cliAdapter := defaultreport.NewMockCLI(t)
 				cliAdapter.On("ShowTextf", t.Context(), "getting '%s' scan report, scan-id '%v'", []interface{}{reportType.String(), scanID.String()}).Return().Once()
@@ -107,7 +107,7 @@ func TestUseCase_Execute(t *testing.T) {
 				uc, err := defaultreport.NewUseCase(aiAdapter, cliAdapter, cfg)
 				require.NoError(t, err)
 
-				require.NoError(t, uc.Execute(t.Context(), scanID, reportType, filePath, includeComments, includeDfd, includeGlossary, l10n))
+				require.NoError(t, uc.Execute(t.Context(), scanID, reportType, filePath, includeComments, includeDfd, includeGlossary, l10n, report.EmptyFilters()))
 
 				data, err := os.ReadFile(filePath)
 				require.NoError(t, err)

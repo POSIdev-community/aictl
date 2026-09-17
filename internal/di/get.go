@@ -11,6 +11,8 @@ import (
 	getProjects "github.com/POSIdev-community/aictl/internal/core/usecase/get/projects"
 	getQueue "github.com/POSIdev-community/aictl/internal/core/usecase/get/queue"
 	getReportTemplates "github.com/POSIdev-community/aictl/internal/core/usecase/get/reporttemplates"
+	getScaFeeds "github.com/POSIdev-community/aictl/internal/core/usecase/get/scafeeds"
+	getScaFeedsDownload "github.com/POSIdev-community/aictl/internal/core/usecase/get/scafeeds/download"
 	"github.com/POSIdev-community/aictl/internal/core/usecase/get/scan"
 	scanAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/aiproj"
 	scanErrors "github.com/POSIdev-community/aictl/internal/core/usecase/get/scan/errors"
@@ -97,13 +99,23 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 	}
 	cmdReportTemplates := get.NewGetReportTemplatesCmd(reportTemplatesUC)
 
+	scaFeedsListUC, err := getScaFeeds.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	scaFeedsDownloadUC, err := getScaFeedsDownload.NewUseCase(a.ai, a.cli)
+	if err != nil {
+		return nil, err
+	}
+	cmdScaFeeds := get.NewGetScaFeedsCmd(scaFeedsListUC, scaFeedsDownloadUC)
+
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 
-	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdBranch, cmdScans, cmdScan, cmdAgents, cmdVersion, cmdQueue, cmdScanning, cmdReportTemplates), nil
+	return get.NewGetCmd(persistentPreRunEGetCmd, cmdHealthcheck, cmdProjects, cmdProject, cmdBranches, cmdBranch, cmdScans, cmdScan, cmdAgents, cmdVersion, cmdQueue, cmdScanning, cmdReportTemplates, cmdScaFeeds), nil
 }
 
 func buildGetBranchCmd(a *adapters) (get.CmdGetBranch, error) {
-	branchUC, err := getBranch.NewUseCase(a.ai, a.cli)
+	branchUC, err := getBranch.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return get.CmdGetBranch{}, err
 	}
@@ -222,13 +234,17 @@ func buildGetScanReportCmd(a *adapters) (get.CmdGetScanReport, error) {
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetScanCmd := get.NewPersistentPreRunEGetScanCmd(a.cfg, persistentPreRunEGetCmd)
 	persistentPreRunEGetScanReportCmd := get.NewPersistentPreRunEGetScanReportCmd(persistentPreRunEGetScanCmd)
+	persistentPreRunEWithFilters := get.NewPersistentPreRunEGetScanReportWithFiltersCmd(persistentPreRunEGetScanReportCmd)
 
 	customReportUC, err := report.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return get.CmdGetScanReport{}, err
 	}
 
-	return get.NewGetScanReportCmd(customReportUC, persistentPreRunEGetScanReportCmd, cmdReportAutocheck, cmdReportGitlab,
-		cmdReportJson, cmdReportJsonV2, cmdReportMarkdown, cmdReportNist, cmdReportOud4, cmdReportOwasp, cmdReportOwaspm,
-		cmdReportPcidss, cmdReportPlain, cmdReportSans, cmdReportSarif, cmdReportXml), nil
+	cmdReportWithFilters := get.NewGetScanReportWithFiltersCmd(customReportUC, defaultReportUC, persistentPreRunEWithFilters)
+
+	return get.NewGetScanReportCmd(customReportUC, persistentPreRunEGetScanReportCmd, cmdReportWithFilters,
+		cmdReportAutocheck, cmdReportGitlab, cmdReportJson, cmdReportJsonV2, cmdReportMarkdown, cmdReportNist,
+		cmdReportOud4, cmdReportOwasp, cmdReportOwaspm, cmdReportPcidss, cmdReportPlain, cmdReportSans,
+		cmdReportSarif, cmdReportXml), nil
 }

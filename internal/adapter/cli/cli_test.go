@@ -47,7 +47,7 @@ func newTestLogger(out, err *bytes.Buffer) *zap.Logger {
 }
 
 func testCtx(out, errBuf *bytes.Buffer) context.Context {
-	return logger.ContextWithLogger(context.Background(), newTestLogger(out, errBuf))
+	return logger.ContextWithLogger(context.Background(), logger.Wrap(newTestLogger(out, errBuf)))
 }
 
 func newTestAdapter(in io.Reader, out io.Writer) *Adapter {
@@ -86,8 +86,10 @@ func TestShowProjects(t *testing.T) {
 		a.ShowProjects(testCtx(&out, &errBuf), projects)
 		require.Contains(t, out.String(), "ID")
 		require.Contains(t, out.String(), "NAME")
+		require.Contains(t, out.String(), "TYPE")
 		require.Contains(t, out.String(), id.String())
 		require.Contains(t, out.String(), "demo")
+		require.Contains(t, out.String(), "source")
 	})
 
 	t.Run("quiet", func(t *testing.T) {

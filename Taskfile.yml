@@ -124,6 +124,7 @@ tasks:
   install:
     desc: Install aictl binary (and bash completion on Linux)
     cmds:
+      - task: build
       - task: install:os
       - task: install:completion
 
@@ -188,9 +189,9 @@ tasks:
         echo "⇒ Added zsh completion to $zprofile ✅"
 
   docker:
-    desc: Build Docker image
+    desc: Build Docker image (linux/amd64)
     cmds:
-      - docker build -t "aictl:{{.VERSION}}" .
+      - docker build --platform=linux/amd64 -t "aictl:{{.VERSION}}" .
 
   docker-file:
     desc: Save Docker image to tar

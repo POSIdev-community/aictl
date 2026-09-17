@@ -46,5 +46,10 @@ func InitializeCmd(cfg *config.Config) (*presenter.CmdRoot, error) {
 		return nil, err
 	}
 
-	return presenter.NewRootCmd(cmdContext, cmdCreate, cmdDelete, cmdGet, cmdScan, cmdSet, cmdUpdate), nil
+	cmdCheck, err := buildCheckCmd(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return presenter.NewRootCmd(cmdContext, cmdCreate, cmdDelete, cmdGet, cmdScan, cmdSet, cmdUpdate, cmdCheck), nil
 }

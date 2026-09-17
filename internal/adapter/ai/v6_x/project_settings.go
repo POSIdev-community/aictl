@@ -13,7 +13,7 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 )
 
-func (a *ClientAI61) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error) {
+func (a *ClientAI6x) GetProjectSettings(ctx context.Context, projectId uuid.UUID) (settings.ScanSettings, error) {
 	res, err := a.GetApiProjectsProjectIdSettingsWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return settings.ScanSettings{}, fmt.Errorf("get project settings request: %w", err)
@@ -49,7 +49,7 @@ func (a *ClientAI61) GetProjectSettings(ctx context.Context, projectId uuid.UUID
 	return result, nil
 }
 
-func (a *ClientAI61) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
+func (a *ClientAI6x) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, error) {
 	response, err := a.GetAllWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan agents request: %w", err)
@@ -74,7 +74,7 @@ func (a *ClientAI61) GetScanAgents(ctx context.Context) ([]scanagent.ScanAgent, 
 	return agents, nil
 }
 
-func (a *ClientAI61) putPreferredAgentsSettings(ctx context.Context, projectId uuid.UUID, s *settings.ScanSettings) error {
+func (a *ClientAI6x) putPreferredAgentsSettings(ctx context.Context, projectId uuid.UUID, s *settings.ScanSettings) error {
 	preferredAgents := make([]openapi_types.UUID, len(s.PreferredAgentsSettings.PreferredAgents))
 	for i, id := range s.PreferredAgentsSettings.PreferredAgents {
 		preferredAgents[i] = openapi_types.UUID(id)
@@ -102,7 +102,7 @@ func (a *ClientAI61) putPreferredAgentsSettings(ctx context.Context, projectId u
 
 func priorityFromSettings(s *settings.ScanSettings) v6_x.Priority {
 	if s.Priority == "" {
-		return v6_x.PriorityLow
+		return v6_x.PriorityMedium
 	}
 
 	return v6_x.Priority(s.Priority)

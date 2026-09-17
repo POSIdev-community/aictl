@@ -1,8 +1,8 @@
 openapi: 3.0.4
 info:
-  title: Current API v17
-  description: 'API path is case sensitive. To specify the API version in your request, add v{version} after api/ in the address. For example, api/v17/auth.'
-  version: '17'
+  title: Current API v20
+  description: 'API path is case sensitive. To specify the API version in your request, add v{version} after api/ in the address. For example, api/v20/auth.'
+  version: '20'
 paths:
   /api/auth/accessToken:
     get:
@@ -579,6 +579,8 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/SourcesSettingsModel'
+        '204':
+          description: No Content
         '400':
           description: Bad Request
           content:
@@ -1595,6 +1597,26 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+  /api/features:
+    get:
+      tags:
+        - Features
+      summary: Get enabled features
+      description: Get enabled features
+      operationId: GetFeatures
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeaturesModel'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   '/api/fileContent/{projectId}/branches/{branchId}/{file}':
     get:
       tags:
@@ -1678,6 +1700,51 @@ paths:
             application/octet-stream:
               schema:
                 $ref: '#/components/schemas/ApiErrorModel'
+  /api/globalSettings/aiTriageIntegration:
+    get:
+      tags:
+        - GlobalSettings
+      summary: Get AI triage integration status
+      description: Get AI triage integration status
+      operationId: GetAiTriageIntegrationStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTriageIntegrationStatus'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+    post:
+      tags:
+        - GlobalSettings
+      summary: Update AI triage integration status
+      description: Update AI triage integration status
+      operationId: UpdateAiTriageIntegrationStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAiTriageIntegrationStatusRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiTriageIntegrationStatus'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /health/summary:
     get:
       tags:
@@ -1690,6 +1757,84 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthCheckSummaryResult'
+  '/api/projects/{projectId}/scanResults/{scanResultId}/issues/headers':
+    get:
+      tags:
+        - Issues
+      summary: Get localized issue headers for scan
+      operationId: GetIssueHeaders
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: scanResultId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: localeId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueHeader'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/projects/{projectId}/issues/{issueId}/resources':
+    get:
+      tags:
+        - Issues
+      summary: Get localized issue resources
+      operationId: GetIssueResources
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: issueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: localeId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueResource'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/tracker/trackers:
     get:
       tags:
@@ -3103,6 +3248,165 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  /api/packages:
+    get:
+      tags:
+        - Packages
+      summary: Get packages list
+      description: Get packages list with optional filtering
+      operationId: GetPackages
+      parameters:
+        - name: type
+          in: query
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PackageType'
+            nullable: true
+        - name: status
+          in: query
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PackageStatus'
+            nullable: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Package'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/packages/{type}':
+    post:
+      tags:
+        - Packages
+      summary: Upload a new package
+      description: Upload a new package binary together with its metadata. The package `type` is provided in the path so the server can reject concurrent uploads before reading the multipart body.
+      operationId: UploadPackage
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/PackageType'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - package
+                - version
+                - fileName
+                - fileSize
+                - hash
+              type: object
+              properties:
+                package:
+                  type: string
+                  description: Package binary
+                  format: binary
+                version:
+                  type: string
+                fileName:
+                  type: string
+                fileSize:
+                  type: integer
+                  format: int64
+                hash:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/packages/{id}/content':
+    get:
+      tags:
+        - Packages
+      summary: Download a package archive
+      description: Download the stored package archive by its identifier
+      operationId: DownloadPackage
+      parameters:
+        - $ref: '#/components/parameters/packageId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  '/api/packages/{id}/rollback':
+    post:
+      tags:
+        - Packages
+      summary: Roll back the current package version
+      description: Roll back the current package version for the row with the given id to the previous version. The id must refer to a package row with status=current; the service selects the predecessor automatically.
+      operationId: RollbackPackage
+      parameters:
+        - $ref: '#/components/parameters/packageId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/configs/pmGroups:
     get:
       tags:
@@ -3731,6 +4035,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: projectTargetBasedType
+          in: query
+          schema:
+            type: string
         - name: sort
           in: query
           description: Sort options
@@ -3835,56 +4143,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/VulnerabilityModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
-  '/api/projects/{projectId}/scanResults/{scanResultId}/issues/headers':
-    get:
-      tags:
-        - Projects
-      summary: Get issues headers
-      parameters:
-        - name: projectId
-          in: path
-          description: Project`s id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: scanResultId
-          in: path
-          description: Scan result id
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: localeId
-          in: query
-          description: locale to localize headers
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-            text/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
         '400':
           description: Bad Request
           content:
@@ -4045,11 +4303,18 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
-  /api/projects/defaultSettings:
+  '/api/projects/defaultSettings/{projectTargetBasedType}':
     get:
       tags:
         - Projects
-      summary: Get default settings
+      summary: Get default settings based on project target type
+      parameters:
+        - name: projectTargetBasedType
+          in: path
+          description: Project target based type
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProjectTargetBasedType'
       responses:
         '200':
           description: OK
@@ -5088,49 +5353,6 @@ paths:
                   $ref: '#/components/schemas/ActiveScanModel'
         '401':
           description: Unauthorized
-  '/api/projects/{projectId}/issues/{issueId}/resources':
-    get:
-      tags:
-        - Projects
-      summary: Get issue`s descriptions and metadata
-      parameters:
-        - name: projectId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: issueId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: localeId
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/IssueResourcesModel'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-            text/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorModel'
-        '401':
-          description: Unauthorized
   '/api/projects/{projectId}/scanResults/{scanResultId}/progress':
     get:
       tags:
@@ -5314,6 +5536,8 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/ScanObjectModel'
+        '204':
+          description: No Content
         '400':
           description: Bad Request
           content:
@@ -5476,6 +5700,39 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
         '401':
           description: Unauthorized
+  '/api/projects/{projectId}/issues/{issueId}/aiTriage':
+    post:
+      tags:
+        - ProjectsAiTriage
+      summary: Start manual AI triage for an issue
+      description: "Proxies to Backend gRPC. Idempotent — if triage is already InProgress or Finished, returns started=false.\n"
+      operationId: StartManualAiTriage
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: issueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAiTriageResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/reports/templates:
     get:
       tags:
@@ -6219,6 +6476,195 @@ paths:
                 $ref: '#/components/schemas/ApiErrorModel'
     parameters:
       - $ref: '#/components/parameters/scanResultId'
+  '/api/projects/{projectId}/scanResults/{scanResultId}/securityPolicy/acceptRisks':
+    put:
+      tags:
+        - SecurityPolicy
+      summary: Accept security policy risks
+      description: Accept security policy risks for a scan result (Rejected -> Confirmed)
+      operationId: AcceptSecurityPolicyRisks
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+    parameters:
+      - $ref: '#/components/parameters/projectId'
+      - $ref: '#/components/parameters/scanResultId'
+  /api/configs/semgrep:
+    post:
+      tags:
+        - Semgrep
+      summary: Import Semgrep rulepack (one-shot)
+      description: "Upload one or more `.yaml` / `.yml` Semgrep rule files, run preview, then commit with a default plan. Optional `settings` controls conflict resolution (default: skip existing rules by name). For per-rule vulnerability types and fine-grained conflict handling, prefer `preview` + `commit`.\n"
+      operationId: PostSemgrepOneShotRulepack
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - files
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Semgrep rule files (YAML).
+                settings:
+                  $ref: '#/components/schemas/SemgrepOneShotSettings'
+            encoding:
+              settings:
+                contentType: application/json
+        required: true
+      responses:
+        '200':
+          description: OK — aggregate create/update/skip counts and row-level errors.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemgrepCommitResponse'
+        '400':
+          description: 'Bad request (e.g. no files, invalid payload).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  /api/configs/semgrep/archive:
+    post:
+      tags:
+        - Semgrep
+      summary: Import Semgrep rulepack from ZIP (one-shot)
+      description: "Upload a `.zip` archive containing `.yaml` / `.yml` rules, run preview, then commit with a default plan. Optional `settings` controls conflict resolution (default: skip existing rules by name).\n"
+      operationId: PostSemgrepOneShotArchive
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - archive
+              type: object
+              properties:
+                archive:
+                  type: string
+                  description: Zip archive with Semgrep YAML files.
+                  format: binary
+                settings:
+                  $ref: '#/components/schemas/SemgrepOneShotSettings'
+            encoding:
+              settings:
+                contentType: application/json
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemgrepCommitResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  /api/configs/semgrep/preview:
+    post:
+      tags:
+        - Semgrep
+      summary: Preview Semgrep rulepack import
+      description: "Non-mutating. Parses and validates rules, returns `candidates` for a subsequent `commit`, conflicts, partial errors, and vulnerability types for the UI.\n"
+      operationId: PostSemgrepPreviewRulepack
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - files
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemgrepPreviewResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  /api/configs/semgrep/preview/archive:
+    post:
+      tags:
+        - Semgrep
+      summary: Preview Semgrep import from ZIP
+      description: Non-mutating preview for an archive of YAML rules.
+      operationId: PostSemgrepPreviewArchive
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - archive
+              type: object
+              properties:
+                archive:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemgrepPreviewResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+  /api/configs/semgrep/commit:
+    post:
+      tags:
+        - Semgrep
+      summary: Commit Semgrep import
+      description: "Applies `plan` to `candidates` from preview. Commit is idempotent for the same candidates+plan within the server cache window. Each non-`Skip` item must include `vulnerabilityTypeId`.\n"
+      operationId: PostSemgrepCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SemgrepCommitRequest'
+        required: true
+      responses:
+        '200':
+          description: OK — may include `errors` for per-candidate failures (partial success).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemgrepCommitResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
   /api/serverSettings/proxy:
     get:
       tags:
@@ -6657,6 +7103,8 @@ paths:
                 type: array
                 items:
                   type: string
+        '204':
+          description: No Content
         '400':
           description: Bad Request
           content:
@@ -6980,6 +7428,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        '204':
+          description: No Content
         '401':
           description: Unauthorized
         '404':
@@ -7062,6 +7512,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        '204':
+          description: No Content
         '401':
           description: Unauthorized
         '404':
@@ -7241,6 +7693,74 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/ProjectWithBranchCreationResultModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
+  '/api/store/uploadSession/{uploadId}/project/sbom':
+    post:
+      tags:
+        - Store
+      summary: Create SBOM-based project with the uploaded SBOM file. Will use the file from the specified upload session
+      parameters:
+        - name: uploadId
+          in: path
+          description: Upload session id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectWithBranchCreationResultModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ProjectWithBranchCreationResultModel'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorModel'
+        '401':
+          description: Unauthorized
+  '/api/store/uploadSession/{uploadId}/project/{projectId}/sbom':
+    post:
+      tags:
+        - Store
+      summary: Replace the SBOM file of an existing SBOM-based project. Will use the file from the specified upload session
+      parameters:
+        - name: uploadId
+          in: path
+          description: Upload session id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: projectId
+          in: path
+          description: Project id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
         '400':
           description: Bad Request
           content:
@@ -7870,6 +8390,47 @@ components:
             - $ref: '#/components/schemas/ScanInfo'
           nullable: true
       additionalProperties: false
+    AiTriageIntegrationStatus:
+      required:
+        - isEnabled
+        - agreementAccepted
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+        publicBaseUrl:
+          type: string
+          description: "Base URL of the AI Triage HTTP API for this installation (same value as backend AiTriage:BaseUrl). Returned on GET for UI display only; clients must not send this field on POST (ignored if present).\n"
+          nullable: true
+          readOnly: true
+        aiAssistant:
+          type: boolean
+          description: "Whether manual AI triage is licensed (`license_features.parameters.ai_assistant` from FLUS license token). Returned on GET and POST; clients must not send this field on POST (ignored if present).\n"
+          readOnly: true
+        aiAssistantAuto:
+          type: boolean
+          description: "Whether automated AI triage is licensed (`license_features.parameters.ai_assistant_auto` from FLUS license token). Returned on GET and POST; clients must not send this field on POST (ignored if present).\n"
+          readOnly: true
+        agreementAccepted:
+          type: boolean
+          description: "Whether the AI triage agreement is accepted according to persisted installation settings (DB). On GET/POST response this is the stored value. On POST request use `UpdateAiTriageIntegrationStatusRequest.agreementAccepted` — the client must send it explicitly.\n"
+      additionalProperties: false
+    AiTriageStatus:
+      enum:
+        - NotSet
+        - NotStarted
+        - InProgress
+        - Finished
+        - FinishedWithError
+      type: string
+      description: AI triage lifecycle status for an issue
+    AiTriageVerdict:
+      enum:
+        - NotSet
+        - TruePositive
+        - FalsePositive
+        - OutOfScope
+      type: string
     AnalysisRulesSettingsModel:
       required:
         - applyAllPmRules
@@ -8003,6 +8564,8 @@ components:
         - PM_RULE_IMPORT_INVALID_FORMAT
         - PM_RULE_IMPORT_NO_FILES_SENT
         - PM_RULE_IMPORT_INVALID_IMPORT_SETTINGS
+        - INVALID_SEMGREP_RULE
+        - YAML_TOO_LARGE
         - ENTITY_NOT_FOUND
         - ROW_NOT_FOUND
         - INVALID_PROJECT_TYPE
@@ -8070,6 +8633,7 @@ components:
         - LICENSE_FINGERPRINT_ERROR
         - LICENSE_WITHOUT_FINGERPRINT
         - LANGUAGE_NOT_ALLOWED_BY_LICENCE
+        - MODULE_NOT_ALLOWED_BY_LICENCE
         - LICENSED_AGENTS_LIMIT_EXCEED
         - COULD_NOT_STORE_LICENSE
         - LICENSE_SERVICE_NOT_AVAILABLE
@@ -8129,6 +8693,10 @@ components:
         - EMPTY_CHECKOUT_SETTINGS
         - COULD_NOT_CHANGE_VCS_CONNECTION_SETTINGS
         - COULD_NOT_CHANGE_VCS_TARGET_ENV
+        - OPERATION_NOT_APPLICABLE_TO_VIRTUAL_BRANCH
+        - OPERATION_NOT_APPLICABLE_TO_PROJECTS_OF_THIS_TYPE
+        - INVALID_PROJECT_TARGET_BASED_TYPE
+        - PROJECT_TARGET_BASED_TYPE_NOT_SUPPORTED
         - INCOMPATIBLE_VERSION
         - CANNOT_MERGE_SCAN_HISTORY
         - CONFLICTING_ENTITIES
@@ -8137,6 +8705,24 @@ components:
         - SMTP_HOST_CONNECTION_FORBIDDEN
         - INVALID_MODULES_FOR_SECRET_DETECTION
         - INVALID_LANGUAGE_FOR_MALICIOUS_CODE
+        - PACKAGE_TYPE_NOT_FOUND
+        - PACKAGE_STATUS_NOT_FOUND
+        - PACKAGE_VERSION_IS_OUTDATED
+        - UPLOAD_ALREADY_IN_PROGRESS
+        - PACKAGE_NOT_FOUND
+        - PACKAGE_IS_INCORRECT
+        - PACKAGE_VERSION_ALREADY_EXISTS
+        - AI_TRIAGE_INTEGRATION_DISABLED
+        - AI_TRIAGE_INTEGRATION_UNAVAILABLE
+        - AI_TRIAGE_AGREEMENT_NOT_ACCEPTED
+        - AI_TRIAGE_AUTO_NOT_LICENSED
+        - AI_TRIAGE_UNSUPPORTED_ISSUE_TYPE
+        - CANNOT_ASSIGN_ROLE_WITH_BROADER_PERMISSIONS
+        - SECURITY_POLICY_IS_ALREADY_CONFIRMED
+        - INVALID_CANDIDATE
+        - INVALID_VULNERABILITY_TYPE
+        - COMMIT_FAILED
+        - SCAN_AGENT_DID_NOT_SET_STATUS
       type: string
     AuthProviderScheme:
       enum:
@@ -8256,6 +8842,12 @@ components:
           $ref: '#/components/schemas/Priority'
         preferredAgentsSettings:
           $ref: '#/components/schemas/PreferredAgentsSettings'
+        projectTargetBasedType:
+          $ref: '#/components/schemas/ProjectTargetBasedType'
+        automatedAiTriageEnabled:
+          type: boolean
+        automatedAiTriageMinSeverity:
+          $ref: '#/components/schemas/IssueLevel'
       additionalProperties: false
     BaseTicketLinkModel:
       type: object
@@ -8501,6 +9093,8 @@ components:
         name:
           type: string
           nullable: true
+        isVirtual:
+          type: boolean
       additionalProperties: false
     BranchModel:
       type: object
@@ -8508,6 +9102,8 @@ components:
         id:
           type: string
           format: uuid
+        isVirtual:
+          type: boolean
         sourcesChangingDate:
           type: string
           format: date-time
@@ -8528,6 +9124,8 @@ components:
         id:
           type: string
           format: uuid
+        isVirtual:
+          type: boolean
         isWorking:
           type: boolean
         lastScan:
@@ -8700,6 +9298,8 @@ components:
           nullable: true
         permissionCheckStrategy:
           $ref: '#/components/schemas/PermissionCheckStrategy'
+        allowExpiredAccessToken:
+          type: boolean
       additionalProperties: false
     CodeChunkModel:
       type: object
@@ -8784,26 +9384,30 @@ components:
         oAuth:
           $ref: '#/components/schemas/OAuthCredentialsModel'
       additionalProperties: false
-    CvssModel:
+    CVSSItem:
+      required:
+        - version
+        - score
+        - vector
+        - severity
       type: object
       properties:
-        baseVector:
-          type: string
-          nullable: true
-        baseScore:
-          type: string
-          nullable: true
         version:
           type: string
-          nullable: true
+        score:
+          type: number
+          format: float
+        vector:
+          type: string
         severity:
           $ref: '#/components/schemas/IssueLevel'
-      additionalProperties: false
     DataFormat:
       enum:
         - Regex
         - Dsl
+        - Semgrep
       type: string
+      description: Pattern-matching rule body format.
     DefaultProjectSettingsModel:
       type: object
       properties:
@@ -8908,6 +9512,12 @@ components:
           $ref: '#/components/schemas/BlackBoxSettingsBaseModel'
         preferredAgentsSettings:
           $ref: '#/components/schemas/PreferredAgentsSettings'
+        projectTargetBasedType:
+          $ref: '#/components/schemas/ProjectTargetBasedType'
+        automatedAiTriageEnabled:
+          type: boolean
+        automatedAiTriageMinSeverity:
+          $ref: '#/components/schemas/IssueLevel'
       additionalProperties: false
     DeleteQueueItems:
       required:
@@ -9012,6 +9622,11 @@ components:
           type: boolean
         perpetual:
           type: boolean
+        licensedModules:
+          type: array
+          items:
+            $ref: '#/components/schemas/LicensedModuleModel'
+          nullable: true
       additionalProperties: false
     ErrorBaseModel:
       type: object
@@ -9059,6 +9674,8 @@ components:
           type: boolean
         preferredAgentsSettings:
           $ref: '#/components/schemas/PreferredAgentsSettings'
+        projectTargetBasedType:
+          $ref: '#/components/schemas/ProjectTargetBasedType'
       additionalProperties: false
     ExtendedIssueTrackerIntegrationSettingsModel:
       type: object
@@ -9132,6 +9749,10 @@ components:
           $ref: '#/components/schemas/VcsConnectionSettingsModel'
         priority:
           $ref: '#/components/schemas/Priority'
+        automatedAiTriageEnabled:
+          type: boolean
+        automatedAiTriageMinSeverity:
+          $ref: '#/components/schemas/IssueLevel'
       additionalProperties: false
     ExtendedScanStatisticModel:
       type: object
@@ -9186,8 +9807,8 @@ components:
         scanDuration:
           type: string
           format: date-span
-        policyState:
-          $ref: '#/components/schemas/PolicyState'
+        securityPolicyStatus:
+          $ref: '#/components/schemas/SecurityPolicyStatusModel'
       additionalProperties: false
     ExternalLoggingSettingsModel:
       type: object
@@ -9196,6 +9817,15 @@ components:
           $ref: '#/components/schemas/SyslogTargetModel'
         elasticSearch:
           $ref: '#/components/schemas/ElasticSearchTargetModel'
+      additionalProperties: false
+    FeaturesModel:
+      required:
+        - kubernetes
+      type: object
+      properties:
+        kubernetes:
+          type: boolean
+          description: Indicates if Kubernetes feature is enabled
       additionalProperties: false
     FieldInfoModel:
       type: object
@@ -9415,6 +10045,10 @@ components:
         email:
           type: string
           nullable: true
+        id:
+          type: string
+          format: uuid
+          nullable: true
       additionalProperties: false
     InitiatorModel:
       type: object
@@ -9451,41 +10085,6 @@ components:
         - NotExist
         - AutoApproval
       type: string
-    IssueComponentMetadataModel:
-      type: object
-      properties:
-        componentName:
-          type: string
-          nullable: true
-        cveId:
-          type: string
-          nullable: true
-        cvss2:
-          $ref: '#/components/schemas/CvssModel'
-        cvss3:
-          $ref: '#/components/schemas/CvssModel'
-      additionalProperties: false
-    IssueDescriptionModel:
-      type: object
-      properties:
-        identity:
-          type: string
-          nullable: true
-        issueType:
-          $ref: '#/components/schemas/IssueType'
-        header:
-          type: string
-          nullable: true
-        descriptionText:
-          type: string
-          nullable: true
-        descriptionHtml:
-          type: string
-          nullable: true
-        descriptionMarkdown:
-          type: string
-          nullable: true
-      additionalProperties: false
     IssueExploitDataModel:
       type: object
       properties:
@@ -9504,6 +10103,16 @@ components:
             $ref: '#/components/schemas/ExploitParameterData'
           nullable: true
       additionalProperties: false
+    IssueHeader:
+      required:
+        - identity
+        - title
+      type: object
+      properties:
+        identity:
+          type: string
+        title:
+          type: string
     IssueLevel:
       enum:
         - None
@@ -9512,45 +10121,87 @@ components:
         - Medium
         - High
       type: string
-    IssueMetadataModel:
+      description: PM issue level (stored on the rule; Semgrep YAML `severity` does not override this on CRUD).
+    IssueResource:
+      required:
+        - identity
+        - level
+        - sourceType
+        - title
+        - descriptionMarkdown
       type: object
       properties:
         identity:
           type: string
-          nullable: true
-        issueType:
-          $ref: '#/components/schemas/IssueType'
         level:
           $ref: '#/components/schemas/IssueLevel'
-        cweId:
+        sourceType:
+          $ref: '#/components/schemas/SourceType'
+        title:
           type: string
-          nullable: true
-        owaspId:
+        descriptionMarkdown:
           type: string
+        metadata:
+          allOf:
+            - $ref: '#/components/schemas/IssueResourceMetadata'
           nullable: true
-        pciId:
-          type: string
-          nullable: true
-        nist:
-          type: string
-          nullable: true
-        component:
-          $ref: '#/components/schemas/IssueComponentMetadataModel'
-      additionalProperties: false
-    IssueResourcesModel:
+    IssueResourceMetadata:
+      required:
+        - cwe
+        - owasp
+        - nist
+        - pci
       type: object
       properties:
-        descriptions:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/IssueDescriptionModel'
+        cwe:
+          type: array
+          items:
+            type: integer
+            format: int32
+        owasp:
+          type: array
+          items:
+            type: string
+        nist:
+          type: array
+          items:
+            type: string
+        pci:
+          type: array
+          items:
+            type: string
+        component:
+          allOf:
+            - $ref: '#/components/schemas/IssueResourceMetadataComponent'
           nullable: true
-        metadatas:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/IssueMetadataModel'
-          nullable: true
-      additionalProperties: false
+    IssueResourceMetadataComponent:
+      required:
+        - componentName
+        - cvssScores
+        - aliases
+        - exploitConditions
+        - workaround
+        - vulnerabilityType
+      type: object
+      properties:
+        componentName:
+          type: string
+        cvssScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/CVSSItem'
+        aliases:
+          type: array
+          items:
+            type: string
+        exploitConditions:
+          type: array
+          items:
+            type: string
+        workaround:
+          type: string
+        vulnerabilityType:
+          type: string
     IssueTrackerAuthType:
       enum:
         - Unknown
@@ -9745,6 +10396,25 @@ components:
         - Scala
         - OneC
       type: string
+    LicensedModuleId:
+      enum:
+        - Sca
+        - MaliciousCode
+        - StandProjects
+      type: string
+    LicensedModuleModel:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/LicensedModuleId'
+        enabled:
+          type: boolean
+        scanModuleTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanModuleType'
+          nullable: true
+      additionalProperties: false
     LightMailProfileModel:
       type: object
       properties:
@@ -10090,6 +10760,87 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    Package:
+      required:
+        - id
+        - status
+        - packageType
+        - version
+        - fileName
+        - fileSize
+        - fileHash
+        - triggeredBy
+        - uploadedAt
+        - lastModifiedAt
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        status:
+          $ref: '#/components/schemas/PackageStatus'
+        packageType:
+          $ref: '#/components/schemas/PackageType'
+        version:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        fileHash:
+          type: string
+        triggeredBy:
+          $ref: '#/components/schemas/PackageTrigger'
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedBy:
+          allOf:
+            - $ref: '#/components/schemas/PackageUser'
+          nullable: true
+        lastModifiedAt:
+          type: string
+          format: date-time
+        lastModifiedBy:
+          allOf:
+            - $ref: '#/components/schemas/PackageUser'
+          nullable: true
+      additionalProperties: false
+    PackageStatus:
+      enum:
+        - active
+        - current
+        - archived
+        - rolled_back
+      type: string
+    PackageTrigger:
+      enum:
+        - manual
+        - scheduled
+      type: string
+    PackageType:
+      enum:
+        - sca_feeds
+      type: string
+    PackageUser:
+      required:
+        - id
+        - userName
+        - email
+        - tokenName
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        email:
+          type: string
+        tokenName:
+          type: string
+      additionalProperties: false
     PermissionCheckStrategy:
       enum:
         - Any
@@ -10121,6 +10872,7 @@ components:
         - ReadMailProfileSettings
         - ManageReportSettings
         - ReadReportSettings
+        - ManageAiTriageIntegration
         - ManageSSOSettings
         - ReadSSOSettings
         - ManageUsers
@@ -10139,8 +10891,10 @@ components:
         - CreateIssueTrackerTicket
         - ChangeVulnStatusWithoutComment
         - ManageBranches
+        - AcceptSecurityPolicyRisks
         - WorkWithScanScheduler
         - SetAutoApprove
+        - ManagePackages
       type: string
     PhpSettingsModel:
       type: object
@@ -10281,6 +11035,25 @@ components:
         - User
         - System
       type: string
+      description: Whether the PM vulnerability type was created by the product or a user.
+    PmRuleVulnType:
+      required:
+        - id
+        - name
+        - creationType
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        creationType:
+          $ref: '#/components/schemas/PmRuleVulnCreationType'
+      additionalProperties: false
     PmRuleVulnTypeCreatingModel:
       type: object
       properties:
@@ -10539,6 +11312,12 @@ components:
         projectSettingsId:
           type: string
           format: uuid
+        projectTargetBasedType:
+          $ref: '#/components/schemas/ProjectTargetBasedType'
+        virtualBranchId:
+          type: string
+          format: uuid
+          nullable: true
       additionalProperties: false
     ProjectPermissionsModel:
       type: object
@@ -10652,6 +11431,10 @@ components:
           $ref: '#/components/schemas/VcsConnectionSettingsModel'
         priority:
           $ref: '#/components/schemas/Priority'
+        automatedAiTriageEnabled:
+          type: boolean
+        automatedAiTriageMinSeverity:
+          $ref: '#/components/schemas/IssueLevel'
       additionalProperties: false
     ProjectSettingsUpdateModel:
       type: object
@@ -10692,6 +11475,10 @@ components:
           $ref: '#/components/schemas/VcsConnectionSettingsModel'
         priority:
           $ref: '#/components/schemas/Priority'
+        automatedAiTriageEnabled:
+          type: boolean
+        automatedAiTriageMinSeverity:
+          $ref: '#/components/schemas/IssueLevel'
       additionalProperties: false
     ProjectSortColumnId:
       enum:
@@ -10704,6 +11491,7 @@ components:
         - LastScanTotal
         - LastScanFilesOrUrlsScanned
         - Pinned
+        - ProjectTargetBasedType
       type: string
     ProjectSortModel:
       type: object
@@ -10732,6 +11520,12 @@ components:
           type: integer
           format: int32
       additionalProperties: false
+    ProjectTargetBasedType:
+      enum:
+        - SourceBased
+        - StandBased
+        - SbomBased
+      type: string
     ProjectType:
       enum:
         - Permanent
@@ -10849,6 +11643,12 @@ components:
         projectSettingsId:
           type: string
           format: uuid
+        projectTargetBasedType:
+          $ref: '#/components/schemas/ProjectTargetBasedType'
+        virtualBranchId:
+          type: string
+          format: uuid
+          nullable: true
       additionalProperties: false
     ProxySettingsModel:
       type: object
@@ -10876,35 +11676,6 @@ components:
         - Socks4
         - Socks5
       type: string
-    PtOsvModel:
-      type: object
-      properties:
-        id:
-          type: string
-          nullable: true
-        sources:
-          type: array
-          items:
-            type: string
-          nullable: true
-        cwes:
-          type: array
-          items:
-            type: integer
-            format: int32
-          nullable: true
-        cvssItems:
-          type: array
-          items:
-            $ref: '#/components/schemas/CvssModel'
-          nullable: true
-        descriptionMarkdown:
-          type: string
-          nullable: true
-        summary:
-          type: string
-          nullable: true
-      additionalProperties: false
     PygrepVulnerabilityModel:
       type: object
       properties:
@@ -11329,6 +12100,9 @@ components:
         sourceName:
           type: string
           nullable: true
+        sbomFileName:
+          type: string
+          nullable: true
         localSourceType:
           $ref: '#/components/schemas/LocalSourceType'
         repositoryUrl:
@@ -11552,6 +12326,9 @@ components:
         sourceName:
           type: string
           nullable: true
+        sbomFileName:
+          type: string
+          nullable: true
         localSourceType:
           $ref: '#/components/schemas/LocalSourceType'
         repositoryUrl:
@@ -11566,7 +12343,7 @@ components:
         - Language
         - Modules
         - LicenseExpired
-        - ScanSchedulerIsLocked
+        - LanguageRequired
       type: string
     ScanStatisticLightModel:
       type: object
@@ -11620,8 +12397,8 @@ components:
         scanDuration:
           type: string
           format: date-span
-        policyState:
-          $ref: '#/components/schemas/PolicyState'
+        securityPolicyStatus:
+          $ref: '#/components/schemas/SecurityPolicyStatusModel'
       additionalProperties: false
     ScanType:
       enum:
@@ -11649,6 +12426,194 @@ components:
           type: boolean
         securityPolicies:
           type: string
+          nullable: true
+      additionalProperties: false
+    SecurityPolicyStatusModel:
+      type: object
+      properties:
+        policyState:
+          $ref: '#/components/schemas/PolicyState'
+        initiator:
+          $ref: '#/components/schemas/InitiatorModel'
+        updatedAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    SemgrepCommitAction:
+      enum:
+        - Replace
+        - CreateCopy
+        - Skip
+      type: string
+    SemgrepCommitPlanItem:
+      required:
+        - candidateId
+        - action
+      type: object
+      properties:
+        candidateId:
+          type: string
+          format: uuid
+        action:
+          $ref: '#/components/schemas/SemgrepCommitAction'
+        vulnerabilityTypeId:
+          type: string
+          description: "Required for `Replace` and `CreateCopy`; ignored for `Skip`. Must reference an existing `PmRuleVulnType`.\n"
+          format: uuid
+          nullable: true
+      additionalProperties: false
+    SemgrepCommitRequest:
+      required:
+        - candidates
+        - plan
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepRuleCandidate'
+          description: Candidates from the preview response (must be sent back unchanged).
+        plan:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepCommitPlanItem'
+      additionalProperties: false
+    SemgrepCommitResponse:
+      required:
+        - created
+        - updated
+        - skipped
+        - errors
+      type: object
+      properties:
+        created:
+          type: integer
+        updated:
+          type: integer
+        skipped:
+          type: integer
+        importedRuleNames:
+          type: array
+          items:
+            type: string
+        skippedRuleNames:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepImportError'
+      additionalProperties: false
+    SemgrepConflict:
+      required:
+        - candidateId
+        - existingPmRuleId
+        - existingRuleName
+      type: object
+      properties:
+        candidateId:
+          type: string
+          format: uuid
+        existingPmRuleId:
+          type: string
+        existingRuleName:
+          type: string
+        existingRuleUpdatedAt:
+          type: string
+          description: Last modification time of the existing PM rule (for conflict comparison UI).
+          format: date-time
+          nullable: true
+      additionalProperties: false
+    SemgrepImportError:
+      required:
+        - errorCode
+        - message
+      type: object
+      properties:
+        candidateId:
+          type: string
+          description: Present when the error relates to a specific import candidate.
+          format: uuid
+          nullable: true
+        fileName:
+          type: string
+          description: Source file path/name when available (e.g. YAML or zip entry).
+          nullable: true
+        errorCode:
+          $ref: '#/components/schemas/ApiErrorType'
+        message:
+          type: string
+      additionalProperties: false
+    SemgrepOneShotSettings:
+      type: object
+      properties:
+        conflictStrategy:
+          $ref: '#/components/schemas/SemgrepCommitAction'
+      additionalProperties: false
+    SemgrepPreviewResponse:
+      required:
+        - candidates
+        - conflicts
+        - errors
+        - vulnerabilityTypes
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepRuleCandidate'
+          description: Valid Semgrep rule candidates from preview (also sent back unchanged on commit).
+        conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepConflict'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SemgrepImportError'
+          description: Per-document or per-rule validation failures; import can still succeed partially.
+        vulnerabilityTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PmRuleVulnType'
+          description: PM vulnerability type catalog for the import UI dropdown.
+      additionalProperties: false
+    SemgrepRuleCandidate:
+      required:
+        - candidateId
+        - name
+        - level
+        - dataFormat
+        - value
+      type: object
+      properties:
+        candidateId:
+          type: string
+          description: 'Stable id of the candidate within an import snapshot (ties preview, conflicts, errors, and commit plan).'
+          format: uuid
+        name:
+          type: string
+          description: PM rule name; for Semgrep import typically matches YAML `id`.
+        description:
+          type: string
+          description: Short description; often mapped from YAML `message` on import (may be truncated server-side).
+          nullable: true
+        level:
+          $ref: '#/components/schemas/IssueLevel'
+        dataFormat:
+          $ref: '#/components/schemas/DataFormat'
+        value:
+          type: string
+          description: "Full Semgrep YAML for one rule: root `rules` with exactly one list item. Formatting is preserved end-to-end until the scan engine consumes it.\n"
+        existingPmRuleId:
+          type: string
+          description: 'If set, a PM rule with the same name already exists (used for conflict resolution).'
+          nullable: true
+        suggestedVulnerabilityType:
+          allOf:
+            - $ref: '#/components/schemas/PmRuleVulnType'
+          description: "PM vulnerability type suggested from YAML metadata.cwe.\n"
           nullable: true
       additionalProperties: false
     SortType:
@@ -11829,6 +12794,10 @@ components:
         - Empty
         - Local
         - SourceControl
+        - SAST
+        - BB
+        - SCA
+        - DC
       type: string
     SSOSettingsModel:
       type: object
@@ -11856,6 +12825,18 @@ components:
         - Enqueued
         - Autocheck
       type: string
+    StartAiTriageResponse:
+      required:
+        - status
+        - started
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AiTriageStatus'
+        started:
+          type: boolean
+          description: True if this call enqueued triage; false if already InProgress or Finished (idempotent no-op).
+      additionalProperties: false
     StatusType:
       type: object
       properties:
@@ -11993,6 +12974,18 @@ components:
         - Unknown
         - Jira
       type: string
+    UpdateAiTriageIntegrationStatusRequest:
+      required:
+        - isEnabled
+        - agreementAccepted
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+        agreementAccepted:
+          type: boolean
+          description: "Explicit user confirmation of the AI triage data-processing agreement. Must be `true` when `isEnabled` is `true`.\n"
+      additionalProperties: false
     UpdateMemberModel:
       type: object
       properties:
@@ -12289,6 +13282,15 @@ components:
           $ref: '#/components/schemas/MaliciousCodeModel'
         language:
           $ref: '#/components/schemas/ProgrammingLanguageGroup'
+        aiTriageComment:
+          type: string
+          nullable: true
+        aiTriageVerdict:
+          $ref: '#/components/schemas/AiTriageVerdict'
+        aiTriageStatus:
+          $ref: '#/components/schemas/AiTriageStatus'
+        aiTriageSupportedForIssueType:
+          type: boolean
       additionalProperties: false
     VulnerabilityModel:
       type: object
@@ -12367,6 +13369,10 @@ components:
           type: boolean
         language:
           $ref: '#/components/schemas/ProgrammingLanguageGroup'
+        aiTriageVerdict:
+          $ref: '#/components/schemas/AiTriageVerdict'
+        aiTriageStatus:
+          $ref: '#/components/schemas/AiTriageStatus'
       additionalProperties: false
     VulnerableCodeModel:
       type: object
@@ -12437,7 +13443,7 @@ components:
         ptOsvs:
           type: array
           items:
-            $ref: '#/components/schemas/PtOsvModel'
+            type: string
           nullable: true
         component:
           type: string
@@ -12495,6 +13501,14 @@ components:
       description: 'If value is true, stops current scan'
       schema:
         type: boolean
+    projectId:
+      name: projectId
+      in: path
+      description: Project identifier
+      required: true
+      schema:
+        type: string
+        format: uuid
     scanResultId:
       name: scanResultId
       in: path
@@ -12503,6 +13517,14 @@ components:
       schema:
         type: string
         format: uuid
+    packageId:
+      name: id
+      in: path
+      description: Package row identifier (current version row to roll back)
+      required: true
+      schema:
+        type: integer
+        format: int32
   securitySchemes:
     Bearer:
       type: apiKey
@@ -12510,7 +13532,39 @@ components:
       name: Authorization
       in: header
 security:
-  - Bearer: [ ]
+  - { }
 tags:
+  - name: Branches
+  - name: ChangeHistory
+  - name: Configs
+  - name: IssueTracker
+  - name: IssueTrackerOauth1A
+  - name: License
+  - name: Logs
+  - name: Mailing
+  - name: PMGroups
+  - name: PmRuleVulnTypes
+  - name: Projects
+  - name: Reports
+  - name: ServerSettings
+  - name: Settings
+  - name: Version
+  - name: AccessToken
+  - name: Auth
+  - name: ExternalAuth
+  - name: Membership
+  - name: Role
+  - name: User
+  - name: DirectoryContent
+  - name: FileContent
+  - name: SourceControl
+  - name: Store
   - name: Agents
+  - name: GlobalSettings
+  - name: ProjectsAiTriage
   - name: ScanQueue
+  - name: Features
+  - name: Packages
+  - name: SecurityPolicy
+  - name: Semgrep
+  - name: Issues

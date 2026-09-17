@@ -2,11 +2,13 @@ package create
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
@@ -36,7 +38,7 @@ func TestCreateProjectCmd(t *testing.T) {
 	t.Run("with_safe", func(t *testing.T) {
 		resetSafeFlag()
 		uc := &fakeCreateProjectUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "my-app", "--safe"))
 		require.Equal(t, 1, uc.called)
 		require.Equal(t, "my-app", uc.name)
@@ -46,11 +48,23 @@ func TestCreateProjectCmd(t *testing.T) {
 	t.Run("stdin_dash", func(t *testing.T) {
 		resetSafeFlag()
 		uc := &fakeCreateProjectUC{}
-		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc))
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
 		cmdtest.WithStdin(t, "from-stdin\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "-"))
 		})
 		require.Equal(t, "from-stdin", uc.name)
 		require.False(t, uc.safe)
+	})
+
+	t.Run("missing_name", func(t *testing.T) {
+		resetSafeFlag()
+		uc := &fakeCreateProjectUC{}
+		root := NewCreateCmd(cfg, NewCreateBranchCmd(cfg, noopCreateBranchUC{}), NewCreateProjectCmd(uc), NewCreateSbomProjectCmd(noopCreateSbomProjectUC{}))
+		err := cmdtest.Execute(t, root.Command, "project")
+		require.Error(t, err)
+		var requiredErr *validation.RequiredError
+		require.True(t, errors.As(err, &requiredErr))
+		require.Equal(t, "project-name", requiredErr.Field)
+		require.Equal(t, 0, uc.called)
 	})
 }

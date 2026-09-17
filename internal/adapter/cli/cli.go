@@ -11,6 +11,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
@@ -46,12 +47,16 @@ func (cli *Adapter) AskConfirmation(ctx context.Context, question string) (bool,
 
 func (cli *Adapter) ShowProjects(ctx context.Context, projects []project.Project) {
 	log := logger.FromContext(ctx)
-	const format = "%-36s\t%s"
+	const format = "%-36s\t%-40s\t%s"
 
-	log.StdOutf(format, "ID", "NAME")
+	log.StdOutf(format, "ID", "NAME", "TYPE")
 
 	for _, p := range projects {
-		log.StdOutf(format, p.Id, p.Name)
+		typ := p.Type
+		if typ == "" {
+			typ = project.TypeSource
+		}
+		log.StdOutf(format, p.Id, p.Name, typ)
 	}
 }
 
@@ -214,5 +219,29 @@ func (cli *Adapter) ShowProjectSettings(ctx context.Context, view settings.Proje
 	log.StdOut("Preferred agents:")
 	for _, id := range view.PreferredAgents {
 		log.StdOutf("  %s", id)
+	}
+}
+
+func (cli *Adapter) ShowScaFeeds(ctx context.Context, packages []scafeeds.Package) {
+	log := logger.FromContext(ctx)
+	// Fixed widths (spaces, not tabs) so columns stay aligned in the terminal.
+	const format = "%-12s %-12s %-28s %-10s %-8s %-10s %-20s %s"
+
+	log.StdOutf(format,
+		"VERSION", "STATUS", "FILE", "SIZE", "HASH", "TRIGGER",
+		"UPLOADED_AT", "UPLOADED_BY",
+	)
+
+	for _, p := range packages {
+		log.StdOutf(format,
+			p.Version,
+			p.Status,
+			p.FileName,
+			formatIECSize(p.FileSize),
+			shortHash(p.FileHash),
+			p.TriggeredBy,
+			formatRFC3339(p.UploadedAt),
+			formatPackageUser(p.UploadedBy),
+		)
 	}
 }

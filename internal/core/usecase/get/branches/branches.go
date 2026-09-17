@@ -8,12 +8,15 @@ import (
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
+	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error)
 }
 
@@ -44,6 +47,10 @@ func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, q
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
+	}
+
+	if err = usecaseutils.RequireSourceProject(ctx, u.aiAdapter, u.cfg.ProjectId(), project.ErrCannotGetBranchesOnSbom); err != nil {
+		return err
 	}
 
 	branches, err := u.aiAdapter.GetBranches(ctx, u.cfg.ProjectId())

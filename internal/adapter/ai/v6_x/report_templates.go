@@ -13,7 +13,7 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 )
 
-func (a *ClientAI61) GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error) {
+func (a *ClientAI6x) GetReportTemplates(ctx context.Context, localization string) ([]report.Template, error) {
 	withContent := false
 	params := &v6_x.GetApiReportsTemplatesParams{
 		LocaleId:    &localization,

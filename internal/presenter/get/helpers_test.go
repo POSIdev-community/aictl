@@ -10,6 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 )
 
@@ -24,6 +25,7 @@ func resetGetPackageFlags() {
 	includeDFD = false
 	includeGlossary = false
 	l10n = "en"
+	resetReportFilterFlags()
 }
 
 type noopHealthcheckUC struct{}
@@ -74,6 +76,14 @@ func (noopReportTemplatesUC) Execute(context.Context, regexfilter.RegexFilter, b
 	return nil
 }
 
+type noopScaFeedsListUC struct{}
+
+func (noopScaFeedsListUC) Execute(context.Context, []scafeeds.Status) error { return nil }
+
+type noopScaFeedsDownloadUC struct{}
+
+func (noopScaFeedsDownloadUC) Execute(context.Context, string, string) error { return nil }
+
 type noopProjectAiprojUC struct{}
 
 func (noopProjectAiprojUC) Execute(context.Context, string) error { return nil }
@@ -117,7 +127,7 @@ func (noopScanStatisticUC) Execute(context.Context, uuid.UUID, string, bool) err
 type noopDefaultReportUC struct{}
 
 func (noopDefaultReportUC) Execute(
-	context.Context, uuid.UUID, report.ReportType, string, bool, bool, bool, string,
+	context.Context, uuid.UUID, report.ReportType, string, bool, bool, bool, string, report.Filters,
 ) error {
 	return nil
 }
@@ -125,7 +135,7 @@ func (noopDefaultReportUC) Execute(
 type noopCustomReportUC struct{}
 
 func (noopCustomReportUC) Execute(
-	context.Context, uuid.UUID, string, string, bool, bool, bool, string,
+	context.Context, uuid.UUID, string, string, bool, bool, bool, string, report.Filters,
 ) error {
 	return nil
 }
@@ -189,9 +199,16 @@ func buildGetRoot(t *testing.T, cfg *config.Config, ucs getUCs) *CmdGet {
 	require.NotNil(t, cfg)
 
 	dr := ucs.defaultReport
+	reportPreRun := NewPersistentPreRunEGetScanReportCmd(NewPersistentPreRunEGetScanCmd(cfg, NewPersistentPreRunEGetCmd(cfg)))
+	cmdReportWithFilters := NewGetScanReportWithFiltersCmd(
+		ucs.customReport,
+		dr,
+		NewPersistentPreRunEGetScanReportWithFiltersCmd(reportPreRun),
+	)
 	cmdReport := NewGetScanReportCmd(
 		ucs.customReport,
-		NewPersistentPreRunEGetScanReportCmd(NewPersistentPreRunEGetScanCmd(cfg, NewPersistentPreRunEGetCmd(cfg))),
+		reportPreRun,
+		cmdReportWithFilters,
 		NewGetScanReportAutocheckCmd(dr),
 		NewGetScanReportGitlabCmd(dr),
 		NewGetScanReportJsonCmd(dr),
@@ -242,6 +259,7 @@ func buildGetRoot(t *testing.T, cfg *config.Config, ucs getUCs) *CmdGet {
 		NewGetQueueCmd(ucs.queue),
 		NewGetScanningCmd(ucs.scanning),
 		NewGetReportTemplatesCmd(ucs.reportTemplates),
+		NewGetScaFeedsCmd(noopScaFeedsListUC{}, noopScaFeedsDownloadUC{}),
 	)
 }
 

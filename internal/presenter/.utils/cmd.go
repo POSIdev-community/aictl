@@ -15,6 +15,7 @@ var (
 	tlsSkip     bool
 	cacert      string
 	verboseFlag bool
+	debugFlag   bool
 	logPath     string
 )
 
@@ -23,8 +24,24 @@ func AddConnectionPersistentFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&token, "token", "t", "", "AI server access token (overrides context)")
 	cmd.PersistentFlags().BoolVar(&tlsSkip, "tls-skip", false, "Skip TLS certificate verification")
 	cmd.PersistentFlags().StringVar(&cacert, "cacert", "", "Path to PEM file with CA certificate(s) to trust (appended to system roots)")
-	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output")
+	AddVerbosePersistentFlags(cmd)
+}
+
+func AddVerbosePersistentFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().BoolVarP(&verboseFlag, "verbose", "v", false, "Verbose output (operational details)")
+	cmd.PersistentFlags().BoolVarP(&debugFlag, "debug", "V", false, "Debug output (includes error chains)")
 	cmd.PersistentFlags().StringVarP(&logPath, "log-path", "l", "", "Log file path")
+}
+
+func VerboseLevel() int {
+	level := logger.LevelQuiet
+	if verboseFlag {
+		level = logger.LevelVerbose
+	}
+	if debugFlag {
+		level = logger.LevelDebug
+	}
+	return level
 }
 
 func UpdateConnectionConfig(cfg *config.Config) error {
@@ -47,10 +64,9 @@ func UpdateConnectionConfig(cfg *config.Config) error {
 	}
 
 	if tlsSkip {
-		if cfg.CACertPath() != "" {
-			return fmt.Errorf("cannot use 'tls-skip' together with configured cacert")
+		if err := cfg.SetTLSSkip(tlsSkip); err != nil {
+			return err
 		}
-		cfg.SetTLSSkip(tlsSkip)
 	}
 
 	if cacert != "" {
@@ -93,10 +109,17 @@ func ChainRunE(funcs ...RunE) RunE {
 }
 
 func InitializeLogger(cmd *cobra.Command, _ []string) error {
-	l, _ := logger.NewLogger(verboseFlag, logPath)
+	l, err := logger.NewLogger(VerboseLevel(), logPath)
+	if err != nil {
+		return fmt.Errorf("initialize logger: %w", err)
+	}
 	ctx := logger.ContextWithLogger(cmd.Context(), l)
 
-	cmd.SetContext(ctx)
+	// PersistentPreRunE receives the leaf command; propagate so root.Context()
+	// (used by application error reporting) also sees the logger and verbosity.
+	for c := cmd; c != nil; c = c.Parent() {
+		c.SetContext(ctx)
+	}
 
 	return nil
 }

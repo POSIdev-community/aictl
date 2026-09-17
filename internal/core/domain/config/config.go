@@ -66,8 +66,16 @@ func (cfg *Config) TLSSkip() bool {
 	return cfg.tlsSkip
 }
 
-func (cfg *Config) SetTLSSkip(tlsSkip bool) {
+// SetTLSSkip enables or disables TLS verification skip.
+// Enabling tls-skip fails if cacert is already set; clear it first via ClearCACertPath / ctx unset.
+func (cfg *Config) SetTLSSkip(tlsSkip bool) error {
+	if tlsSkip && cfg.caCertPath != "" {
+		return validation.NewError("cannot enable 'tls-skip' while 'cacert' is set; unset cacert first")
+	}
+
 	cfg.tlsSkip = tlsSkip
+
+	return nil
 }
 
 func (cfg *Config) CACertPath() string {
@@ -76,12 +84,13 @@ func (cfg *Config) CACertPath() string {
 
 // SetCACertPath stores a non-empty path to a PEM CA file.
 // Empty path is rejected; use ClearCACertPath to unset.
+// Fails if tls-skip is already enabled; clear it first via SetTLSSkip(false) / ctx unset --tls-skip.
 func (cfg *Config) SetCACertPath(path string) error {
 	if path == "" {
 		return validation.NewRequiredError("cacert")
 	}
 	if cfg.tlsSkip {
-		return validation.NewError("cannot use 'cacert' together with 'tls-skip'")
+		return validation.NewError("cannot set 'cacert' while 'tls-skip' is enabled; unset tls-skip first")
 	}
 
 	cfg.caCertPath = path

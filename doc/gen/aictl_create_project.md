@@ -15,7 +15,7 @@ aictl create project <project-name> [flags]
 ```
   aictl create project my-app
   aictl create project my-app --safe
-  echo my-app | aictl create project
+  echo my-app | aictl create project -
 ```
 
 ### Options
@@ -28,12 +28,13 @@ aictl create project <project-name> [flags]
 
 ```
       --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug             Debug output (includes error chains)
   -l, --log-path string   Log file path
       --safe              If the resource already exists, return its id without error
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)
   -u, --uri string        AI server URI (overrides context)
-  -v, --verbose           Verbose output
+  -v, --verbose           Verbose output (operational details)
 ```
 
 ### SEE ALSO

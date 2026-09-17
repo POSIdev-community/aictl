@@ -9,19 +9,38 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Console verbosity levels for NewLogger.
+const (
+	LevelQuiet   = 0 // Info (stdout) only
+	LevelVerbose = 1 // + Error ops on stderr
+	LevelDebug   = 2 // + Debug (error chains) on stderr
+)
+
+type contextKey struct{}
+
 type Logger struct {
-	z *zap.Logger
+	z     *zap.Logger
+	file  *zap.Logger // optional file-only sink (Error / Debug); nil if no --log-path
+	level int
 }
 
-func NewLogger(consoleVerbose bool, logPath string) (*zap.Logger, error) {
-	cores := make([]zapcore.Core, 0, 3)
+// Wrap builds a Logger around an existing zap logger (tests / special sinks).
+func Wrap(z *zap.Logger) *Logger {
+	return &Logger{z: z, level: LevelQuiet}
+}
+
+func NewLogger(verboseLevel int, logPath string) (*Logger, error) {
+	cores := make([]zapcore.Core, 0, 4)
 	cores = append(cores, newInfoCore())
 
-	if consoleVerbose {
-		cores = append(cores, newDebugCore())
+	if verboseLevel >= LevelVerbose {
 		cores = append(cores, newErrorCore())
 	}
+	if verboseLevel >= LevelDebug {
+		cores = append(cores, newDebugCore())
+	}
 
+	var fileLogger *zap.Logger
 	if logPath != "" {
 		file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
@@ -29,19 +48,34 @@ func NewLogger(consoleVerbose bool, logPath string) (*zap.Logger, error) {
 		}
 
 		fileEncoder := zapcore.NewConsoleEncoder(newErrorConfig())
-
 		fileCore := zapcore.NewCore(
 			fileEncoder,
 			zapcore.AddSync(file),
-			zapcore.DebugLevel,
+			fileLevelEnabler(verboseLevel >= LevelDebug),
 		)
 
 		cores = append(cores, fileCore)
+		fileLogger = zap.New(fileCore, zap.AddCaller(), zap.AddCallerSkip(1))
 	}
 
 	core := zapcore.NewTee(cores...)
+	z := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 
-	return zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)), nil
+	return &Logger{z: z, file: fileLogger, level: verboseLevel}, nil
+}
+
+// IsVerbose reports whether -v/--verbose or -V/--debug is enabled.
+func (log *Logger) IsVerbose() bool {
+	return log != nil && log.level >= LevelVerbose
+}
+
+func fileLevelEnabler(includeDebug bool) zap.LevelEnablerFunc {
+	return func(lvl zapcore.Level) bool {
+		if lvl >= zapcore.ErrorLevel {
+			return true
+		}
+		return includeDebug && lvl == zapcore.DebugLevel
+	}
 }
 
 func newInfoCore() zapcore.Core {
@@ -101,15 +135,15 @@ func newErrorConfig() zapcore.EncoderConfig {
 }
 
 func FromContext(ctx context.Context) *Logger {
-	if logger, ok := ctx.Value(zap.Logger{}).(*zap.Logger); ok {
-		return &Logger{logger}
+	if l, ok := ctx.Value(contextKey{}).(*Logger); ok {
+		return l
 	}
 
-	return &Logger{zap.L()}
+	return &Logger{z: zap.L()}
 }
 
-func ContextWithLogger(ctx context.Context, logger *zap.Logger) context.Context {
-	return context.WithValue(ctx, zap.Logger{}, logger)
+func ContextWithLogger(ctx context.Context, l *Logger) context.Context {
+	return context.WithValue(ctx, contextKey{}, l)
 }
 
 func (log *Logger) LogConfig(projectID, branchID string) {
@@ -136,4 +170,17 @@ func (log *Logger) StdErrf(format string, a ...any) {
 
 func (log *Logger) Debugf(format string, a ...any) {
 	log.z.Sugar().Debugf(format, a...)
+}
+
+// FileError writes msg to the log file only (zap Error + timestamp). No-op without --log-path.
+// Does not write to the console, so it is safe alongside fmt.Fprintln to stderr.
+func (log *Logger) FileError(msg string) {
+	if log.file == nil {
+		return
+	}
+	log.file.Sugar().Error(msg)
+}
+
+func (log *Logger) HasFile() bool {
+	return log.file != nil
 }

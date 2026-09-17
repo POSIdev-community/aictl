@@ -1,0 +1,274 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-06-26T11:44:33Z",
+    "tools": {
+      "components": [
+        {
+          "group": "@cyclonedx",
+          "name": "cdxgen",
+          "version": "11.4.1",
+          "purl": "pkg:npm/%40cyclonedx/cdxgen@11.4.1",
+          "type": "application",
+          "bom-ref": "pkg:npm/@cyclonedx/cdxgen@11.4.1",
+          "publisher": "OWASP Foundation",
+          "authors": [
+            {
+              "name": "OWASP Foundation"
+            }
+          ]
+        }
+      ]
+    },
+    "authors": [
+      {
+        "name": "OWASP Foundation"
+      }
+    ],
+    "lifecycles": [
+      {
+        "phase": "build"
+      }
+    ],
+    "component": {
+      "name": "example-app",
+      "type": "application",
+      "purl": "pkg:npm/example-app",
+      "bom-ref": "pkg:npm/example-app"
+    },
+    "properties": [
+      {
+        "name": "cdx:bom:componentTypes",
+        "value": "npm"
+      },
+      {
+        "name": "cdx:bom:componentNamespaces",
+        "value": "express\\ndojo\\nhapi-auth-jwt2\\n0-shadowenv"
+      },
+      {
+        "name": "cdx:bom:componentSrcFiles",
+        "value": "package.json"
+      }
+    ]
+  },
+  "components": [
+    {
+      "group": "",
+      "name": "express",
+      "version": "3.10.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7d61b4e677323987b3e1c4c5d4e57e7f2d2d8ad5f8f76c0123456789abcdef01"
+        }
+      ],
+      "purl": "pkg:npm/express@3.10.3",
+      "type": "library",
+      "bom-ref": "pkg:npm/express@3.10.3",
+      "description": "Fast, unopinionated, minimalist web framework",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "SrcFile",
+          "value": "package.json"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "purl",
+            "confidence": 1.0,
+            "methods": [
+              {
+                "technique": "manifest-analysis",
+                "confidence": 1.0,
+                "value": "package.json"
+              }
+            ],
+            "concludedValue": "package.json"
+          }
+        ]
+      }
+    },
+    {
+      "group": "",
+      "name": "dojo",
+      "version": "1.12.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9f3c8e2a1b5d4f6e8a9c7b3d2e1f4a5b6c7d8e9f0a1b2c3d4e5f6789abcdef02"
+        }
+      ],
+      "purl": "pkg:npm/dojo@1.12.1",
+      "type": "library",
+      "bom-ref": "pkg:npm/dojo@1.12.1",
+      "description": "Dojo Toolkit",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "SrcFile",
+          "value": "package.json"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "purl",
+            "confidence": 1.0,
+            "methods": [
+              {
+                "technique": "manifest-analysis",
+                "confidence": 1.0,
+                "value": "package.json"
+              }
+            ],
+            "concludedValue": "package.json"
+          }
+        ]
+      }
+    },
+    {
+      "group": "",
+      "name": "hapi-auth-jwt2",
+      "version": "5.1.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e7f8a9b6c5d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e03"
+        }
+      ],
+      "purl": "pkg:npm/hapi-auth-jwt2@5.1.1",
+      "type": "library",
+      "bom-ref": "pkg:npm/hapi-auth-jwt2@5.1.1",
+      "description": "JSON Web Token authentication plugin for hapi",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "SrcFile",
+          "value": "package.json"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "purl",
+            "confidence": 1.0,
+            "methods": [
+              {
+                "technique": "manifest-analysis",
+                "confidence": 1.0,
+                "value": "package.json"
+              }
+            ],
+            "concludedValue": "package.json"
+          }
+        ]
+      }
+    },
+    {
+      "group": "",
+      "name": "0-shadowenv",
+      "version": "1.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a04"
+        }
+      ],
+      "purl": "pkg:npm/0-shadowenv@1.0.0",
+      "type": "library",
+      "bom-ref": "pkg:npm/0-shadowenv@1.0.0",
+      "description": "Shadow environment package",
+      "licenses": [
+        {
+          "license": {
+            "name": "Unknown"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "SrcFile",
+          "value": "package.json"
+        }
+      ],
+      "evidence": {
+        "identity": [
+          {
+            "field": "purl",
+            "confidence": 1.0,
+            "methods": [
+              {
+                "technique": "manifest-analysis",
+                "confidence": 1.0,
+                "value": "package.json"
+              }
+            ],
+            "concludedValue": "package.json"
+          }
+        ]
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:npm/example-app",
+      "dependsOn": [
+        "pkg:npm/express@3.10.3",
+        "pkg:npm/dojo@1.12.1",
+        "pkg:npm/hapi-auth-jwt2@5.1.1",
+        "pkg:npm/0-shadowenv@1.0.0"
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "bom-ref": "metadata-annotations",
+      "subjects": ["pkg:npm/example-app"],
+      "annotator": {
+        "component": {
+          "group": "@cyclonedx",
+          "name": "cdxgen",
+          "version": "11.4.1",
+          "purl": "pkg:npm/%40cyclonedx/cdxgen@11.4.1",
+          "type": "application",
+          "bom-ref": "pkg:npm/@cyclonedx/cdxgen@11.4.1",
+          "publisher": "OWASP Foundation",
+          "authors": [
+            {
+              "name": "OWASP Foundation"
+            }
+          ]
+        }
+      },
+      "timestamp": "2025-06-26T11:44:33Z",
+      "text": "The components were identified from the source files: package.json."
+    }
+  ]
+}

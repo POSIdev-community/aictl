@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (a *ClientAI61) UpdateProjectLanguages(ctx context.Context, projectId uuid.UUID) error {
+func (a *ClientAI6x) UpdateProjectLanguages(ctx context.Context, projectId uuid.UUID) error {
 	defaultRes, err := a.GetApiProjectsProjectIdDefaultSettingsWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter get project default settings request: %w", err)

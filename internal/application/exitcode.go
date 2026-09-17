@@ -20,6 +20,7 @@ func mapExitCode(err error) (exitCode int, errorMessage string) {
 		validationFieldErr    *validation.FieldError
 		validationRequiredErr *validation.RequiredError
 		validationInvalidErr  *validation.InvalidError
+		validationMessageErr  *validation.MessageError
 
 		failErr            *apperror.FailError
 		emptyResponseError *apperror.EmptyResponseError
@@ -44,6 +45,8 @@ func mapExitCode(err error) (exitCode int, errorMessage string) {
 		return ExitCodeValidation, validationRequiredErr.Error()
 	case errors.As(err, &validationInvalidErr):
 		return ExitCodeValidation, validationInvalidErr.Error()
+	case errors.As(err, &validationMessageErr):
+		return ExitCodeValidation, validationMessageErr.Error()
 
 	case errors.As(err, &failErr):
 		return ExitCodeValidation, failErr.Error()

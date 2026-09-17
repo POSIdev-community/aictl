@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
 )
 
@@ -29,10 +30,14 @@ func NewCreateProjectCmd(uc UseCaseCreateProject) CmdCreateProject {
 		Long:  `Create a new AI project by name. The name may be passed as an argument or via stdin. With --safe, an existing project id is returned instead of an error.`,
 		Example: `  aictl create project my-app
   aictl create project my-app --safe
-  echo my-app | aictl create project`,
+  echo my-app | aictl create project -`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			args = _utils.ReadArgsFromStdin(args)
+			if len(args) < 1 || args[0] == "" {
+				return validation.NewRequiredError("project-name")
+			}
+
 			projectName = args[0]
 
 			return nil

@@ -85,3 +85,15 @@ func AssertPipelineArtifacts(t *testing.T, workDir, standName string) {
 	assertVersionMajorMinor(t, meta.AIEVersion, expectedVersion)
 	assertSARIF(t, filepath.Join(workDir, "sarif.json"))
 }
+
+func AssertSbomPipelineArtifacts(t *testing.T, workDir, standName string) {
+	t.Helper()
+
+	expectedVersion, err := StandVersion(standName)
+	require.NoError(t, err)
+
+	meta := loadMeta(t, filepath.Join(workDir, "meta.json"))
+	assertUUID(t, meta.ProjectID)
+	assertUUID(t, meta.ScanID)
+	assertVersionMajorMinor(t, meta.AIEVersion, expectedVersion)
+}

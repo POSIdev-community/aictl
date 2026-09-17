@@ -10,7 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
 )
 
-func (a *ClientAI61) GetScanQueue(ctx context.Context) ([]queue.Entry, error) {
+func (a *ClientAI6x) GetScanQueue(ctx context.Context) ([]queue.Entry, error) {
 	response, err := a.GetAllItemsWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get scan queue request: %w", err)
@@ -39,7 +39,7 @@ func (a *ClientAI61) GetScanQueue(ctx context.Context) ([]queue.Entry, error) {
 	return entries, nil
 }
 
-func (a *ClientAI61) GetActiveScans(ctx context.Context) ([]queue.Entry, error) {
+func (a *ClientAI6x) GetActiveScans(ctx context.Context) ([]queue.Entry, error) {
 	response, err := a.GetApiProjectsActiveScansWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter get active scans request: %w", err)
@@ -78,7 +78,7 @@ func (a *ClientAI61) GetActiveScans(ctx context.Context) ([]queue.Entry, error) 
 
 // cancelActiveScan stops a scan that already left the queue and is running on an agent.
 // Returns cancelled=true when an agent cancel was issued.
-func (a *ClientAI61) cancelActiveScan(ctx context.Context, scanResultId uuid.UUID) (bool, error) {
+func (a *ClientAI6x) cancelActiveScan(ctx context.Context, scanResultId uuid.UUID) (bool, error) {
 	active, err := a.GetActiveScans(ctx)
 	if err != nil {
 		return false, fmt.Errorf("ai adapter cancel active scan: %w", err)
@@ -129,7 +129,7 @@ func (a *ClientAI61) cancelActiveScan(ctx context.Context, scanResultId uuid.UUI
 	return true, nil
 }
 
-func (a *ClientAI61) cancelScanOnAgent(ctx context.Context, agentId uuid.UUID) error {
+func (a *ClientAI6x) cancelScanOnAgent(ctx context.Context, agentId uuid.UUID) error {
 	response, err := a.CancelScanWithResponse(ctx, agentId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter cancel scan on agent request: %w", err)

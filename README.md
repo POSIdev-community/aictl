@@ -4,13 +4,14 @@ ___
 ### Documentation
 
 - [User guide (commands & flags)](doc/aictl.md)
+- [Architecture guide for agents / contributors](AGENTS.md)
 - [Migration: aisa → aictl](doc/migration/aisa-to-aictl.md)
 - [Migration: ptai-cli-plugin → aictl](doc/migration/ptai-cli-plugin-to-aictl.md)
 - [Gap analysis](doc/migration/gap-analysis.md)
 
 ### E2E tests
 
-End-to-end tests run the base pipeline from [`examples/base-pipeline.sh`](examples/base-pipeline.sh) against external AIE stands (5.4 and 6.0).
+End-to-end tests run the base pipeline from [`examples/base-pipeline.sh`](examples/base-pipeline.sh) against external AIE stands (5.4, 6.0, 6.1, 6.2, 6.3).
 
 **Setup:**
 

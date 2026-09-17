@@ -1,10 +1,10 @@
 ## aictl scan start branch
 
-Start branch scan
+Start branch scan (deprecated)
 
 ### Synopsis
 
-Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.
+Deprecated: use 'aictl scan branch'. Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.
 
 ```
 aictl scan start branch <branch-id> [flags]
@@ -28,16 +28,17 @@ aictl scan start branch <branch-id> [flags]
 
 ```
       --cacert string       Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug               Debug output (includes error chains)
       --full-scan           Run a full scan instead of incremental
   -l, --log-path string     Log file path
       --scan-label string   Label for the scan (max 40 chars)
       --tls-skip            Skip TLS certificate verification
   -t, --token string        AI server access token (overrides context)
   -u, --uri string          AI server URI (overrides context)
-  -v, --verbose             Verbose output
+  -v, --verbose             Verbose output (operational details)
 ```
 
 ### SEE ALSO
 
-* [aictl scan start](aictl_scan_start.md)	 - Start scan
+* [aictl scan start](aictl_scan_start.md)	 - Start scan (deprecated)
 

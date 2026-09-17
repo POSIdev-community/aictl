@@ -67,7 +67,7 @@ aictl update sources ./src
 # priority на проекте (если нужно):
 # aictl update project settings --priority High
 
-scan_id=$(aictl scan start branch "$branch_id" --full-scan --scan-label ci-1)
+scan_id=$(aictl scan branch "$branch_id" --full-scan --scan-label ci-1)
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json
@@ -80,7 +80,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | `-p` / `--project` | `ctx -p` / UUID после `get projects` | Точный `get project --name` — **планируется** |
 | `--input` | `update sources <path>` | |
 | `-b` / `--branch-name` | `create branch` / `ctx -b` | Ветка создаётся, если нет |
-| `--scan-label` | `scan start --scan-label` | |
+| `--scan-label` | `scan branch|project --scan-label` | |
 | `--output` | каталог для `-o` | Дефолт ptai: `.ptai` |
 | `-i` / `--includes` | staging dir или `update sources --include` | `--include` — **планируется**; сейчас — подготовить дерево файлов |
 | `-e` / `--excludes` | `-e` / `--exclude-from` | **gitignore**, не Ant |
@@ -88,8 +88,8 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | `--fail-if-failed` | `scan check-policies --fail-on-policies-rejected` | |
 | `--fail-if-unstable` | — | Нет прямого аналога; смотреть statistic / policy |
 | `--async` | не вызывать `scan await` | |
-| `--full-scan` | `scan start --full-scan` | |
-| `--priority` | `update project settings --priority` или `scan start --priority` | На start — **планируется** |
+| `--full-scan` | `scan branch|project --full-scan` | |
+| `--priority` | `update project settings --priority` или `scan (obsolete) --priority` | На start — **планируется** |
 | Reporting flags | см. ниже | |
 
 ---
@@ -102,7 +102,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 aictl set project settings -f ./settings.json     # --settings-json
 aictl set project policies -f ./policy.json       # --policy-json
 aictl update sources ./src
-scan_id=$(aictl scan start branch "$branch_id")
+scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 ```
@@ -110,7 +110,7 @@ aictl scan check-policies "$scan_id" --fail-on-policies-rejected
 | ptai | aictl |
 |------|-------|
 | `--settings-json` | `set project settings -f` |
-| `--policy-json` | `set project policies -f`; `[]` для очистки — уточнится при использовании |
+| `--policy-json` | `set project policies -f`; массив правил или полный `SecurityPoliciesModel`; `[]` очищает |
 | остальные флаги | как у `ui-ast` |
 
 Создание проекта при отсутствии: `create project` + `set project settings -f` (в ptai `json-ast` создаёт/обновляет из AIPROJ).
@@ -141,6 +141,8 @@ aictl ctx set -p "$project_id"
 # aictl get scans --latest
 aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 aictl get scan report plain "$scan_id" -o ./out/report.html --include-dfd --include-glossary --localization en
+# фильтры из --report-json → get scan report with-filters (см. таблицу IssuesFilter ниже)
+aictl get scan report with-filters sarif "$scan_id" -o ./out/sarif-filtered.json --level-high --status-confirmed
 ```
 
 | ptai | aictl |
@@ -189,7 +191,27 @@ aictl delete projects --regexp 'e2e-.*' -y         # планируется
 | `--raw-data-file` | `get scan report json` / `json-v2` или `raw` | `raw` — **планируется**, если json недостаточен |
 | `--sarif-report-file` | `get scan report sarif -o` | |
 | `--giif-report-file` | `get scan report giif -o` | **Планируется** |
-| `--report-json` | `get scan reports -f reports.json` | **Планируется**; workaround — несколько вызовов |
+| `--report-json` | `get scan reports -f reports.json` | **Планируется**; workaround — несколько вызовов; filters внутри JSON → `report with-filters` |
+
+### `--report-json` `filters` (IssuesFilter) → aictl
+
+В ptai фильтры задаются в JSON (`--report-json`), не отдельными CLI-флагами. В aictl — команда `get scan report with-filters` и long-флаги ниже.
+
+| ptai `filters` | aictl |
+|----------------|-------|
+| `issueLevel` / `issueLevels` HIGH / MEDIUM / LOW / POTENTIAL | `--level-high` / `--level-medium` / `--level-low` / `--level-potential` |
+| `confirmationStatus` / `confirmationStatuses` UNDEFINED / APPROVED / AUTOAPPROVED / DISCARDED | `--status-undefined` / `--status-confirmed` / `--status-confirmed-auto` / `--status-rejected` |
+| `scanMode` / `scanModes` FROMENTRYPOINT / FROMPUBLIC / FROMROOT / OTHERS | `--mode-entry-point` / `--mode-public-methods` / `--mode-root-function` / `--mode-others` |
+| `actualStatus` ISNEW / NOTISNEW | `--found-this-scan` / `--found-prev-scan` |
+| `exploitationCondition` / `exploitationConditions` | `--conditional` / `--non-conditional` |
+| `suppressStatus` / `suppressStatuses` SUPPRESSED / EXCEPTSUPPRESSED | `--suppressed` / `--non-suppressed` |
+| `hideSuspected: false` (показать suspected) | `--suspected` (**не** эквивалент `hideSuspected: true`) |
+| `hideSecondOrder: false` (показать second-level) | `--second-level` |
+| `byFavorite: true` | `--only-favorite` |
+| `types` | `--type` ×N |
+| `languages` | `--language` ×N (имена AIE, без `None`) |
+| `scanModules` / модули скана | `--scan-module` ×N (whitelist aictl) |
+| `byBestPlaceToFix`, `hidePotential`, `sourceType(s)`, `pathInfo`, `pattern`, `*Separately`, значения `ALL`/`NONE` как «все» | **не переносится** |
 
 ---
 

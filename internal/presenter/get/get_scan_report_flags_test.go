@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 )
 
@@ -17,6 +18,7 @@ type fakeCustomReportUC struct {
 	scanID                                       uuid.UUID
 	name, out, l10n                              string
 	includeComments, includeDFD, includeGlossary bool
+	filters                                      report.Filters
 }
 
 func (f *fakeCustomReportUC) Execute(
@@ -25,11 +27,13 @@ func (f *fakeCustomReportUC) Execute(
 	customReportName, outPath string,
 	includeComments, includeDFD, includeGlossary bool,
 	l10n string,
+	filters report.Filters,
 ) error {
 	f.called++
 	f.scanID = scanId
 	f.name, f.out, f.l10n = customReportName, outPath, l10n
 	f.includeComments, f.includeDFD, f.includeGlossary = includeComments, includeDFD, includeGlossary
+	f.filters = filters
 	return nil
 }
 

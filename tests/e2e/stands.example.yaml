@@ -1,4 +1,8 @@
 stands:
+  "5.3":
+    url: https://aie-53.example.com
+    token: "<token>"
+    aiproj_version: "1.9"
   "5.4":
     url: https://aie-54.example.com
     token: "<token>"
@@ -11,4 +15,12 @@ stands:
     url: https://aie-61.example.com
     token: "<token>"
     aiproj_version: "1.11"
+  "6.2":
+    url: https://aie-62.example.com
+    token: "<token>"
+    aiproj_version: "1.11"
+  "6.3":
+    url: https://aie-63.example.com
+    token: "<token>"
+    aiproj_version: "1.12"
 tls_skip: true

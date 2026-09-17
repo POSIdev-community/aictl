@@ -9,7 +9,7 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_x"
 )
 
-func (a *ClientAI61) GetProjectExclusions(ctx context.Context, projectId uuid.UUID) (string, error) {
+func (a *ClientAI6x) GetProjectExclusions(ctx context.Context, projectId uuid.UUID) (string, error) {
 	response, err := a.GetApiProjectsProjectIdExclusionsWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return "", fmt.Errorf("ai adapter get project exclusions request: %w", err)
@@ -28,7 +28,7 @@ func (a *ClientAI61) GetProjectExclusions(ctx context.Context, projectId uuid.UU
 	return *response.JSON200.Exclusions, nil
 }
 
-func (a *ClientAI61) SetProjectExclusions(ctx context.Context, projectId uuid.UUID, exclusions string) error {
+func (a *ClientAI6x) SetProjectExclusions(ctx context.Context, projectId uuid.UUID, exclusions string) error {
 	body := v6_x.FileFolderExclusionsModel{Exclusions: &exclusions}
 	response, err := a.PutApiProjectsProjectIdExclusionsWithResponse(ctx, projectId, body, a.AddJWTToHeader)
 	if err != nil {

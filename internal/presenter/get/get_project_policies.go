@@ -19,7 +19,7 @@ func NewGetProjectPoliciesCmd(uc UseCaseGetProjectPolicies) CmdGetProjectPolicie
 	cmd := &cobra.Command{
 		Use:     "policies",
 		Short:   "Get project security policies",
-		Long:    `Print project security policies. Project id comes from context or parent -p.`,
+		Long:    `Print project security policies as a formatted JSON array. Project id comes from context or parent -p.`,
 		Example: `  aictl get project policies -p <project-id>`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

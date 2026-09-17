@@ -49,9 +49,14 @@ func NewScanStartCmd(persistentPreRunE PersistentPreRunEScanStartCmd, cmdScanSta
 	cmdScanStartProject CmdScanStartProject) CmdScanStart {
 	cmd := &cobra.Command{
 		Use:               "start",
-		Short:             "Start scan",
-		Long:              `Start a full or incremental scan on a project or branch.`,
+		Short:             "Start scan (deprecated)",
+		Long:              `Deprecated: use 'aictl scan branch' or 'aictl scan project'. Start a full or incremental scan on a project or branch.`,
+		Deprecated:        "use 'aictl scan branch' or 'aictl scan project'",
 		PersistentPreRunE: persistentPreRunE,
+		Run: func(cmd *cobra.Command, args []string) {
+			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Warning: 'scan start' is obsolete; use 'aictl scan branch' or 'aictl scan project'")
+			_ = cmd.Help()
+		},
 	}
 
 	cmd.AddCommand(cmdScanStart.Command)

@@ -29,6 +29,7 @@ aictl [flags]
 
 ### SEE ALSO
 
+* [aictl check](aictl_check.md)	 - Validate local resources
 * [aictl create](aictl_create.md)	 - Create resources
 * [aictl ctx](aictl_ctx.md)	 - Manage local aictl context
 * [aictl delete](aictl_delete.md)	 - Delete resources

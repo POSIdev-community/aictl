@@ -37,7 +37,7 @@ while true; do
 
     if aictl set project settings -f "$aiproj_path" -v &&
        aictl update sources "$sources_path" -v &&
-       scan_id=$(aictl scan start branch "$branch_id" -v); then
+       scan_id=$(aictl scan branch "$branch_id" -v); then
 
         echo "✅ Project settings, sources, and scan start succeeded."
         break

@@ -7,12 +7,15 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
 )
 
 type AI interface {
 	Initialize(ctx context.Context) error
+	GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error)
 	UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, sourcePath string, exclusions gitignore.Exclusions, tempDir string) error
 }
 
@@ -42,6 +45,10 @@ func (u *UseCase) Execute(ctx context.Context, sourcePath string, exclusions git
 	err := u.aiAdapter.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize: %w", err)
+	}
+
+	if err = usecaseutils.RequireSourceProject(ctx, u.aiAdapter, u.cfg.ProjectId(), project.ErrCannotUpdateSourcesOnSbom); err != nil {
+		return err
 	}
 
 	u.cliAdapter.ShowText(ctx, "start updating sources")

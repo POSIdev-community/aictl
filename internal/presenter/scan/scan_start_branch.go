@@ -23,13 +23,16 @@ func NewScanStartBranchCmd(cfg *config.Config, uc UseCaseScanStartBranch) CmdSca
 	var projectIdFlag string
 
 	cmd := &cobra.Command{
-		Use:   "branch <branch-id>",
-		Short: "Start branch scan",
-		Long:  `Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.`,
+		Use:        "branch <branch-id>",
+		Short:      "Start branch scan (deprecated)",
+		Long:       `Deprecated: use 'aictl scan branch'. Start a scan on a branch. Branch id comes from the argument or context; project id from context or -p.`,
+		Deprecated: "use 'aictl scan branch'",
 		Example: `  aictl scan start branch <branch-id> -p <project-id>
   aictl scan start branch --scan-label nightly --full-scan`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Warning: 'scan start branch' is obsolete; use 'aictl scan branch'")
+
 			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
 			}

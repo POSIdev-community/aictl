@@ -18,6 +18,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -26,6 +27,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/scantype"
 	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 	"github.com/POSIdev-community/aictl/pkg/clientai/v5_x"
 	"github.com/POSIdev-community/aictl/pkg/gitignore"
@@ -444,12 +446,20 @@ func (a *ClientAI5x) CreateProject(ctx context.Context, projectName string) (*uu
 }
 
 func (a *ClientAI5x) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
-	response, err := a.DeleteApiProjectsProjectId(ctx, projectId, a.AddJWTToHeader)
+	response, err := a.DeleteApiProjectsProjectIdWithResponse(ctx, projectId, a.AddJWTToHeader)
 	if err != nil {
 		return fmt.Errorf("ai adapter delete project request: %w", err)
 	}
 
-	if err = CheckResponse(response, "project"); err != nil {
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v5_x.ApiErrorTypePROJECTNOTFOUND {
+		return apperror.NewNotFoundByIdError("project", projectId.String())
+	}
+
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
 		return fmt.Errorf("ai adapter delete project: %w", err)
 	}
 
@@ -663,8 +673,8 @@ func (a *ClientAI5x) GetCustomTemplateId(ctx context.Context, reportName string)
 	return *model.Id, nil
 }
 
-func (a *ClientAI5x) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
-	useFilters := false
+func (a *ClientAI5x) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error) {
+	useFilters := filters.Apply
 	sessionId := uuid.New()
 
 	model := v5_x.ReportGenerateModel{
@@ -681,6 +691,14 @@ func (a *ClientAI5x) GetReport(ctx context.Context, projectId, scanResultId, tem
 		SessionId:    &sessionId,
 	}
 
+	if filters.Apply {
+		apiFilters, err := toUserReportFiltersModel5x(filters)
+		if err != nil {
+			return nil, err
+		}
+		model.Filters = &apiFilters
+	}
+
 	response, err := a.PostApiReportsGenerate(ctx, model, a.AddJWTToHeader)
 	if err != nil {
 		return nil, fmt.Errorf("ai adapter generate report request: %w", err)
@@ -691,6 +709,72 @@ func (a *ClientAI5x) GetReport(ctx context.Context, projectId, scanResultId, tem
 	}
 
 	return response.Body, nil
+}
+
+func toUserReportFiltersModel5x(filters report.Filters) (v5_x.UserReportFiltersModel, error) {
+	types := filters.Types
+	if types == nil {
+		types = []string{}
+	}
+	languages, err := mapProgrammingLanguages5x(filters.Languages)
+	if err != nil {
+		return v5_x.UserReportFiltersModel{}, err
+	}
+	modules, err := mapScanModules5x(filters.ScanModules)
+	if err != nil {
+		return v5_x.UserReportFiltersModel{}, err
+	}
+
+	return v5_x.UserReportFiltersModel{
+		LevelHigh:           filters.LevelHigh,
+		LevelMedium:         filters.LevelMedium,
+		LevelLow:            filters.LevelLow,
+		LevelPotential:      filters.LevelPotential,
+		StatusUndefined:     filters.StatusUndefined,
+		StatusConfirmed:     filters.StatusConfirmed,
+		StatusConfirmedAuto: filters.StatusConfirmedAuto,
+		StatusRejected:      filters.StatusRejected,
+		ModeEntryPoint:      filters.ModeEntryPoint,
+		ModePublicMethods:   filters.ModePublicMethods,
+		ModeRootFunction:    filters.ModeRootFunction,
+		ModeOthers:          filters.ModeOthers,
+		FoundThisScan:       filters.FoundThisScan,
+		FoundPrevScan:       filters.FoundPrevScan,
+		Conditional:         filters.Conditional,
+		NonConditional:      filters.NonConditional,
+		Suppressed:          filters.Suppressed,
+		NonSuppressed:       filters.NonSuppressed,
+		Suspected:           filters.Suspected,
+		SecondLevel:         filters.SecondLevel,
+		OnlyFavorite:        filters.OnlyFavorite,
+		Types:               &types,
+		Languages:           &languages,
+		ScanModules:         &modules,
+	}, nil
+}
+
+func mapProgrammingLanguages5x(langs []string) ([]v5_x.ProgrammingLanguageGroup, error) {
+	out := make([]v5_x.ProgrammingLanguageGroup, 0, len(langs))
+	for _, lang := range langs {
+		pl := v5_x.ProgrammingLanguageGroup(lang)
+		if !pl.Valid() {
+			return nil, validation.NewFieldError("language", fmt.Sprintf("unsupported value %q", lang))
+		}
+		out = append(out, pl)
+	}
+	return out, nil
+}
+
+func mapScanModules5x(modules []string) ([]v5_x.ScanModuleType, error) {
+	out := make([]v5_x.ScanModuleType, 0, len(modules))
+	for _, m := range modules {
+		sm := v5_x.ScanModuleType(m)
+		if !sm.Valid() {
+			return nil, validation.NewFieldError("scan-module", fmt.Sprintf("unsupported value %q", m))
+		}
+		out = append(out, sm)
+	}
+	return out, nil
 }
 
 func (a *ClientAI5x) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
@@ -1133,23 +1217,23 @@ func (a *ClientAI5x) GetHealthcheck(ctx context.Context) (bool, error) {
 	return health, nil
 }
 
-func (a *ClientAI5x) CheckLicense(ctx context.Context) error {
+func (a *ClientAI5x) CheckLicense(ctx context.Context) (*domainlicense.License, error) {
 	response, err := a.GetApiLicenseWithResponse(ctx, a.AddJWTToHeader)
 	if err != nil {
-		return fmt.Errorf("ai check license request: %w", err)
+		return nil, fmt.Errorf("ai check license request: %w", err)
 	}
 
 	statusCode := response.StatusCode()
 	responseBody := string(response.Body)
 	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
-		return fmt.Errorf("ai check license: %w", err)
+		return nil, fmt.Errorf("ai check license: %w", err)
 	}
 
-	if !*response.JSON200.IsValid {
-		return fmt.Errorf("license is invalid")
+	if response.JSON200 == nil || response.JSON200.IsValid == nil || !*response.JSON200.IsValid {
+		return nil, fmt.Errorf("license is invalid")
 	}
 
-	return nil
+	return common.LicenseFromLanguages(common.MapLanguageGroups(response.JSON200.Languages)), nil
 }
 
 func (a *ClientAI5x) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {

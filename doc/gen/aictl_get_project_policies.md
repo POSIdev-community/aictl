@@ -4,7 +4,7 @@ Get project security policies
 
 ### Synopsis
 
-Print project security policies. Project id comes from context or parent -p.
+Print project security policies as a formatted JSON array. Project id comes from context or parent -p.
 
 ```
 aictl get project policies [flags]
@@ -26,12 +26,13 @@ aictl get project policies [flags]
 
 ```
       --cacert string       Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug               Debug output (includes error chains)
   -l, --log-path string     Log file path
   -p, --project-id string   Project id (overrides context)
       --tls-skip            Skip TLS certificate verification
   -t, --token string        AI server access token (overrides context)
   -u, --uri string          AI server URI (overrides context)
-  -v, --verbose             Verbose output
+  -v, --verbose             Verbose output (operational details)
 ```
 
 ### SEE ALSO

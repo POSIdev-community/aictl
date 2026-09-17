@@ -13,12 +13,15 @@ import (
 
 const (
 	defaultConfigRelPath = "tests/e2e/stands.local.yaml"
+	standOrder53         = "5.3"
 	standOrder54         = "5.4"
 	standOrder60         = "6.0"
 	standOrder61         = "6.1"
+	standOrder62         = "6.2"
+	standOrder63         = "6.3"
 )
 
-var standOrder = []string{standOrder54, standOrder60, standOrder61}
+var standOrder = []string{standOrder53, standOrder54, standOrder60, standOrder61, standOrder62, standOrder63}
 
 type Stand struct {
 	URL           string `yaml:"url"`
@@ -108,15 +111,27 @@ func (s Stand) ResolveAiprojVersion(standName string) (string, error) {
 	}
 
 	switch standName {
-	case standOrder54:
+	case standOrder53, standOrder54:
 		return "1.9", nil
 	case standOrder60:
 		return "1.10", nil
-	case standOrder61:
+	case standOrder61, standOrder62:
 		return "1.11", nil
+	case standOrder63:
+		return "1.12", nil
 	default:
 		return "", fmt.Errorf("stand %q: aiproj_version is required", standName)
 	}
+}
+
+// isAIE5x reports whether the stand is Application Inspector Enterprise 5.x.
+func isAIE5x(standName string) bool {
+	v, err := StandVersion(standName)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(v, "5.")
 }
 
 func AiprojFixturePath(fixturesDir, aiprojVersion string) string {

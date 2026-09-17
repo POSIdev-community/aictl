@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainproject "github.com/POSIdev-community/aictl/internal/core/domain/project"
 	domainsettings "github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 )
@@ -33,6 +34,7 @@ func TestUseCase_Execute(t *testing.T) {
 
 		aiAdapter := NewMockAI(t)
 		aiAdapter.On("InitializeWithRetry", ctx).Return(nil).Once()
+		aiAdapter.On("GetProject", ctx, projectID).Return(&domainproject.Project{Id: projectID, Name: "demo", Type: domainproject.TypeSource}, nil).Once()
 		aiAdapter.On("GetVersion", ctx).Return(serverVersion, nil).Once()
 		aiAdapter.On("GetDefaultSettings", ctx).Return(domainsettings.ScanSettings{
 			ProjectName: "test",
@@ -78,6 +80,7 @@ func TestUseCase_Execute(t *testing.T) {
 
 		aiAdapter := NewMockAI(t)
 		aiAdapter.On("InitializeWithRetry", ctx).Return(nil).Once()
+		aiAdapter.On("GetProject", ctx, projectID).Return(&domainproject.Project{Id: projectID, Name: "demo", Type: domainproject.TypeSource}, nil).Once()
 		aiAdapter.On("GetVersion", ctx).Return(serverVersion, nil).Once()
 		aiAdapter.On("GetDefaultSettings", ctx).Return(domainsettings.ScanSettings{}, nil).Once()
 		aiAdapter.On("GetProjectSettings", ctx, projectID).Return(domainsettings.ScanSettings{}, nil).Once()

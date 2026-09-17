@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
 func resetConnectionFlags() {
@@ -19,6 +20,7 @@ func resetConnectionFlags() {
 	tlsSkip = false
 	cacert = ""
 	verboseFlag = false
+	debugFlag = false
 	logPath = ""
 }
 
@@ -152,4 +154,69 @@ func TestConnectionFlagsViaCobra(t *testing.T) {
 	require.True(t, cfg.TLSSkip())
 	require.True(t, verboseFlag)
 	require.Equal(t, logFile, logPath)
+}
+
+func TestDebugFlagViaCobra(t *testing.T) {
+	t.Cleanup(resetConnectionFlags)
+	resetConnectionFlags()
+
+	cmd := &cobra.Command{Use: "test", Run: func(*cobra.Command, []string) {}}
+	AddConnectionPersistentFlags(cmd)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.SetArgs([]string{"-V"})
+
+	require.NoError(t, cmd.Execute())
+	require.True(t, debugFlag)
+	require.False(t, verboseFlag)
+	require.Equal(t, 2, VerboseLevel())
+}
+
+func TestVerboseLevel_MaxOfVerboseAndDebug(t *testing.T) {
+	t.Cleanup(resetConnectionFlags)
+
+	resetConnectionFlags()
+	require.Equal(t, 0, VerboseLevel())
+
+	verboseFlag = true
+	require.Equal(t, 1, VerboseLevel())
+
+	debugFlag = true
+	require.Equal(t, 2, VerboseLevel())
+
+	verboseFlag = false
+	require.Equal(t, 2, VerboseLevel())
+}
+
+func TestDebugLongFlagViaCobra(t *testing.T) {
+	t.Cleanup(resetConnectionFlags)
+	resetConnectionFlags()
+
+	cmd := &cobra.Command{Use: "test", Run: func(*cobra.Command, []string) {}}
+	AddConnectionPersistentFlags(cmd)
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+	cmd.SetArgs([]string{"--debug", "--verbose"})
+
+	require.NoError(t, cmd.Execute())
+	require.True(t, debugFlag)
+	require.True(t, verboseFlag)
+	require.Equal(t, 2, VerboseLevel())
+}
+
+func TestInitializeLogger_PropagatesToParents(t *testing.T) {
+	t.Cleanup(resetConnectionFlags)
+	resetConnectionFlags()
+	verboseFlag = true
+
+	root := &cobra.Command{Use: "root"}
+	leaf := &cobra.Command{Use: "leaf"}
+	root.AddCommand(leaf)
+	root.SetContext(t.Context())
+	leaf.SetContext(root.Context())
+
+	require.NoError(t, InitializeLogger(leaf, nil))
+
+	require.True(t, logger.FromContext(leaf.Context()).IsVerbose())
+	require.True(t, logger.FromContext(root.Context()).IsVerbose())
 }

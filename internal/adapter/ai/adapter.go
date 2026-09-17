@@ -10,10 +10,12 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scafeeds"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanagent"
 	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
@@ -36,6 +38,7 @@ type Adapter struct {
 	activeClient  ClientAi
 	cfg           *config.Config
 	serverVersion version.Version
+	cachedLicense *domainlicense.License
 }
 
 func NewAdapter(cfg *config.Config) (*Adapter, error) {
@@ -100,6 +103,10 @@ func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.
 	return a.activeClient.CreateProject(ctx, projectName)
 }
 
+func (a *Adapter) CreateSbomProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
+	return a.activeClient.CreateSbomProject(ctx, projectName)
+}
+
 func (a *Adapter) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
 	return a.activeClient.DeleteProject(ctx, projectId)
 }
@@ -112,12 +119,36 @@ func (a *Adapter) GetProjectId(ctx context.Context, projectName string) (*uuid.U
 	return a.activeClient.GetProjectId(ctx, projectName)
 }
 
+func (a *Adapter) GetProjectByName(ctx context.Context, projectName string) (*project.Project, error) {
+	return a.activeClient.GetProjectByName(ctx, projectName)
+}
+
 func (a *Adapter) GetProjects(ctx context.Context) ([]project.Project, error) {
 	return a.activeClient.GetProjects(ctx)
 }
 
 func (a *Adapter) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
 	return a.activeClient.GetProject(ctx, projectId)
+}
+
+func (a *Adapter) UpdateSbom(ctx context.Context, projectId uuid.UUID, sbomPath string) error {
+	return a.activeClient.UpdateSbom(ctx, projectId, sbomPath)
+}
+
+func (a *Adapter) UpdateScaFeeds(ctx context.Context, path, version string) error {
+	return a.activeClient.UpdateScaFeeds(ctx, path, version)
+}
+
+func (a *Adapter) GetScaFeeds(ctx context.Context, statuses []scafeeds.Status) ([]scafeeds.Package, error) {
+	return a.activeClient.GetScaFeeds(ctx, statuses)
+}
+
+func (a *Adapter) DownloadScaFeeds(ctx context.Context, version string) (io.ReadCloser, string, error) {
+	return a.activeClient.DownloadScaFeeds(ctx, version)
+}
+
+func (a *Adapter) RollbackScaFeeds(ctx context.Context) (scafeeds.Package, error) {
+	return a.activeClient.RollbackScaFeeds(ctx)
 }
 
 func (a *Adapter) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
@@ -132,8 +163,11 @@ func (a *Adapter) GetReportTemplates(ctx context.Context, localization string) (
 	return a.activeClient.GetReportTemplates(ctx, localization)
 }
 
-func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string) (io.ReadCloser, error) {
-	return a.activeClient.GetReport(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary, l10n)
+func (a *Adapter) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error) {
+	if err := common.ValidateReportFiltersForVersion(filters, a.serverVersion); err != nil {
+		return nil, err
+	}
+	return a.activeClient.GetReport(ctx, projectId, scanResultId, templateId, includeComments, includeDFD, includeGlossary, l10n, filters)
 }
 
 func (a *Adapter) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
@@ -204,6 +238,10 @@ func (a *Adapter) StartScanProject(ctx context.Context, projectId uuid.UUID, sca
 	return a.activeClient.StartScanProject(ctx, projectId, scanLabel, scanType)
 }
 
+func (a *Adapter) StartScanSbom(ctx context.Context, projectId uuid.UUID, scanLabel string) (uuid.UUID, error) {
+	return a.activeClient.StartScanSbom(ctx, projectId, scanLabel)
+}
+
 func (a *Adapter) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
 	return a.activeClient.StopScan(ctx, scanResultId)
 }
@@ -220,8 +258,12 @@ func (a *Adapter) GetHealthcheck(ctx context.Context) (bool, error) {
 	return a.activeClient.GetHealthcheck(ctx)
 }
 
-func (a *Adapter) CheckLicense(ctx context.Context) error {
-	return a.activeClient.CheckLicense(ctx)
+func (a *Adapter) GetLicense(_ context.Context) (*domainlicense.License, error) {
+	if a.cachedLicense == nil {
+		return nil, fmt.Errorf("license is not loaded")
+	}
+
+	return a.cachedLicense, nil
 }
 
 func (a *Adapter) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {

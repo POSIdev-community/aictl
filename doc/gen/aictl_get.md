@@ -10,12 +10,13 @@ Retrieve AI resources from the server: projects, branches, scans, reports, agent
 
 ```
       --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug             Debug output (includes error chains)
   -h, --help              help for get
   -l, --log-path string   Log file path
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)
   -u, --uri string        AI server URI (overrides context)
-  -v, --verbose           Verbose output
+  -v, --verbose           Verbose output (operational details)
 ```
 
 ### SEE ALSO
@@ -29,6 +30,7 @@ Retrieve AI resources from the server: projects, branches, scans, reports, agent
 * [aictl get projects](aictl_get_projects.md)	 - Get AI projects
 * [aictl get queue](aictl_get_queue.md)	 - Get scan queue
 * [aictl get report-templates](aictl_get_report-templates.md)	 - Get report templates
+* [aictl get sca-feeds](aictl_get_sca-feeds.md)	 - List or download SCA feeds packages
 * [aictl get scan](aictl_get_scan.md)	 - Get scan
 * [aictl get scanning](aictl_get_scanning.md)	 - Get active scans
 * [aictl get scans](aictl_get_scans.md)	 - Get AI scans

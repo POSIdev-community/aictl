@@ -4,7 +4,7 @@ Create a branch
 
 ### Synopsis
 
-Create a branch under a project. Optionally pack and upload sources from --scan-target with gitignore-style exclusions. Project id comes from context or -p.
+Create a branch under a project. The name may be passed as an argument or via stdin. Optionally pack and upload sources from --scan-target with gitignore-style exclusions. Project id comes from context or -p.
 
 ```
 aictl create branch <branch-name> [flags]
@@ -16,6 +16,7 @@ aictl create branch <branch-name> [flags]
   aictl create branch main -p <project-id>
   aictl create branch main -p <project-id> -s ./src -e '*.tmp' --exclude-from .aictlignore
   aictl create branch main --safe
+  echo main | aictl create branch - -p <project-id>
 ```
 
 ### Options
@@ -33,12 +34,13 @@ aictl create branch <branch-name> [flags]
 
 ```
       --cacert string     Path to PEM file with CA certificate(s) to trust (appended to system roots)
+  -V, --debug             Debug output (includes error chains)
   -l, --log-path string   Log file path
       --safe              If the resource already exists, return its id without error
       --tls-skip          Skip TLS certificate verification
   -t, --token string      AI server access token (overrides context)
   -u, --uri string        AI server URI (overrides context)
-  -v, --verbose           Verbose output
+  -v, --verbose           Verbose output (operational details)
 ```
 
 ### SEE ALSO

@@ -9,7 +9,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
 )
 
-func (a *ClientAI61) GetScanErrors(ctx context.Context, projectId, scanResultId uuid.UUID) ([]string, error) {
+func (a *ClientAI6x) GetScanErrors(ctx context.Context, projectId, scanResultId uuid.UUID) ([]string, error) {
 	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdErrorsWithResponse(
 		ctx, projectId, scanResultId, a.AddJWTToHeader,
 	)

@@ -20,8 +20,9 @@ import (
 // Skipped (no safe happy-path without extra fixtures / version support):
 //   - get scan report <custom-template> — needs a real template name on the server
 //   - get scan sbom — e2e aiproj has only StaticCodeAnalysis (API returns sbom not found)
-//   - get/update project settings — not on AIE 5.4
+//   - get/update project settings — not on AIE 5.x
 //   - get scan report json-v2 — AIE 6.1+ only
+//   - get scan report xml — on AIE 6.1+ expect error (template removed)
 func TestLeafCommandsOutsideSmoke(t *testing.T) {
 	configPath, err := ConfigPath()
 	if err != nil {
@@ -80,11 +81,14 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			run("update", "sources", filepath.Join(fixturesDir, "project"), "-p", projectID, "-b", branchID)
 
 			// stop: start a branch scan and stop it while still running.
-			stopScanID := run("scan", "start", "branch", branchID, "-p", projectID)
+			// Await the stopped scan before starting another — otherwise AIE may
+			// still treat the branch as scheduled (SCAN_ALREADY_SCHEDULED flake).
+			stopScanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, stopScanID)
 			run("scan", "stop", stopScanID)
+			run("scan", "await", stopScanID, "-p", projectID)
 
-			scanID := run("scan", "start", "branch", branchID, "-p", projectID)
+			scanID := run("scan", "branch", branchID, "-p", projectID)
 			assertUUID(t, scanID)
 			run("scan", "await", scanID, "-p", projectID)
 
@@ -137,7 +141,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			}
 
 			// priority / preferred-agents / languages settings exist only on AIE 6.0+
-			if standName != standOrder54 {
+			if !isAIE5x(standName) {
 				commands = append(commands,
 					struct {
 						name string
@@ -154,14 +158,29 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				)
 			}
 
+			// SCA feeds packages API exists only on AIE 6.3+
+			if standName == standOrder63 {
+				commands = append(commands,
+					struct {
+						name string
+						args []string
+					}{"get sca-feeds", []string{"get", "sca-feeds"}},
+					struct {
+						name string
+						args []string
+					}{"get sca-feeds --status current", []string{"get", "sca-feeds", "--status", "current"}},
+				)
+			}
+
 			reportTypes := []string{
 				"autocheck", "gitlab", "json", "markdown",
-				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "xml",
+				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "sarif", "xml",
 			}
 			// json-v2 is supported on AIE 6.1+ only
-			if standName == standOrder61 {
+			if standName == standOrder61 || standName == standOrder62 || standName == standOrder63 {
 				reportTypes = append(reportTypes, "json-v2")
 			}
+			xmlExpectError := standName == standOrder61 || standName == standOrder62 || standName == standOrder63
 			for _, rt := range reportTypes {
 				out := filepath.Join(reportsDir, rt+".out")
 				commands = append(commands, struct {
@@ -173,9 +192,50 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				})
 			}
 
+			uiFilterFlags := uiLikeReportFilterFlags(standName)
+			for _, rt := range reportTypes {
+				out := filepath.Join(reportsDir, "filtered-"+rt+".out")
+				args := []string{"get", "scan", "report", "with-filters", rt, scanID, "-p", projectID, "-o", out, "--localization", "en"}
+				args = append(args, uiFilterFlags...)
+				commands = append(commands, struct {
+					name string
+					args []string
+				}{
+					name: "get scan report with-filters " + rt,
+					args: args,
+				})
+			}
+
 			for _, c := range commands {
+				c := c
 				t.Run(c.name, func(t *testing.T) {
+					if xmlExpectError && isXmlReportCommand(c.args) {
+						_, err := runAictl(t, aictlBin, stand, env, c.args...)
+						require.Error(t, err)
+						return
+					}
 					RunAictl(t, aictlBin, stand, env, c.args...)
+				})
+			}
+
+			t.Run("get scan report with-filters without filters", func(t *testing.T) {
+				_, err := runAictl(t, aictlBin, stand, env,
+					"get", "scan", "report", "with-filters", "sarif", scanID, "-p", projectID,
+					"-o", filepath.Join(reportsDir, "no-filters.sarif"), "--localization", "en")
+				require.Error(t, err)
+			})
+
+			if isAIE5x(standName) {
+				t.Run("get scan report with-filters unsupported SecretDetection on 5.x", func(t *testing.T) {
+					args := []string{
+						"get", "scan", "report", "with-filters", "sarif", scanID, "-p", projectID,
+						"-o", filepath.Join(reportsDir, "secret-detection-5x.sarif"),
+						"--localization", "en",
+						"--level-high",
+						"--scan-module", "SecretDetection",
+					}
+					_, err := runAictl(t, aictlBin, stand, env, args...)
+					require.Error(t, err)
 				})
 			}
 
@@ -214,8 +274,8 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			})
 
 			// start project last: exit 0 only (stop/await may hit SCAN*_NOT_FOUND on some AIE).
-			t.Run("scan start project", func(t *testing.T) {
-				projectScanID := RunAictl(t, aictlBin, stand, env, "scan", "start", "project", projectID)
+			t.Run("scan project", func(t *testing.T) {
+				projectScanID := RunAictl(t, aictlBin, stand, env, "scan", "project", projectID)
 				assertUUID(t, projectScanID)
 			})
 		})
@@ -235,6 +295,47 @@ func writePatchedAiproj(t *testing.T, src, dst, projectName string) {
 	out, err := json.Marshal(doc)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(dst, out, 0o644))
+}
+
+// uiLikeReportFilterFlags returns UI-default-like filter flags for report with-filters e2e.
+// SecretDetection / MaliciousCodeDetection are included only on AIE ≥ 6.0.
+func uiLikeReportFilterFlags(standName string) []string {
+	flags := []string{
+		"--level-high", "--level-medium",
+		"--status-undefined", "--status-confirmed", "--status-confirmed-auto",
+		"--mode-entry-point", "--mode-root-function", "--mode-public-methods", "--mode-others",
+		"--found-this-scan", "--found-prev-scan",
+		"--conditional", "--non-conditional",
+		"--non-suppressed",
+		"--suspected", "--second-level",
+		"--scan-module", "StaticCodeAnalysis",
+		"--scan-module", "PatternMatching",
+		"--scan-module", "Components",
+		"--scan-module", "SoftwareCompositionAnalysis",
+		"--scan-module", "Configuration",
+		"--scan-module", "BlackBox",
+	}
+	if !isAIE5x(standName) {
+		flags = append(flags,
+			"--scan-module", "MaliciousCodeDetection",
+			"--scan-module", "SecretDetection",
+		)
+	}
+	return flags
+}
+
+// isXmlReportCommand reports whether args are get scan report [with-filters] xml …
+func isXmlReportCommand(args []string) bool {
+	if len(args) < 4 {
+		return false
+	}
+	if args[0] != "get" || args[1] != "scan" || args[2] != "report" {
+		return false
+	}
+	if args[3] == "xml" {
+		return true
+	}
+	return len(args) >= 5 && args[3] == "with-filters" && args[4] == "xml"
 }
 
 func regexpEscape(s string) string {

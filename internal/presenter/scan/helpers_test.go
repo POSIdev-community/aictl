@@ -51,8 +51,21 @@ func buildScanRoot(
 	preScan := NewPersistentPreRunEScanCmd(cfg)
 	preStart := NewPersistentPreRunEScanStartCmd(preScan)
 	start := NewScanStartCmd(preStart, NewScanStartBranchCmd(cfg, startBranch), NewScanStartProjectCmd(cfg, startProject))
-	return NewScanCmd(preScan, NewScanAwaitCmd(cfg, await), NewScanCheckPoliciesCmd(cfg, check), start, NewScanStopCmd(stop))
+	return NewScanCmd(
+		preScan,
+		NewScanAwaitCmd(cfg, await),
+		NewScanCheckPoliciesCmd(cfg, check),
+		NewScanBranchCmd(cfg, startBranch),
+		NewScanProjectCmd(cfg, startProject),
+		NewScanSbomCmd(cfg, noopScanSbomUC{}),
+		start,
+		NewScanStopCmd(stop),
+	)
 }
+
+type noopScanSbomUC struct{}
+
+func (noopScanSbomUC) Execute(context.Context, string) error { return nil }
 
 func mustScanCfg(t *testing.T) *config.Config {
 	t.Helper()

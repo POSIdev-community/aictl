@@ -50,3 +50,16 @@ func (e *InvalidError) Error() string {
 func NewInvalidError(field string) *InvalidError {
 	return &InvalidError{Field: field}
 }
+
+// MessageError is a validation failure whose Error() is the message as-is (no "Validation error:" prefix).
+type MessageError struct {
+	Message string
+}
+
+func (e *MessageError) Error() string {
+	return e.Message
+}
+
+func NewMessageError(message string) *MessageError {
+	return &MessageError{Message: message}
+}

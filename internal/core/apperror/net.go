@@ -45,7 +45,11 @@ type BadRequestError struct {
 }
 
 func (e *BadRequestError) Error() string {
-	return fmt.Sprintf("Bad Request error: %s", e.body)
+	return "Bad Request error"
+}
+
+func (e *BadRequestError) Body() string {
+	return e.body
 }
 
 func NewBadRequestError(body string) *BadRequestError {

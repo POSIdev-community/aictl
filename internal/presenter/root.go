@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/POSIdev-community/aictl/internal/presenter/.utils"
+	"github.com/POSIdev-community/aictl/internal/presenter/check"
 	"github.com/POSIdev-community/aictl/internal/presenter/context"
 	"github.com/POSIdev-community/aictl/internal/presenter/create"
 	deletePresenter "github.com/POSIdev-community/aictl/internal/presenter/delete"
@@ -22,7 +23,8 @@ type CmdRoot struct {
 }
 
 func NewRootCmd(contextCmd *context.CmdContext, createCmd *create.CmdCreate, deleteCmd *deletePresenter.CmdDelete,
-	getCmd *get.CmdGet, scanCmd *scan.CmdScan, setCmd *set.CmdSet, updateCmd *update.CmdUpdate) *CmdRoot {
+	getCmd *get.CmdGet, scanCmd *scan.CmdScan, setCmd *set.CmdSet, updateCmd *update.CmdUpdate,
+	checkCmd *check.CmdCheck) *CmdRoot {
 
 	var versionFlag bool
 
@@ -35,6 +37,7 @@ Use subcommands to talk to an AI server. Connection settings come from context (
 		Example: `  aictl ctx set -u https://ai.example -t <token>
   aictl get projects
   aictl --version`,
+		SilenceErrors:     true,
 		PersistentPreRunE: _utils.InitializeLogger,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if versionFlag {
@@ -63,6 +66,7 @@ Use subcommands to talk to an AI server. Connection settings come from context (
 	rootCmd.AddCommand(scanCmd.Command)
 	rootCmd.AddCommand(setCmd.Command)
 	rootCmd.AddCommand(updateCmd.Command)
+	rootCmd.AddCommand(checkCmd.Command)
 
 	rootCmd.Flags().BoolVar(&versionFlag, "version", false, "Show aictl version")
 

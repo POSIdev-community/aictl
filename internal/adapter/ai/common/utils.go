@@ -16,6 +16,21 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/logger"
 )
 
+// ReadErrorBody reads an HTTP error response body for user-facing messages.
+// Returns "" if r is nil or the read fails.
+func ReadErrorBody(r io.Reader) string {
+	if r == nil {
+		return ""
+	}
+
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
+}
+
 type MultipartField struct {
 	Key   string
 	Value string
@@ -28,7 +43,7 @@ func PrepareMultipartBody(
 	fields ...MultipartField) (io.ReadCloser, string, error) {
 
 	log := logger.FromContext(ctx)
-	progress := createProgressReporter(log, reportProgress)
+	progress := createProgressReporter(log, reportProgress, "updating sources")
 
 	file, err := os.Open(archivePath)
 	if err != nil {
@@ -352,8 +367,13 @@ func Reference[T any](value T) *T {
 	return &value
 }
 
-func createProgressReporter(log *logger.Logger, reportProgress bool) func(int) {
-	if !reportProgress {
+func createProgressReporter(log *logger.Logger, reportProgress bool, label string) func(int) {
+	return NewProgressReporter(log, reportProgress, label)
+}
+
+// NewProgressReporter prints "<label>: N%" on stderr every 10% when enabled.
+func NewProgressReporter(log *logger.Logger, enabled bool, label string) func(int) {
+	if !enabled {
 		return func(int) {}
 	}
 
@@ -365,7 +385,7 @@ func createProgressReporter(log *logger.Logger, reportProgress bool) func(int) {
 		if percent > lastPrintedPercent {
 			lastPrintedPercent = percent
 
-			log.StdErrf("updating sources: %d%%", percent)
+			log.StdErrf("%s: %d%%", label, percent)
 		}
 	}
 }
