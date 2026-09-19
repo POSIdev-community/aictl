@@ -200,7 +200,7 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `Messa
 | `set project settings/policies/exclusions` | **Полная замена** ресурса (aiproj / JSON / text) |
 | `update project settings` | **Patch** priority / preferred agents (AIE ≥ 6.0) |
 | `update project languages` | Пересчёт языков на сервере |
-| `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов |
+| `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов; `update sources --update-languages` — upload + пересчёт языков |
 | `update sca-feeds rollback` | Откат current SCA feeds (predecessor выбирает сервер) |
 | `get sca-feeds` / `get sca-feeds <version>` | Список / скачивание SCA feeds |
 | `scan branch` / `scan project` / `scan sbom` | Канонический старт скана |

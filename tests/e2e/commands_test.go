@@ -78,7 +78,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			run("set", "project", "settings", "-p", projectID, "-f", aiprojPath)
 			branchID := run("create", "branch", "default", "-p", projectID, "--safe")
 			assertUUID(t, branchID)
-			run("update", "sources", filepath.Join(fixturesDir, "project"), "-p", projectID, "-b", branchID)
+			run("update", "sources", filepath.Join(fixturesDir, "project"), "-p", projectID, "-b", branchID, "--update-languages")
 
 			// stop: start a branch scan and stop it while still running.
 			// Await the stopped scan before starting another — otherwise AIE may
@@ -261,7 +261,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				require.NoError(t, os.MkdirAll(tempDir, 0o755))
 				RunAictl(t, aictlBin, stand, env,
 					"update", "sources", filepath.Join(fixturesDir, "project"),
-					"-p", projectID, "-b", branchID, "--temp-dir", tempDir)
+					"-p", projectID, "-b", branchID, "--temp-dir", tempDir, "--update-languages")
 			})
 
 			t.Run("scan check-policies --fail-on-policies-rejected", func(t *testing.T) {

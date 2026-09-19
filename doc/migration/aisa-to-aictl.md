@@ -39,8 +39,8 @@ aictl ctx set -p "$project_id"
 branch_id=$(aictl create branch default --safe)
 aictl ctx set -b "$branch_id"
 
-aictl update sources ./src
-# aictl update sources ./src --exclude-from .aisaignore
+aictl update sources ./src --update-languages
+# aictl update sources ./src --exclude-from .aisaignore --update-languages
 
 scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
@@ -77,8 +77,8 @@ aictl ctx clear -y
 | `--create-project` | `create project` (`--safe` — не падать, если есть) | |
 | `--branch-name` | `create branch <name>`; `ctx set -b` | |
 | `--create-branch` | `create branch` | |
-| `--scan-target` | `update sources <path>` | По умолчанию aisa: CWD |
-| `--file-exclusions` | `update sources -e` / `--exclude-from` | Синтаксис gitignore |
+| `--scan-target` | `update sources <path> [--update-languages]` | По умолчанию aisa: CWD; в пайплайнах — с `--update-languages` |
+| `--file-exclusions` | `update sources -e` / `--exclude-from` | Синтаксис gitignore; при полном пайплайне добавьте `--update-languages` |
 | `--project-settings-file` | `set project settings -f` | `.aiproj` / JSON |
 | `--scan-off` | Не вызывать `scan branch` / `scan project` | Upload/settings без скана |
 | `--policy-settings-file` | `set project policies -f` | |
@@ -158,7 +158,7 @@ aisa использует детальные коды. aictl сохраняет 
 
 ```bash
 aictl set project settings -f ./project.aiproj
-aictl update sources ./src
+aictl update sources ./src --update-languages
 # не вызывать scan branch  → аналог --scan-off
 ```
 

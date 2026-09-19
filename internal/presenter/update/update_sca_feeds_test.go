@@ -39,7 +39,7 @@ func TestUpdateScaFeedsCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(uc, noopRollbackScaFeedsUC{}), projectCmd)
+		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}, noopUpdateLanguagesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(uc, noopRollbackScaFeedsUC{}), projectCmd)
 	}
 
 	t.Run("ok", func(t *testing.T) {

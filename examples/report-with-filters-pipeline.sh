@@ -26,7 +26,7 @@ aictl set project settings -f $aiproj_path -v || clearAndExit $?
 branch_id=$(aictl create branch $branch_name --safe -v) || clearAndExit $?
 aictl ctx set -b $branch_id || clearAndExit $?
 
-aictl update sources $sources_path -v || clearAndExit $?
+aictl update sources $sources_path --update-languages -v || clearAndExit $?
 scan_id=$(aictl scan branch $branch_id -v) || clearAndExit $?
 
 aictl scan await $scan_id -v || clearAndExit $?

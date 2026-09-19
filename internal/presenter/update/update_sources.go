@@ -21,20 +21,22 @@ type UseCaseUpdateSources interface {
 	Execute(ctx context.Context, sourcePath string, exclusions gitignore.Exclusions, tempDir string) error
 }
 
-func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateSources {
+func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources, ucLanguages UseCaseUpdateProjectLanguages) CmdUpdateSources {
 
 	var (
 		path             string
 		excludeFlags     []string
 		excludeFromFlags []string
 		tempDir          string
+		updateLanguages  bool
 	)
 
 	cmd := &cobra.Command{
 		Use:   "sources <path>",
 		Short: "Update sources",
-		Long:  `Upload or update sources for a project/branch with optional gitignore-style exclusions. Project and branch ids come from context or -p/-b.`,
+		Long:  `Upload or update sources for a project/branch with optional gitignore-style exclusions. Optionally recalculate project languages (--update-languages). Project and branch ids come from context or -p/-b.`,
 		Example: `  aictl update sources ./src -p <project-id> -b <branch-id>
+  aictl update sources ./src --update-languages
   aictl update sources ./src -e '*.tmp' --exclude-from .aictlignore`,
 		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -92,6 +94,14 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 				return fmt.Errorf("'update sources' usecase call: %w", err)
 			}
 
+			if updateLanguages {
+				if err := ucLanguages.Execute(ctx); err != nil {
+					cmd.SilenceUsage = true
+
+					return fmt.Errorf("'update project languages' usecase call: %w", err)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -101,6 +111,7 @@ func NewUpdateSourcesCmd(cfg *config.Config, uc UseCaseUpdateSources) CmdUpdateS
 	cmd.Flags().StringArrayVarP(&excludeFlags, "exclude", "e", nil, "Exclude path (gitignore pattern); repeatable")
 	cmd.Flags().StringArrayVar(&excludeFromFlags, "exclude-from", nil, "File with gitignore-style exclude patterns")
 	cmd.Flags().StringVar(&tempDir, "temp-dir", "", "Directory for temporary zip when packing sources")
+	cmd.Flags().BoolVar(&updateLanguages, "update-languages", false, "Recalculate project languages after upload")
 
 	return CmdUpdateSources{cmd}
 }

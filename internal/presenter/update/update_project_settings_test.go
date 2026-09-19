@@ -41,7 +41,7 @@ func TestUpdateProjectSettingsCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(uc),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
+		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}, noopUpdateLanguagesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
 	}
 
 	t.Run("requires_patch_flag", func(t *testing.T) {
@@ -70,7 +70,7 @@ func TestUpdateProjectSettingsCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(uc),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
+		root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}, noopUpdateLanguagesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
 		require.NoError(t, cmdtest.Execute(t, root.Command,
 			"project", "settings",
 			"-p", projectID.String(),

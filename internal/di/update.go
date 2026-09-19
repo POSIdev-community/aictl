@@ -16,7 +16,12 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 		return nil, err
 	}
 
-	cmdSources := update.NewUpdateSourcesCmd(a.cfg, sourcesUC)
+	languagesUC, err := updateProjectLanguages.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cmdSources := update.NewUpdateSourcesCmd(a.cfg, sourcesUC, languagesUC)
 
 	sbomUC, err := sbom.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
@@ -34,7 +39,7 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 	}
 	cmdScaFeeds := update.NewUpdateScaFeedsCmd(scaFeedsUC, rollbackUC)
 
-	cmdProject, err := buildUpdateProjectCmd(a)
+	cmdProject, err := buildUpdateProjectCmd(a, languagesUC)
 	if err != nil {
 		return nil, err
 	}
@@ -42,17 +47,13 @@ func buildUpdateCmd(a *adapters) (*update.CmdUpdate, error) {
 	return update.NewUpdateCmd(a.cfg, cmdSources, cmdSbom, cmdScaFeeds, cmdProject), nil
 }
 
-func buildUpdateProjectCmd(a *adapters) (update.CmdUpdateProject, error) {
+func buildUpdateProjectCmd(a *adapters, languagesUC *updateProjectLanguages.UseCase) (update.CmdUpdateProject, error) {
 	settingsUC, err := updateProjectSettings.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return update.CmdUpdateProject{}, err
 	}
 	cmdSettings := update.NewUpdateProjectSettingsCmd(settingsUC)
 
-	languagesUC, err := updateProjectLanguages.NewUseCase(a.ai, a.cli, a.cfg)
-	if err != nil {
-		return update.CmdUpdateProject{}, err
-	}
 	cmdLanguages := update.NewUpdateProjectLanguagesCmd(languagesUC)
 
 	persistentPreRunEUpdateCmd := update.NewPersistentPreRunEUpdateCmd(a.cfg)

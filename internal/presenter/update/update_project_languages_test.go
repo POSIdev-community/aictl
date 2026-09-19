@@ -10,9 +10,19 @@ import (
 	"github.com/POSIdev-community/aictl/internal/presenter/cmdtest"
 )
 
-type fakeUpdateLanguagesUC struct{ called int }
+type fakeUpdateLanguagesUC struct {
+	called int
+	err    error
+	onCall func()
+}
 
-func (f *fakeUpdateLanguagesUC) Execute(context.Context) error { f.called++; return nil }
+func (f *fakeUpdateLanguagesUC) Execute(context.Context) error {
+	f.called++
+	if f.onCall != nil {
+		f.onCall()
+	}
+	return f.err
+}
 
 func TestUpdateProjectLanguagesCmd(t *testing.T) {
 	t.Cleanup(resetUpdateFlags)
@@ -25,7 +35,7 @@ func TestUpdateProjectLanguagesCmd(t *testing.T) {
 		NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 		NewUpdateProjectLanguagesCmd(uc),
 	)
-	root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
+	root := NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}, noopUpdateLanguagesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, noopRollbackScaFeedsUC{}), projectCmd)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "project", "languages", "-p", projectID.String()))
 	require.Equal(t, 1, uc.called)
 	require.Equal(t, projectID, cfg.ProjectId())

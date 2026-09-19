@@ -61,7 +61,7 @@ aictl ctx set -p "$project_id"
 branch_id=$(aictl create branch default --safe)   # или get branches
 aictl ctx set -b "$branch_id"
 
-aictl update sources ./src
+aictl update sources ./src --update-languages
 # excludes: -e / --exclude-from (gitignore; не Ant)
 
 # priority на проекте (если нужно):
@@ -78,7 +78,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 | ptai | aictl | Примечание |
 |------|-------|------------|
 | `-p` / `--project` | `ctx -p` / UUID после `get projects` | Точный `get project --name` — **планируется** |
-| `--input` | `update sources <path>` | |
+| `--input` | `update sources <path> [--update-languages]` | В пайплайнах — с `--update-languages` |
 | `-b` / `--branch-name` | `create branch` / `ctx -b` | Ветка создаётся, если нет |
 | `--scan-label` | `scan branch|project --scan-label` | |
 | `--output` | каталог для `-o` | Дефолт ptai: `.ptai` |
@@ -101,7 +101,7 @@ aictl get scan report sarif "$scan_id" -o ./out/sarif.json
 ```bash
 aictl set project settings -f ./settings.json     # --settings-json
 aictl set project policies -f ./policy.json       # --policy-json
-aictl update sources ./src
+aictl update sources ./src --update-languages
 scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected

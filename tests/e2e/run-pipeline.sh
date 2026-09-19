@@ -42,7 +42,7 @@ with open('${aiproj_path}', 'w') as f:
 "${AICTL}" set "${CONN[@]}" project settings -p "${project_id}" -f "${aiproj_path}" -v
 branch_id=$("${AICTL}" create "${CONN[@]}" branch "${branch_name}" -p "${project_id}" --safe -v)
 
-"${AICTL}" update "${CONN[@]}" sources "${FIXTURES_DIR}/project" -p "${project_id}" -b "${branch_id}" -v
+"${AICTL}" update "${CONN[@]}" sources "${FIXTURES_DIR}/project" -p "${project_id}" -b "${branch_id}" --update-languages -v
 scan_id=$("${AICTL}" scan "${CONN[@]}" branch "${branch_id}" -p "${project_id}" -v)
 
 "${AICTL}" scan "${CONN[@]}" await "${scan_id}" -p "${project_id}" -v

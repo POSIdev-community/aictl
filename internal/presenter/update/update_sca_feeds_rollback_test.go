@@ -30,7 +30,7 @@ func TestUpdateScaFeedsRollbackCmd(t *testing.T) {
 			NewUpdateProjectSettingsCmd(noopUpdateSettingsUC{}),
 			NewUpdateProjectLanguagesCmd(noopUpdateLanguagesUC{}),
 		)
-		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, rb), projectCmd)
+		return NewUpdateCmd(cfg, NewUpdateSourcesCmd(cfg, noopUpdateSourcesUC{}, noopUpdateLanguagesUC{}), NewUpdateSbomCmd(cfg, noopUpdateSbomUC{}), NewUpdateScaFeedsCmd(noopUpdateScaFeedsUC{}, rb), projectCmd)
 	}
 
 	t.Run("with_yes", func(t *testing.T) {

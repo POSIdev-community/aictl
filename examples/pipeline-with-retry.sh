@@ -36,7 +36,7 @@ while true; do
     echo "⏳ Attempting project setup and scan start..."
 
     if aictl set project settings -f "$aiproj_path" -v &&
-       aictl update sources "$sources_path" -v &&
+       aictl update sources "$sources_path" --update-languages -v &&
        scan_id=$(aictl scan branch "$branch_id" -v); then
 
         echo "✅ Project settings, sources, and scan start succeeded."

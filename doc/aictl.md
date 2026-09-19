@@ -128,7 +128,7 @@ aictl ctx set -p "$project_id"
 branch_id=$(aictl create branch default --safe)
 aictl ctx set -b "$branch_id"
 
-aictl update sources ./src
+aictl update sources ./src --update-languages
 scan_id=$(aictl scan branch "$branch_id")
 aictl scan await "$scan_id" --fail-on-scan-failed
 aictl scan check-policies "$scan_id" --fail-on-policies-rejected
@@ -2291,7 +2291,7 @@ aictl update [flags]
 **Пример:**
 
 ```bash
-aictl update sources ./src
+aictl update sources ./src --update-languages
 aictl update sca-feeds ./feeds.zip --version 47
 ```
 
@@ -2309,18 +2309,19 @@ aictl update sca-feeds ./feeds.zip --version 47
 
 ### `aictl update sources`
 
-Упаковать каталог исходников и загрузить на сервер в текущую (или указанную) ветку.
+Упаковать каталог исходников и загрузить на сервер в текущую (или указанную) ветку. С `--update-languages` после успешной загрузки пересчитывает языки проекта (тот же путь, что `update project languages`).
 
 **Usage:**
 
 ```
-aictl update sources <path> [flags]
+aictl update sources <path> [--update-languages] [flags]
 ```
 
 **Пример:**
 
 ```bash
-aictl update sources ./src -e '**/test/**'
+aictl update sources ./src --update-languages
+aictl update sources ./src -e '**/test/**' --update-languages
 ```
 
 **Флаги:**
@@ -2332,6 +2333,7 @@ aictl update sources ./src -e '**/test/**'
   -h, --help                       справка
   -p, --project-id string          id проекта (переопределяет context)
       --temp-dir string            каталог для временного zip при упаковке исходников
+      --update-languages           пересчитать языки проекта после загрузки
 ```
 
 **Унаследованные флаги:**
@@ -2459,7 +2461,7 @@ aictl update project settings --priority High --preferred-agents-only
 
 ### `aictl update project languages`
 
-Обновить список языков проекта на сервере (по загруженным исходникам).
+Обновить список языков проекта на сервере (по загруженным исходникам). В рекомендованных пайплайнах предпочитайте `update sources --update-languages`; эта команда остаётся для ручных сценариев.
 
 **Usage:**
 

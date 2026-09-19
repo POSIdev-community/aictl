@@ -4,7 +4,7 @@ Update sources
 
 ### Synopsis
 
-Upload or update sources for a project/branch with optional gitignore-style exclusions. Project and branch ids come from context or -p/-b.
+Upload or update sources for a project/branch with optional gitignore-style exclusions. Optionally recalculate project languages (--update-languages). Project and branch ids come from context or -p/-b.
 
 ```
 aictl update sources <path> [flags]
@@ -14,6 +14,7 @@ aictl update sources <path> [flags]
 
 ```
   aictl update sources ./src -p <project-id> -b <branch-id>
+  aictl update sources ./src --update-languages
   aictl update sources ./src -e '*.tmp' --exclude-from .aictlignore
 ```
 
@@ -26,6 +27,7 @@ aictl update sources <path> [flags]
   -h, --help                       help for sources
   -p, --project-id string          Project id (overrides context)
       --temp-dir string            Directory for temporary zip when packing sources
+      --update-languages           Recalculate project languages after upload
 ```
 
 ### Options inherited from parent commands
