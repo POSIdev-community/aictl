@@ -20,6 +20,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
+	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
 	"github.com/POSIdev-community/aictl/internal/core/domain/project"
 	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
@@ -1372,12 +1373,26 @@ func (a *ClientAI60) GetScanStatistic(ctx context.Context, projectId, scanResult
 	}
 
 	model := response.JSON200
+	if model == nil {
+		return nil, apperror.NewEmptyResponseError("scan statistic")
+	}
+
+	policyState := string(policystate.None)
+	if model.PolicyState != nil {
+		policyState = string(*model.PolicyState)
+	}
 
 	return &statistic.Statistic{
-		Total:     *model.Total,
-		High:      *model.High,
-		Medium:    *model.Medium,
-		Low:       *model.Low,
-		Potential: *model.Potential,
+		Total:        common.GetOrDefault(model.Total, 0),
+		High:         common.GetOrDefault(model.High, 0),
+		Medium:       common.GetOrDefault(model.Medium, 0),
+		Low:          common.GetOrDefault(model.Low, 0),
+		Potential:    common.GetOrDefault(model.Potential, 0),
+		FilesTotal:   common.GetOrDefault(model.FilesTotal, 0),
+		FilesScanned: common.GetOrDefault(model.FilesScanned, 0),
+		UrlsTotal:    common.GetOrDefault(model.UrlsTotal, 0),
+		UrlsScanned:  common.GetOrDefault(model.UrlsScanned, 0),
+		ScanDuration: common.GetOrDefault(model.ScanDuration, ""),
+		PolicyState:  policyState,
 	}, nil
 }

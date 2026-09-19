@@ -4,7 +4,10 @@ Get scan statistic
 
 ### Synopsis
 
-Download or print scan statistics. Scan id comes from argument or stdin. Output path via -o; use -f to overwrite. Use --json for JSON output.
+Print scan statistics (severity counts, files/URLs scanned, duration, policy state).
+Scan id comes from argument or stdin. Default output is text; --json prints pretty JSON;
+-o writes JSON to a file (use -f to overwrite).
+scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is None, Rejected, or Confirmed.
 
 ```
 aictl get scan statistic <scan-id> [flags]

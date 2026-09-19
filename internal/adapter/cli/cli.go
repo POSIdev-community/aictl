@@ -153,6 +153,14 @@ func (cli *Adapter) ShowScanStatistic(ctx context.Context, statistic *statistic.
 	log.StdOutf("Medium: %d", statistic.Medium)
 	log.StdOutf("Low: %d", statistic.Low)
 	log.StdOutf("Potential: %d", statistic.Potential)
+	log.StdOutf("Files total: %d", statistic.FilesTotal)
+	log.StdOutf("Files scanned: %d", statistic.FilesScanned)
+	log.StdOutf("URLs total: %d", statistic.UrlsTotal)
+	log.StdOutf("URLs scanned: %d", statistic.UrlsScanned)
+	if statistic.ScanDuration != "" {
+		log.StdOutf("Scan duration: %s", statistic.ScanDuration)
+	}
+	log.StdOutf("Policy state: %s", statistic.PolicyState)
 }
 
 func (cli *Adapter) ShowScanAgents(ctx context.Context, agents []scanagent.ScanAgent) {

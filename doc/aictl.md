@@ -1363,7 +1363,49 @@ aictl get scan logs <scan-id> -o ./scan.log -f
 
 ### `aictl get scan statistic`
 
-Статистика результатов скана. `--json` — JSON; `-o` — в файл.
+Статистика результатов скана. Без `--json` и без `-o` — текстовый вывод на stdout; `--json` — pretty JSON на stdout; `-o` — JSON в файл (даже без `--json`).
+
+**Вывод (текст):**
+
+```
+Total: <n>
+High: <n>
+Medium: <n>
+Low: <n>
+Potential: <n>
+Files total: <n>
+Files scanned: <n>
+URLs total: <n>
+URLs scanned: <n>
+Scan duration: <duration>   # только если сервер вернул значение
+Policy state: <state>
+```
+
+**Вывод (`--json` / `-o`):**
+
+```json
+{
+    "total": 0,
+    "high": 0,
+    "low": 0,
+    "medium": 0,
+    "potential": 0,
+    "filesTotal": 0,
+    "filesScanned": 0,
+    "urlsTotal": 0,
+    "urlsScanned": 0,
+    "scanDuration": "PT00H34M35.872S",
+    "policyState": "None"
+}
+```
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `total` / `high` / `medium` / `low` / `potential` | int | Число уязвимостей (всего и по уровню) |
+| `filesTotal` / `filesScanned` | int | Файлы: всего / просканировано |
+| `urlsTotal` / `urlsScanned` | int | URL (DAST): всего / просканировано |
+| `scanDuration` | string | Длительность скана как в API: ISO-8601 duration (`date-span`), напр. `PT00H34M35.872S`; пустая строка, если нет |
+| `policyState` | string | Статус политик: `None`, `Rejected`, `Confirmed` |
 
 **Usage:**
 

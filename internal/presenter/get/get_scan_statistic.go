@@ -29,7 +29,10 @@ func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
 	cmd := &cobra.Command{
 		Use:   "statistic <scan-id>",
 		Short: "Get scan statistic",
-		Long:  `Download or print scan statistics. Scan id comes from argument or stdin. Output path via -o; use -f to overwrite. Use --json for JSON output.`,
+		Long: `Print scan statistics (severity counts, files/URLs scanned, duration, policy state).
+Scan id comes from argument or stdin. Default output is text; --json prints pretty JSON;
+-o writes JSON to a file (use -f to overwrite).
+scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is None, Rejected, or Confirmed.`,
 		Example: `  aictl get scan statistic <scan-id>
   aictl get scan statistic <scan-id> --json
   aictl get scan statistic <scan-id> -o ./stat.json -f`,

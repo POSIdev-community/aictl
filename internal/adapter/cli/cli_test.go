@@ -210,6 +210,8 @@ func TestShowScanStatistic(t *testing.T) {
 	a := newTestAdapter(nil, nil)
 	a.ShowScanStatistic(testCtx(&out, &errBuf), &statistic.Statistic{
 		Total: 10, High: 4, Medium: 3, Low: 2, Potential: 1,
+		FilesTotal: 100, FilesScanned: 80, UrlsTotal: 5, UrlsScanned: 3,
+		ScanDuration: "PT00H34M35.872S", PolicyState: "Confirmed",
 	})
 	s := out.String()
 	require.Contains(t, s, "Total: 10")
@@ -217,6 +219,12 @@ func TestShowScanStatistic(t *testing.T) {
 	require.Contains(t, s, "Medium: 3")
 	require.Contains(t, s, "Low: 2")
 	require.Contains(t, s, "Potential: 1")
+	require.Contains(t, s, "Files total: 100")
+	require.Contains(t, s, "Files scanned: 80")
+	require.Contains(t, s, "URLs total: 5")
+	require.Contains(t, s, "URLs scanned: 3")
+	require.Contains(t, s, "Scan duration: PT00H34M35.872S")
+	require.Contains(t, s, "Policy state: Confirmed")
 }
 
 func TestShowProjectSettings(t *testing.T) {
