@@ -269,3 +269,7 @@ func (a *Adapter) GetLicense(_ context.Context) (*domainlicense.License, error) 
 func (a *Adapter) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {
 	return a.activeClient.GetScanStatistic(ctx, projectId, scanResultId)
 }
+
+func (a *Adapter) GetScanIssues(ctx context.Context, projectId, scanResultId uuid.UUID) ([]statistic.Issue, error) {
+	return a.activeClient.GetScanIssues(ctx, projectId, scanResultId)
+}

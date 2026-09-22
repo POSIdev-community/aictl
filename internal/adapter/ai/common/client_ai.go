@@ -74,4 +74,5 @@ type ClientAi interface {
 	// CheckLicense validates IsValid and returns the mapped license for caching.
 	CheckLicense(ctx context.Context) (*license.License, error)
 	GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error)
+	GetScanIssues(ctx context.Context, projectId, scanResultId uuid.UUID) ([]statistic.Issue, error)
 }

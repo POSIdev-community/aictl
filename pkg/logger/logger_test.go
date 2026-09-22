@@ -1,6 +1,7 @@
 package logger_test
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,19 +66,32 @@ func TestFileError_NoOpWithoutLogPath(t *testing.T) {
 	require.NotPanics(t, func() { log.FileError("msg") })
 }
 
-func TestFileLevelEnabler_VerboseFileOmitsDebug(t *testing.T) {
-	t.Parallel()
-
-	logFile := filepath.Join(t.TempDir(), "aictl.log")
-	log, err := logger.NewLogger(logger.LevelVerbose, logFile)
+func TestNewLogger_DebugDoesNotDuplicateInfoOnStderr(t *testing.T) {
+	// Not parallel: temporarily replaces os.Stderr.
+	r, w, err := os.Pipe()
 	require.NoError(t, err)
 
-	log.Debugf("should-not-appear")
-	log.StdErr("should-appear")
+	oldStderr := os.Stderr
+	os.Stderr = w
+	t.Cleanup(func() {
+		os.Stderr = oldStderr
+	})
 
-	content, err := os.ReadFile(logFile)
+	log, err := logger.NewLogger(logger.LevelDebug, "")
 	require.NoError(t, err)
-	text := string(content)
-	require.NotContains(t, text, "should-not-appear")
-	require.Contains(t, text, "should-appear")
+
+	log.StdOut("info-once")
+	log.Debugf("debug-once")
+	log.StdErr("error-once")
+
+	require.NoError(t, w.Close())
+	stderrBytes, err := io.ReadAll(r)
+	require.NoError(t, err)
+	stderr := string(stderrBytes)
+
+	require.NotContains(t, stderr, "info-once")
+	require.Contains(t, stderr, "debug-once")
+	require.Contains(t, stderr, "error-once")
+	require.Equal(t, 1, strings.Count(stderr, "error-once"))
+	require.Equal(t, 1, strings.Count(stderr, "debug-once"))
 }

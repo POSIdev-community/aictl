@@ -114,7 +114,8 @@ func newDebugCore() zapcore.Core {
 		debugEncoder,
 		zapcore.Lock(os.Stderr),
 		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-			return lvl >= zapcore.DebugLevel && lvl < zapcore.ErrorLevel
+			// Only Debugf / error-chain messages — not Info/Warn (those already go to stdout via newInfoCore).
+			return lvl == zapcore.DebugLevel
 		}),
 	)
 }

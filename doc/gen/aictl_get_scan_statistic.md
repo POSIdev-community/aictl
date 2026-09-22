@@ -7,6 +7,8 @@ Get scan statistic
 Print scan statistics (severity counts, files/URLs scanned, duration, policy state).
 Scan id comes from argument or stdin. Default output is text; --json prints pretty JSON;
 -o writes JSON to a file (use -f to overwrite).
+Severity counts are always computed from the scan issues list (not from the statistic API counters).
+Without --with-triage, Discard-triaged issues are included; with --with-triage they are excluded.
 scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is None, Rejected, or Confirmed.
 
 ```
@@ -18,6 +20,7 @@ aictl get scan statistic <scan-id> [flags]
 ```
   aictl get scan statistic <scan-id>
   aictl get scan statistic <scan-id> --json
+  aictl get scan statistic <scan-id> --with-triage
   aictl get scan statistic <scan-id> -o ./stat.json -f
 ```
 
@@ -28,6 +31,7 @@ aictl get scan statistic <scan-id> [flags]
   -h, --help            help for statistic
       --json            Output in JSON format
   -o, --output string   Output file path
+      --with-triage     Exclude Discard-triaged issues from severity counts
 ```
 
 ### Options inherited from parent commands

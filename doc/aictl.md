@@ -1364,6 +1364,7 @@ aictl get scan logs <scan-id> -o ./scan.log -f
 ### `aictl get scan statistic`
 
 Статистика результатов скана. Без `--json` и без `-o` — текстовый вывод на stdout; `--json` — pretty JSON на stdout; `-o` — JSON в файл (даже без `--json`).
+Счётчики severity всегда считаются по списку issues. Без `--with-triage` учитываются все уязвимости (включая Discard); с `--with-triage` — Discard исключается.
 
 **Вывод (текст):**
 
@@ -1417,6 +1418,7 @@ aictl get scan statistic <scan-id> [flags]
 
 ```bash
 aictl get scan statistic <scan-id> --json
+aictl get scan statistic <scan-id> --with-triage
 ```
 
 **Флаги:**
@@ -1426,6 +1428,7 @@ aictl get scan statistic <scan-id> --json
   -h, --help            справка
       --json            вывод в JSON
   -o, --output string   путь к выходному файлу
+      --with-triage     исключить Discard-триаженные уязвимости из счётчиков severity
 ```
 
 **Унаследованные флаги:**

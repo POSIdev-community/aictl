@@ -16,7 +16,7 @@ type CmdGetScanStatistic struct {
 }
 
 type UseCaseGetScanStatistic interface {
-	Execute(ctx context.Context, scanId uuid.UUID, outPath string, json bool) error
+	Execute(ctx context.Context, scanId uuid.UUID, outPath string, json, withTriage bool) error
 }
 
 func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
@@ -24,6 +24,7 @@ func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
 		outPath             string
 		forceRewriteOutPath bool
 		json                bool
+		withTriage          bool
 	)
 
 	cmd := &cobra.Command{
@@ -32,9 +33,12 @@ func NewGetScanStatisticCmd(uc UseCaseGetScanStatistic) CmdGetScanStatistic {
 		Long: `Print scan statistics (severity counts, files/URLs scanned, duration, policy state).
 Scan id comes from argument or stdin. Default output is text; --json prints pretty JSON;
 -o writes JSON to a file (use -f to overwrite).
+Severity counts are always computed from the scan issues list (not from the statistic API counters).
+Without --with-triage, Discard-triaged issues are included; with --with-triage they are excluded.
 scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is None, Rejected, or Confirmed.`,
 		Example: `  aictl get scan statistic <scan-id>
   aictl get scan statistic <scan-id> --json
+  aictl get scan statistic <scan-id> --with-triage
   aictl get scan statistic <scan-id> -o ./stat.json -f`,
 		Args: cobra.MaximumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -49,7 +53,7 @@ scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, scanId, outPath, json); err != nil {
+			if err := uc.Execute(ctx, scanId, outPath, json, withTriage); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scan statistic' usecase call: %w", err)
@@ -62,6 +66,7 @@ scanDuration is the API ISO-8601 duration (e.g. PT00H34M35.872S); policyState is
 	cmd.Flags().StringVarP(&outPath, "output", "o", "", "Output file path")
 	cmd.Flags().BoolVarP(&forceRewriteOutPath, "force", "f", false, "Overwrite existing output file")
 	cmd.Flags().BoolVar(&json, "json", false, "Output in JSON format")
+	cmd.Flags().BoolVar(&withTriage, "with-triage", false, "Exclude Discard-triaged issues from severity counts")
 
 	return CmdGetScanStatistic{cmd}
 }

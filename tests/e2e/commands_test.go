@@ -130,6 +130,8 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				{"get scan stage", []string{"get", "scan", "stage", scanID, "-p", projectID}},
 				{"get scan stage --fail-on-scan-failed", []string{"get", "scan", "stage", scanID, "-p", projectID, "--fail-on-scan-failed"}},
 				{"get scan statistic", []string{"get", "scan", "statistic", scanID, "-p", projectID}},
+				{"get scan statistic --with-triage", []string{"get", "scan", "statistic", scanID, "-p", projectID, "--with-triage"}},
+				{"get scan statistic --json --with-triage", []string{"get", "scan", "statistic", scanID, "-p", projectID, "--json", "--with-triage"}},
 				{"get queue", []string{"get", "queue"}},
 				{"get queue -p", []string{"get", "queue", "-p", projectID}},
 				{"get scanning", []string{"get", "scanning"}},
@@ -205,6 +207,22 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 					args: args,
 				})
 			}
+
+			t.Run("get scan statistic --with-triage counts", func(t *testing.T) {
+				rawAll := RunAictl(t, aictlBin, stand, env,
+					"get", "scan", "statistic", scanID, "-p", projectID, "--json")
+				rawTriaged := RunAictl(t, aictlBin, stand, env,
+					"get", "scan", "statistic", scanID, "-p", projectID, "--json", "--with-triage")
+
+				var all, triaged struct {
+					Total int32 `json:"total"`
+					High  int32 `json:"high"`
+				}
+				require.NoError(t, json.Unmarshal([]byte(rawAll), &all))
+				require.NoError(t, json.Unmarshal([]byte(rawTriaged), &triaged))
+				require.GreaterOrEqual(t, all.Total, triaged.Total)
+				require.GreaterOrEqual(t, all.High, triaged.High)
+			})
 
 			for _, c := range commands {
 				c := c

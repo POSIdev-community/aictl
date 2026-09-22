@@ -122,7 +122,7 @@ func (noopScanStateUC) Execute(context.Context, uuid.UUID, bool) error { return 
 
 type noopScanStatisticUC struct{}
 
-func (noopScanStatisticUC) Execute(context.Context, uuid.UUID, string, bool) error { return nil }
+func (noopScanStatisticUC) Execute(context.Context, uuid.UUID, string, bool, bool) error { return nil }
 
 type noopDefaultReportUC struct{}
 

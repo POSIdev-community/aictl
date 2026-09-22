@@ -1383,11 +1383,6 @@ func (a *ClientAI60) GetScanStatistic(ctx context.Context, projectId, scanResult
 	}
 
 	return &statistic.Statistic{
-		Total:        common.GetOrDefault(model.Total, 0),
-		High:         common.GetOrDefault(model.High, 0),
-		Medium:       common.GetOrDefault(model.Medium, 0),
-		Low:          common.GetOrDefault(model.Low, 0),
-		Potential:    common.GetOrDefault(model.Potential, 0),
 		FilesTotal:   common.GetOrDefault(model.FilesTotal, 0),
 		FilesScanned: common.GetOrDefault(model.FilesScanned, 0),
 		UrlsTotal:    common.GetOrDefault(model.UrlsTotal, 0),
@@ -1395,4 +1390,36 @@ func (a *ClientAI60) GetScanStatistic(ctx context.Context, projectId, scanResult
 		ScanDuration: common.GetOrDefault(model.ScanDuration, ""),
 		PolicyState:  policyState,
 	}, nil
+}
+
+func (a *ClientAI60) GetScanIssues(ctx context.Context, projectId, scanResultId uuid.UUID) ([]statistic.Issue, error) {
+	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdIssuesWithResponse(ctx, projectId, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai get scan issues request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return nil, fmt.Errorf("ai get scan issues: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, nil
+	}
+
+	return mapScanIssues60(*response.JSON200), nil
+}
+
+func mapScanIssues60(issues []v6_0.VulnerabilityModel) []statistic.Issue {
+	out := make([]statistic.Issue, 0, len(issues))
+	for i := range issues {
+		issue := &issues[i]
+		approval := ""
+		if issue.ApprovalState != nil {
+			approval = string(*issue.ApprovalState)
+		}
+		out = append(out, common.NewScanIssue(string(*issue.Level), approval))
+	}
+	return out
 }

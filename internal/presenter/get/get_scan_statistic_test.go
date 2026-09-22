@@ -13,15 +13,16 @@ import (
 )
 
 type fakeScanStatisticUC struct {
-	called int
-	scanID uuid.UUID
-	out    string
-	json   bool
+	called     int
+	scanID     uuid.UUID
+	out        string
+	json       bool
+	withTriage bool
 }
 
-func (f *fakeScanStatisticUC) Execute(_ context.Context, scanId uuid.UUID, outPath string, json bool) error {
+func (f *fakeScanStatisticUC) Execute(_ context.Context, scanId uuid.UUID, outPath string, json, withTriage bool) error {
 	f.called++
-	f.scanID, f.out, f.json = scanId, outPath, json
+	f.scanID, f.out, f.json, f.withTriage = scanId, outPath, json, withTriage
 	return nil
 }
 
@@ -40,10 +41,12 @@ func TestGetScanStatisticCmd(t *testing.T) {
 		"-p", projectID.String(),
 		"-o", out,
 		"--json",
+		"--with-triage",
 	))
 	require.Equal(t, scanID, uc.scanID)
 	require.Equal(t, out, uc.out)
 	require.True(t, uc.json)
+	require.True(t, uc.withTriage)
 
 	t.Run("force_overwrites", func(t *testing.T) {
 		resetGetPackageFlags()
@@ -60,5 +63,6 @@ func TestGetScanStatisticCmd(t *testing.T) {
 			"-f",
 		))
 		require.Equal(t, exist, uc2.out)
+		require.False(t, uc2.withTriage)
 	})
 }
