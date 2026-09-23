@@ -11,31 +11,31 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/regexfilter"
 )
 
-type CmdGetScans struct {
+type CmdGetScansSbomProject struct {
 	*cobra.Command
 }
 
-type UseCaseGetScans interface {
+type UseCaseGetScansSbomProject interface {
 	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool, latest bool) error
 }
 
-func NewGetScansCmd(cfg *config.Config, uc UseCaseGetScans, cmdSbomProject CmdGetScansSbomProject) CmdGetScans {
+func NewGetScansSbomProjectCmd(cfg *config.Config, uc UseCaseGetScansSbomProject) CmdGetScansSbomProject {
 	var (
-		branchIdFlag string
-		quite        bool
-		latest       bool
-		regexFilter  regexfilter.RegexFilter
+		projectIdFlag string
+		quite         bool
+		latest        bool
+		regexFilter   regexfilter.RegexFilter
 	)
 
 	cmd := &cobra.Command{
-		Use:   "scans [<regex>]",
-		Short: "Get AI scans",
-		Long:  `List scans for the current branch matching an optional regex filter. Branch id comes from context or -b.`,
-		Example: `  aictl get scans -b <branch-id>
-  aictl get scans 2024 -b <branch-id>
-  aictl get scans --latest -b <branch-id>`,
+		Use:   "sbom-project [<regex>]",
+		Short: "Get scans for an SBOM project",
+		Long:  `List scans for an SBOM project matching an optional regex filter. Resolves the virtual branch from the project id (context or -p).`,
+		Example: `  aictl get scans sbom-project -p <project-id>
+  aictl get scans sbom-project 2024 -p <project-id>
+  aictl get scans sbom-project --latest -p <project-id>`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := cfg.UpdateBranchId(branchIdFlag); err != nil {
+			if err := cfg.UpdateProjectId(projectIdFlag); err != nil {
 				return err
 			}
 
@@ -57,18 +57,16 @@ func NewGetScansCmd(cfg *config.Config, uc UseCaseGetScans, cmdSbomProject CmdGe
 			if err := uc.Execute(ctx, regexFilter, quite, latest); err != nil {
 				cmd.SilenceUsage = true
 
-				return fmt.Errorf("'get scans' usecase call: %w", err)
+				return fmt.Errorf("'get scans sbom-project' usecase call: %w", err)
 			}
 
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&branchIdFlag, "branch-id", "b", "", "Branch id (overrides context)")
+	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
 	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
 	cmd.Flags().BoolVar(&latest, "latest", false, "Return only the latest scan result")
 
-	cmd.AddCommand(cmdSbomProject.Command)
-
-	return CmdGetScans{cmd}
+	return CmdGetScansSbomProject{cmd}
 }

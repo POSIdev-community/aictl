@@ -567,6 +567,9 @@ func (a *ClientAI6x) GetProject(ctx context.Context, projectId uuid.UUID) (*proj
 
 	model := response.JSON200
 	p := projectFromModel(*model.Id, *model.Name, model.ProjectTargetBasedType)
+	if model.VirtualBranchId != nil {
+		p.VirtualBranchId = *model.VirtualBranchId
+	}
 
 	return &p, nil
 }

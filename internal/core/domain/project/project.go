@@ -19,9 +19,10 @@ func (t Type) IsSource() bool {
 }
 
 type Project struct {
-	Id   uuid.UUID
-	Name string
-	Type Type
+	Id              uuid.UUID
+	Name            string
+	Type            Type
+	VirtualBranchId uuid.UUID
 }
 
 func NewProject(id uuid.UUID, name string) Project {

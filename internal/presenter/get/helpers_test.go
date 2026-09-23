@@ -58,6 +58,12 @@ func (noopScansUC) Execute(context.Context, regexfilter.RegexFilter, bool, bool)
 	return nil
 }
 
+type noopScansSbomProjectUC struct{}
+
+func (noopScansSbomProjectUC) Execute(context.Context, regexfilter.RegexFilter, bool, bool) error {
+	return nil
+}
+
 type noopScanUC struct{}
 
 func (noopScanUC) Execute(context.Context, uuid.UUID) error { return nil }
@@ -141,56 +147,58 @@ func (noopCustomReportUC) Execute(
 }
 
 type getUCs struct {
-	healthcheck     UseCaseGetHealthcheck
-	projects        UseCaseGetProjects
-	branches        UseCaseGetBranches
-	branch          UseCaseGetBranch
-	scans           UseCaseGetScans
-	scan            UseCaseGetScan
-	agents          UseCaseGetAgents
-	version         UseCaseGetVersion
-	queue           UseCaseGetQueue
-	scanning        UseCaseGetScanning
-	reportTemplates UseCaseGetReportTemplates
-	projectAiproj   UseCaseGetProjectAiproj
-	projectSettings UseCaseGetProjectSettings
-	projectPolicies UseCaseGetProjectPolicies
-	projectExcl     UseCaseGetProjectExclusions
-	scanAiproj      UseCaseGetScanAiproj
-	scanLogs        UseCaseGetScanLogs
-	scanErrors      UseCaseGetScanErrors
-	scanSbom        UseCaseGetScanSbom
-	scanState       UseCaseGetScanState
-	scanStatistic   UseCaseGetScanStatistic
-	customReport    UseCaseGetScanReport
-	defaultReport   noopDefaultReportUC
+	healthcheck      UseCaseGetHealthcheck
+	projects         UseCaseGetProjects
+	branches         UseCaseGetBranches
+	branch           UseCaseGetBranch
+	scans            UseCaseGetScans
+	scansSbomProject UseCaseGetScansSbomProject
+	scan             UseCaseGetScan
+	agents           UseCaseGetAgents
+	version          UseCaseGetVersion
+	queue            UseCaseGetQueue
+	scanning         UseCaseGetScanning
+	reportTemplates  UseCaseGetReportTemplates
+	projectAiproj    UseCaseGetProjectAiproj
+	projectSettings  UseCaseGetProjectSettings
+	projectPolicies  UseCaseGetProjectPolicies
+	projectExcl      UseCaseGetProjectExclusions
+	scanAiproj       UseCaseGetScanAiproj
+	scanLogs         UseCaseGetScanLogs
+	scanErrors       UseCaseGetScanErrors
+	scanSbom         UseCaseGetScanSbom
+	scanState        UseCaseGetScanState
+	scanStatistic    UseCaseGetScanStatistic
+	customReport     UseCaseGetScanReport
+	defaultReport    noopDefaultReportUC
 }
 
 func defaultGetUCs() getUCs {
 	return getUCs{
-		healthcheck:     noopHealthcheckUC{},
-		projects:        noopProjectsUC{},
-		branches:        noopBranchesUC{},
-		branch:          noopBranchUC{},
-		scans:           noopScansUC{},
-		scan:            noopScanUC{},
-		agents:          noopAgentsUC{},
-		version:         noopVersionUC{},
-		queue:           noopQueueUC{},
-		scanning:        noopScanningUC{},
-		reportTemplates: noopReportTemplatesUC{},
-		projectAiproj:   noopProjectAiprojUC{},
-		projectSettings: noopProjectSettingsUC{},
-		projectPolicies: noopProjectPoliciesUC{},
-		projectExcl:     noopProjectExclusionsUC{},
-		scanAiproj:      noopScanAiprojUC{},
-		scanLogs:        noopScanLogsUC{},
-		scanErrors:      noopScanErrorsUC{},
-		scanSbom:        noopScanSbomUC{},
-		scanState:       noopScanStateUC{},
-		scanStatistic:   noopScanStatisticUC{},
-		customReport:    noopCustomReportUC{},
-		defaultReport:   noopDefaultReportUC{},
+		healthcheck:      noopHealthcheckUC{},
+		projects:         noopProjectsUC{},
+		branches:         noopBranchesUC{},
+		branch:           noopBranchUC{},
+		scans:            noopScansUC{},
+		scansSbomProject: noopScansSbomProjectUC{},
+		scan:             noopScanUC{},
+		agents:           noopAgentsUC{},
+		version:          noopVersionUC{},
+		queue:            noopQueueUC{},
+		scanning:         noopScanningUC{},
+		reportTemplates:  noopReportTemplatesUC{},
+		projectAiproj:    noopProjectAiprojUC{},
+		projectSettings:  noopProjectSettingsUC{},
+		projectPolicies:  noopProjectPoliciesUC{},
+		projectExcl:      noopProjectExclusionsUC{},
+		scanAiproj:       noopScanAiprojUC{},
+		scanLogs:         noopScanLogsUC{},
+		scanErrors:       noopScanErrorsUC{},
+		scanSbom:         noopScanSbomUC{},
+		scanState:        noopScanStateUC{},
+		scanStatistic:    noopScanStatisticUC{},
+		customReport:     noopCustomReportUC{},
+		defaultReport:    noopDefaultReportUC{},
 	}
 }
 
@@ -252,7 +260,7 @@ func buildGetRoot(t *testing.T, cfg *config.Config, ucs getUCs) *CmdGet {
 		cmdProject,
 		NewGetBranchesCmd(cfg, ucs.branches),
 		NewGetBranchCmd(NewPersistentPreRunEGetBranchCmd(NewPersistentPreRunEGetCmd(cfg)), ucs.branch),
-		NewGetScansCmd(cfg, ucs.scans),
+		NewGetScansCmd(cfg, ucs.scans, NewGetScansSbomProjectCmd(cfg, ucs.scansSbomProject)),
 		cmdScan,
 		NewGetAgentsCmd(ucs.agents),
 		NewGetVersionCmd(ucs.version),

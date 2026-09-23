@@ -25,6 +25,7 @@ import (
 	getScanAgents "github.com/POSIdev-community/aictl/internal/core/usecase/get/scanagents"
 	getScanning "github.com/POSIdev-community/aictl/internal/core/usecase/get/scanning"
 	getScans "github.com/POSIdev-community/aictl/internal/core/usecase/get/scans"
+	getScansSbomProject "github.com/POSIdev-community/aictl/internal/core/usecase/get/scans/sbomproject"
 	getVersion "github.com/POSIdev-community/aictl/internal/core/usecase/get/version"
 	"github.com/POSIdev-community/aictl/internal/presenter/get"
 )
@@ -62,7 +63,12 @@ func buildGetCmd(a *adapters) (*get.CmdGet, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmdScans := get.NewGetScansCmd(a.cfg, scansUC)
+	scansSbomProjectUC, err := getScansSbomProject.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return nil, err
+	}
+	cmdScansSbomProject := get.NewGetScansSbomProjectCmd(a.cfg, scansSbomProjectUC)
+	cmdScans := get.NewGetScansCmd(a.cfg, scansUC, cmdScansSbomProject)
 
 	cmdScan, err := buildGetScanCmd(a)
 	if err != nil {

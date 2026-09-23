@@ -42,4 +42,5 @@ aictl get scans [<regex>] [flags]
 ### SEE ALSO
 
 * [aictl get](aictl_get.md)	 - Get resources
+* [aictl get scans sbom-project](aictl_get_scans_sbom-project.md)	 - Get scans for an SBOM project
 
