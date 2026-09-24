@@ -30,5 +30,6 @@ Set project-level configuration on the server. Project id comes from context or 
 * [aictl set](aictl_set.md)	 - Set resource configuration
 * [aictl set project exclusions](aictl_set_project_exclusions.md)	 - Set project exclusions
 * [aictl set project policies](aictl_set_project_policies.md)	 - Set project security policies
+* [aictl set project policy-check](aictl_set_project_policy-check.md)	 - Enable or disable project security policy check
 * [aictl set project settings](aictl_set_project_settings.md)	 - Set project settings
 

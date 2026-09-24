@@ -1,32 +1,27 @@
-## aictl set project policies
+## aictl set project policy-check
 
-Set project security policies
+Enable or disable project security policy check
 
 ### Synopsis
 
-Replace project security policies. Project id comes from context or -p.
-
-Accepts the API SecurityPoliciesModel object, or a policies JSON array
-(as in aisa --policy-settings-file); arrays are wrapped automatically.
-When checkSecurityPoliciesAccordance is omitted, the current server value is preserved.
-Comments in the policies file are preserved inside securityPolicies.
+Set checkSecurityPoliciesAccordance for the project (UI "use security policies" checkbox).
+Existing policy rules are preserved. Project id comes from context or -p.
 
 ```
-aictl set project policies [json|-] [flags]
+aictl set project policy-check <true|false> [flags]
 ```
 
 ### Examples
 
 ```
-  aictl set project policies -f policies.json -p <project-id>
-  aictl set project policies -
+  aictl set project policy-check true
+  aictl set project policy-check false -p <project-id>
 ```
 
 ### Options
 
 ```
-  -f, --file string   Path to policies JSON file, or - for stdin
-  -h, --help          help for policies
+  -h, --help   help for policy-check
 ```
 
 ### Options inherited from parent commands

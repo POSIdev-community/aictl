@@ -1,4 +1,4 @@
-package policies
+package policycheck
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/securitypolicies"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
@@ -39,35 +38,14 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-// Execute replaces project security policies.
-// When check is nil, the current checkSecurityPoliciesAccordance value is preserved.
-func (u *UseCase) Execute(ctx context.Context, policiesJSON []byte, check *bool) error {
+func (u *UseCase) Execute(ctx context.Context, enabled bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	enabled := false
-	if check != nil {
-		enabled = *check
-	} else {
-		current, err := usecaseutils.LoadProjectPolicies(ctx, u.aiAdapter, u.cfg.ProjectId())
-		if err != nil {
-			return err
-		}
-		enabled = current.CheckAccordance
-	}
-
-	raw, err := securitypolicies.Encode(securitypolicies.Model{
-		CheckAccordance: enabled,
-		Policies:        string(policiesJSON),
-	})
-	if err != nil {
-		return fmt.Errorf("encode security policies: %w", err)
-	}
-
-	if err := u.aiAdapter.SetProjectPolicies(ctx, u.cfg.ProjectId(), raw); err != nil {
-		return fmt.Errorf("set project policies: %w", err)
+	if err := usecaseutils.SetProjectPolicyCheck(ctx, u.aiAdapter, u.cfg.ProjectId(), enabled); err != nil {
+		return fmt.Errorf("set project policy-check: %w", err)
 	}
 
 	return nil

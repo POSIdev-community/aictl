@@ -3,6 +3,7 @@ package settings
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 
@@ -22,6 +23,8 @@ type AI interface {
 	GetDefaultSettings(ctx context.Context) (domainsettings.ScanSettings, error)
 	GetProjectSettings(ctx context.Context, projectId uuid.UUID) (domainsettings.ScanSettings, error)
 	SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *domainsettings.ScanSettings) error
+	GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
+	SetProjectPolicies(ctx context.Context, projectId uuid.UUID, rawJSON []byte) error
 }
 
 type CLI interface {
@@ -92,6 +95,12 @@ func (u *UseCase) Execute(ctx context.Context, rawAiproj []byte) error {
 
 	if err := u.aiAdapter.SetProjectSettings(ctx, u.cfg.ProjectId(), &scanSettings); err != nil {
 		return fmt.Errorf("set project settings: %w", err)
+	}
+
+	if useSecurity := aiProj.UseSecurityPolicies(); useSecurity != nil {
+		if err := usecaseutils.SetProjectPolicyCheck(ctx, u.aiAdapter, u.cfg.ProjectId(), *useSecurity); err != nil {
+			return fmt.Errorf("set use security policies from aiproj: %w", err)
+		}
 	}
 
 	return nil

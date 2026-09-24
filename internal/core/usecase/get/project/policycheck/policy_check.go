@@ -1,14 +1,14 @@
-package policies
+package policycheck
 
 import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
-	"github.com/POSIdev-community/aictl/internal/core/domain/securitypolicies"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
@@ -16,10 +16,11 @@ import (
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetProjectPolicies(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error)
-	SetProjectPolicies(ctx context.Context, projectId uuid.UUID, rawJSON []byte) error
 }
 
-type CLI interface{}
+type CLI interface {
+	ReturnText(ctx context.Context, text string)
+}
 
 type UseCase struct {
 	aiAdapter  AI
@@ -39,36 +40,18 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-// Execute replaces project security policies.
-// When check is nil, the current checkSecurityPoliciesAccordance value is preserved.
-func (u *UseCase) Execute(ctx context.Context, policiesJSON []byte, check *bool) error {
+func (u *UseCase) Execute(ctx context.Context) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	enabled := false
-	if check != nil {
-		enabled = *check
-	} else {
-		current, err := usecaseutils.LoadProjectPolicies(ctx, u.aiAdapter, u.cfg.ProjectId())
-		if err != nil {
-			return err
-		}
-		enabled = current.CheckAccordance
-	}
-
-	raw, err := securitypolicies.Encode(securitypolicies.Model{
-		CheckAccordance: enabled,
-		Policies:        string(policiesJSON),
-	})
+	model, err := usecaseutils.LoadProjectPolicies(ctx, u.aiAdapter, u.cfg.ProjectId())
 	if err != nil {
-		return fmt.Errorf("encode security policies: %w", err)
+		return err
 	}
 
-	if err := u.aiAdapter.SetProjectPolicies(ctx, u.cfg.ProjectId(), raw); err != nil {
-		return fmt.Errorf("set project policies: %w", err)
-	}
+	u.cliAdapter.ReturnText(ctx, strconv.FormatBool(model.CheckAccordance))
 
 	return nil
 }

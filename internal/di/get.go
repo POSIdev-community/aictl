@@ -7,6 +7,7 @@ import (
 	projectAiproj "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/aiproj"
 	getProjectExclusions "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/exclusions"
 	getProjectPolicies "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/policies"
+	getProjectPolicyCheck "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/policycheck"
 	getProjectSettings "github.com/POSIdev-community/aictl/internal/core/usecase/get/project/settings"
 	getProjects "github.com/POSIdev-community/aictl/internal/core/usecase/get/projects"
 	getQueue "github.com/POSIdev-community/aictl/internal/core/usecase/get/queue"
@@ -151,6 +152,12 @@ func buildGetProjectCmd(a *adapters) (get.CmdGetProject, error) {
 	}
 	cmdPolicies := get.NewGetProjectPoliciesCmd(projectPoliciesUC)
 
+	projectPolicyCheckUC, err := getProjectPolicyCheck.NewUseCase(a.ai, a.cli, a.cfg)
+	if err != nil {
+		return get.CmdGetProject{}, err
+	}
+	cmdPolicyCheck := get.NewGetProjectPolicyCheckCmd(projectPolicyCheckUC)
+
 	projectExclusionsUC, err := getProjectExclusions.NewUseCase(a.ai, a.cli, a.cfg)
 	if err != nil {
 		return get.CmdGetProject{}, err
@@ -160,7 +167,7 @@ func buildGetProjectCmd(a *adapters) (get.CmdGetProject, error) {
 	persistentPreRunEGetCmd := get.NewPersistentPreRunEGetCmd(a.cfg)
 	persistentPreRunEGetProjectCmd := get.NewPersistentPreRunEGetProjectCmd(a.cfg, persistentPreRunEGetCmd)
 
-	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings, cmdPolicies, cmdExclusions), nil
+	return get.NewGetProjectCmd(persistentPreRunEGetProjectCmd, cmdAiproj, cmdSettings, cmdPolicies, cmdPolicyCheck, cmdExclusions), nil
 }
 
 func buildGetScanCmd(a *adapters) (get.CmdGetScan, error) {

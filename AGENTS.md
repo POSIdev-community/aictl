@@ -197,7 +197,8 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `Messa
 
 | Группа | Смысл |
 |--------|--------|
-| `set project settings/policies/exclusions` | **Полная замена** ресурса (aiproj / JSON / text) |
+| `set project settings/policies/exclusions` | **Полная замена** ресурса (aiproj / JSON / text); `UseSecurityPolicies` из aiproj → policy-check |
+| `set project policy-check` / `get project policy-check` | Галочка `checkSecurityPoliciesAccordance` (true/false) |
 | `update project settings` | **Patch** priority / preferred agents (AIE ≥ 6.0) |
 | `update project languages` | Пересчёт языков на сервере |
 | `update sources` / `update sbom` / `update sca-feeds` | Загрузка артефактов; `update sources --update-languages` — upload + пересчёт языков |

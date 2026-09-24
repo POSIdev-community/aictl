@@ -6,33 +6,36 @@ import (
 	"fmt"
 )
 
-// NormalizePoliciesJSON prepares payload for PUT security policies.
+// NormalizedPolicies is the result of parsing user input for set project policies.
+// Check == nil means the caller should preserve the server's current value.
+type NormalizedPolicies struct {
+	PoliciesJSON []byte
+	Check        *bool
+}
+
+// NormalizePoliciesJSON prepares policies payload for set project policies.
 //
-// The AI API expects SecurityPoliciesModel:
-//
-//	{"checkSecurityPoliciesAccordance":bool,"securityPolicies":"<json string>"}
-//
-// where securityPolicies is a JSON *string* containing the policies array.
-// A bare policies array (aisa --policy-settings-file) is wrapped automatically.
-// Comments inside the policies payload are preserved (embedded as the string value).
-func NormalizePoliciesJSON(raw []byte) ([]byte, error) {
+// Accepts the API SecurityPoliciesModel object, or a policies JSON array
+// (as in aisa --policy-settings-file). Comments inside the policies payload
+// are preserved. When checkSecurityPoliciesAccordance is omitted (array input
+// or object without the field), Check is nil.
+func NormalizePoliciesJSON(raw []byte) (NormalizedPolicies, error) {
 	trimmed := bytes.TrimSpace(raw)
 	if len(trimmed) == 0 {
-		return nil, fmt.Errorf("empty")
+		return NormalizedPolicies{}, fmt.Errorf("empty")
 	}
 
 	switch trimmed[0] {
 	case '[':
-		// Keep original bytes (including // and /* */ comments) inside securityPolicies.
-		return encodePoliciesModel(false, trimmed)
+		return NormalizedPolicies{PoliciesJSON: trimmed}, nil
 	case '{':
 		return normalizePoliciesObject(trimmed)
 	default:
-		return nil, fmt.Errorf("policies data must be a JSON array or object")
+		return NormalizedPolicies{}, fmt.Errorf("policies data must be a JSON array or object")
 	}
 }
 
-func normalizePoliciesObject(raw []byte) ([]byte, error) {
+func normalizePoliciesObject(raw []byte) (NormalizedPolicies, error) {
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &fields); err != nil {
 		// Likely a bare policy object with comments — wrap as a one-element array textually.
@@ -41,7 +44,7 @@ func normalizePoliciesObject(raw []byte) ([]byte, error) {
 		wrapped = append(wrapped, raw...)
 		wrapped = append(wrapped, ']')
 
-		return encodePoliciesModel(false, wrapped)
+		return NormalizedPolicies{PoliciesJSON: wrapped}, nil
 	}
 
 	sp, ok := fields["securityPolicies"]
@@ -51,26 +54,28 @@ func normalizePoliciesObject(raw []byte) ([]byte, error) {
 		wrapped = append(wrapped, raw...)
 		wrapped = append(wrapped, ']')
 
-		return encodePoliciesModel(false, wrapped)
+		return NormalizedPolicies{PoliciesJSON: wrapped}, nil
 	}
 
-	check := false
+	var check *bool
 	if c, exists := fields["checkSecurityPoliciesAccordance"]; exists {
-		if err := json.Unmarshal(c, &check); err != nil {
-			return nil, fmt.Errorf("checkSecurityPoliciesAccordance: %w", err)
+		var v bool
+		if err := json.Unmarshal(c, &v); err != nil {
+			return NormalizedPolicies{}, fmt.Errorf("checkSecurityPoliciesAccordance: %w", err)
 		}
+		check = &v
 	}
 
 	sp = bytes.TrimSpace(sp)
 	switch {
 	case len(sp) == 0 || string(sp) == "null":
-		return encodePoliciesModel(check, []byte("[]"))
+		return NormalizedPolicies{PoliciesJSON: []byte("[]"), Check: check}, nil
 	case sp[0] == '[':
-		return encodePoliciesModel(check, sp)
+		return NormalizedPolicies{PoliciesJSON: sp, Check: check}, nil
 	case sp[0] == '"':
 		var s string
 		if err := json.Unmarshal(sp, &s); err != nil {
-			return nil, err
+			return NormalizedPolicies{}, err
 		}
 
 		s = string(bytes.TrimSpace([]byte(s)))
@@ -78,18 +83,8 @@ func normalizePoliciesObject(raw []byte) ([]byte, error) {
 			s = "[]"
 		}
 
-		return encodePoliciesModel(check, []byte(s))
+		return NormalizedPolicies{PoliciesJSON: []byte(s), Check: check}, nil
 	default:
-		return nil, fmt.Errorf("securityPolicies must be a JSON array or a JSON string")
+		return NormalizedPolicies{}, fmt.Errorf("securityPolicies must be a JSON array or a JSON string")
 	}
-}
-
-func encodePoliciesModel(checkAccordance bool, policiesJSON []byte) ([]byte, error) {
-	return json.Marshal(struct {
-		CheckSecurityPoliciesAccordance bool   `json:"checkSecurityPoliciesAccordance"`
-		SecurityPolicies                string `json:"securityPolicies"`
-	}{
-		CheckSecurityPoliciesAccordance: checkAccordance,
-		SecurityPolicies:                string(policiesJSON),
-	})
 }

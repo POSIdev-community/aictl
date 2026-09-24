@@ -11,7 +11,9 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	"github.com/POSIdev-community/aictl/internal/core/domain/securitypolicies"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	usecaseutils "github.com/POSIdev-community/aictl/internal/core/usecase/.utils"
 )
 
 type AI interface {
@@ -51,20 +53,12 @@ func (u *UseCase) Execute(ctx context.Context) error {
 		return fmt.Errorf("initialize with retry: %w", err)
 	}
 
-	r, err := u.aiAdapter.GetProjectPolicies(ctx, u.cfg.ProjectId())
+	model, err := usecaseutils.LoadProjectPolicies(ctx, u.aiAdapter, u.cfg.ProjectId())
 	if err != nil {
-		return fmt.Errorf("get project policies: %w", err)
-	}
-	defer func() {
-		_ = r.Close()
-	}()
-
-	body, err := io.ReadAll(r)
-	if err != nil {
-		return fmt.Errorf("read project policies: %w", err)
+		return err
 	}
 
-	formatted, err := formatProjectPolicies(body)
+	formatted, err := formatPoliciesArray(model.Policies)
 	if err != nil {
 		return fmt.Errorf("format project policies: %w", err)
 	}
@@ -74,23 +68,17 @@ func (u *UseCase) Execute(ctx context.Context) error {
 	return nil
 }
 
-// formatProjectPolicies extracts the policies payload from SecurityPoliciesModel
-// (securityPolicies JSON string) and returns it pretty-printed when possible.
+// formatPoliciesArray pretty-prints the policies JSON array when possible.
 // If the payload is not strict JSON (e.g. contains comments), it is returned as-is.
-func formatProjectPolicies(body []byte) (string, error) {
-	body = bytes.TrimSpace(body)
-	if len(body) == 0 {
+func formatPoliciesArray(policies string) (string, error) {
+	policies = strings.TrimSpace(policies)
+	if policies == "" {
 		return "[]\n", nil
 	}
 
-	policies, err := extractPoliciesJSON(body)
-	if err != nil {
-		return "", err
-	}
-
 	var v any
-	if err := json.Unmarshal(policies, &v); err != nil {
-		out := string(policies)
+	if err := json.Unmarshal([]byte(policies), &v); err != nil {
+		out := policies
 		if !strings.HasSuffix(out, "\n") {
 			out += "\n"
 		}
@@ -106,38 +94,17 @@ func formatProjectPolicies(body []byte) (string, error) {
 	return string(out) + "\n", nil
 }
 
-func extractPoliciesJSON(body []byte) ([]byte, error) {
-	if body[0] == '[' {
-		return body, nil
+// formatProjectPolicies kept for tests that pass full SecurityPoliciesModel bodies.
+func formatProjectPolicies(body []byte) (string, error) {
+	body = bytes.TrimSpace(body)
+	if len(body) == 0 {
+		return "[]\n", nil
 	}
 
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(body, &fields); err != nil {
-		return nil, fmt.Errorf("parse security policies model: %w", err)
+	model, err := securitypolicies.Parse(body)
+	if err != nil {
+		return "", err
 	}
 
-	sp, ok := fields["securityPolicies"]
-	if !ok || len(bytes.TrimSpace(sp)) == 0 || string(bytes.TrimSpace(sp)) == "null" {
-		return []byte("[]"), nil
-	}
-
-	sp = bytes.TrimSpace(sp)
-	switch sp[0] {
-	case '[':
-		return sp, nil
-	case '"':
-		var s string
-		if err := json.Unmarshal(sp, &s); err != nil {
-			return nil, fmt.Errorf("securityPolicies string: %w", err)
-		}
-
-		s = strings.TrimSpace(s)
-		if s == "" {
-			return []byte("[]"), nil
-		}
-
-		return []byte(s), nil
-	default:
-		return nil, fmt.Errorf("securityPolicies must be a JSON array or a JSON string")
-	}
+	return formatPoliciesArray(model.Policies)
 }

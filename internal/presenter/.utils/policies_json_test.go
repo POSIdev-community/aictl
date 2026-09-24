@@ -1,7 +1,6 @@
 package _utils
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -31,15 +30,9 @@ func TestNormalizePoliciesJSON(t *testing.T) {
 ]`)
 		out, err := NormalizePoliciesJSON(in)
 		require.NoError(t, err)
-
-		var model struct {
-			Check    bool   `json:"checkSecurityPoliciesAccordance"`
-			Policies string `json:"securityPolicies"`
-		}
-		require.NoError(t, json.Unmarshal(out, &model))
-		require.False(t, model.Check)
-		require.Contains(t, model.Policies, "// field name")
-		require.Contains(t, model.Policies, `"Field": "VulnerabilityLevel"`)
+		require.Nil(t, out.Check)
+		require.Contains(t, string(out.PoliciesJSON), "// field name")
+		require.Contains(t, string(out.PoliciesJSON), `"Field": "VulnerabilityLevel"`)
 	})
 
 	t.Run("passes_through_model_with_string", func(t *testing.T) {
@@ -47,7 +40,9 @@ func TestNormalizePoliciesJSON(t *testing.T) {
 		in := []byte(`{"checkSecurityPoliciesAccordance":true,"securityPolicies":"[]"}`)
 		out, err := NormalizePoliciesJSON(in)
 		require.NoError(t, err)
-		require.JSONEq(t, `{"checkSecurityPoliciesAccordance":true,"securityPolicies":"[]"}`, string(out))
+		require.NotNil(t, out.Check)
+		require.True(t, *out.Check)
+		require.Equal(t, "[]", string(out.PoliciesJSON))
 	})
 
 	t.Run("stringifies_array_securityPolicies", func(t *testing.T) {
@@ -55,26 +50,25 @@ func TestNormalizePoliciesJSON(t *testing.T) {
 		in := []byte(`{"checkSecurityPoliciesAccordance":true,"securityPolicies":[{"CountToActualize":1}]}`)
 		out, err := NormalizePoliciesJSON(in)
 		require.NoError(t, err)
-
-		var model struct {
-			Check    bool   `json:"checkSecurityPoliciesAccordance"`
-			Policies string `json:"securityPolicies"`
-		}
-		require.NoError(t, json.Unmarshal(out, &model))
-		require.True(t, model.Check)
-		require.JSONEq(t, `[{"CountToActualize":1}]`, model.Policies)
+		require.NotNil(t, out.Check)
+		require.True(t, *out.Check)
+		require.JSONEq(t, `[{"CountToActualize":1}]`, string(out.PoliciesJSON))
 	})
 
 	t.Run("wraps_bare_object", func(t *testing.T) {
 		t.Parallel()
 		out, err := NormalizePoliciesJSON([]byte(`{"CountToActualize":1}`))
 		require.NoError(t, err)
+		require.Nil(t, out.Check)
+		require.JSONEq(t, `[{"CountToActualize":1}]`, string(out.PoliciesJSON))
+	})
 
-		var model struct {
-			Policies string `json:"securityPolicies"`
-		}
-		require.NoError(t, json.Unmarshal(out, &model))
-		require.JSONEq(t, `[{"CountToActualize":1}]`, model.Policies)
+	t.Run("model_without_check_preserves_nil", func(t *testing.T) {
+		t.Parallel()
+		out, err := NormalizePoliciesJSON([]byte(`{"securityPolicies":[]}`))
+		require.NoError(t, err)
+		require.Nil(t, out.Check)
+		require.Equal(t, "[]", string(out.PoliciesJSON))
 	})
 
 	t.Run("invalid", func(t *testing.T) {

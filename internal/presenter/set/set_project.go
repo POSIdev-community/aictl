@@ -27,6 +27,7 @@ var projectIdFlag string
 
 func NewSetProjectCmd(persistentPreRunESetProjectCmd PersistentPreRunESetProjectCmd,
 	setProjectSettingsCmd CmdSetProjectSettings, setProjectPoliciesCmd CmdSetProjectPolicies,
+	setProjectPolicyCheckCmd CmdSetProjectPolicyCheck,
 	setProjectExclusionsCmd CmdSetProjectExclusions) CmdSetProject {
 	cmd := &cobra.Command{
 		Use:               "project",
@@ -37,6 +38,7 @@ func NewSetProjectCmd(persistentPreRunESetProjectCmd PersistentPreRunESetProject
 
 	cmd.AddCommand(setProjectSettingsCmd.Command)
 	cmd.AddCommand(setProjectPoliciesCmd.Command)
+	cmd.AddCommand(setProjectPolicyCheckCmd.Command)
 	cmd.AddCommand(setProjectExclusionsCmd.Command)
 
 	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")

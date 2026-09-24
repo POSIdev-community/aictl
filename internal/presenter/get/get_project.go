@@ -21,6 +21,7 @@ func NewPersistentPreRunEGetProjectCmd(cfg *config.Config, prev PersistentPreRun
 
 func NewGetProjectCmd(persistentPreRunE PersistentPreRunEGetProjectCmd, cmdGetProjectAiproj CmdGetProjectAiproj,
 	cmdGetProjectSettings CmdGetProjectSettings, cmdGetProjectPolicies CmdGetProjectPolicies,
+	cmdGetProjectPolicyCheck CmdGetProjectPolicyCheck,
 	cmdGetProjectExclusions CmdGetProjectExclusions) CmdGetProject {
 	cmd := &cobra.Command{
 		Use:               "project",
@@ -32,6 +33,7 @@ func NewGetProjectCmd(persistentPreRunE PersistentPreRunEGetProjectCmd, cmdGetPr
 	cmd.AddCommand(cmdGetProjectAiproj.Command)
 	cmd.AddCommand(cmdGetProjectSettings.Command)
 	cmd.AddCommand(cmdGetProjectPolicies.Command)
+	cmd.AddCommand(cmdGetProjectPolicyCheck.Command)
 	cmd.AddCommand(cmdGetProjectExclusions.Command)
 
 	cmd.PersistentFlags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")

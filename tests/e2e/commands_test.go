@@ -118,6 +118,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				{"get projects", []string{"get", "projects", regexpEscape(projectName)}},
 				{"get project aiproj", []string{"get", "project", "aiproj", "-p", projectID}},
 				{"get project policies", []string{"get", "project", "policies", "-p", projectID}},
+				{"get project policy-check", []string{"get", "project", "policy-check", "-p", projectID}},
 				{"get project exclusions", []string{"get", "project", "exclusions", "-p", projectID}},
 				{"get branches", []string{"get", "branches", "-p", projectID}},
 				{"get branch", []string{"get", "branch", branchID}},
@@ -257,6 +258,31 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				})
 			}
 
+			t.Run("set project policy-check", func(t *testing.T) {
+				before := strings.TrimSpace(RunAictl(t, aictlBin, stand, env,
+					"get", "project", "policy-check", "-p", projectID))
+				require.Contains(t, []string{"true", "false"}, before)
+
+				want := "true"
+				if before == "true" {
+					want = "false"
+				}
+
+				RunAictl(t, aictlBin, stand, env,
+					"set", "project", "policy-check", want, "-p", projectID)
+
+				after := strings.TrimSpace(RunAictl(t, aictlBin, stand, env,
+					"get", "project", "policy-check", "-p", projectID))
+				require.Equal(t, want, after)
+
+				// restore original so later policy checks stay predictable
+				RunAictl(t, aictlBin, stand, env,
+					"set", "project", "policy-check", before, "-p", projectID)
+				restored := strings.TrimSpace(RunAictl(t, aictlBin, stand, env,
+					"get", "project", "policy-check", "-p", projectID))
+				require.Equal(t, before, restored)
+			})
+
 			t.Run("set project policies", func(t *testing.T) {
 				// API: securityPolicies is a JSON *string* (not an array).
 				policiesPath := filepath.Join(workDir, "policies.json")
@@ -264,6 +290,20 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 					`{"checkSecurityPoliciesAccordance":false,"securityPolicies":"[]"}`,
 				), 0o644))
 				RunAictl(t, aictlBin, stand, env, "set", "project", "policies", "-p", projectID, "-f", policiesPath)
+
+				check := strings.TrimSpace(RunAictl(t, aictlBin, stand, env,
+					"get", "project", "policy-check", "-p", projectID))
+				require.Equal(t, "false", check)
+
+				// Array input must preserve current policy-check (set true, then array set).
+				RunAictl(t, aictlBin, stand, env,
+					"set", "project", "policy-check", "true", "-p", projectID)
+				arrayPath := filepath.Join(workDir, "policies-array.json")
+				require.NoError(t, os.WriteFile(arrayPath, []byte(`[]`), 0o644))
+				RunAictl(t, aictlBin, stand, env, "set", "project", "policies", "-p", projectID, "-f", arrayPath)
+				preserved := strings.TrimSpace(RunAictl(t, aictlBin, stand, env,
+					"get", "project", "policy-check", "-p", projectID))
+				require.Equal(t, "true", preserved)
 			})
 
 			t.Run("set project exclusions", func(t *testing.T) {

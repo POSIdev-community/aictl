@@ -870,7 +870,8 @@ aictl get project settings --json
 
 Политики качества проекта: на stdout — pretty-printed JSON-массив правил
 (без обёртки `SecurityPoliciesModel`). Удобно сохранить в файл и передать
-в `set project policies -f`.
+в `set project policies -f`. Галочку применения политик смотрите через
+`get project policy-check`.
 
 **Usage:**
 
@@ -883,6 +884,42 @@ aictl get project policies [flags]
 ```bash
 aictl get project policies
 aictl get project policies -p <project-id> > policies.json
+```
+
+**Флаги:**
+
+```
+  -h, --help   справка
+```
+
+**Унаследованные флаги:**
+
+```
+  -l, --log-path string     путь к файлу логов
+  -p, --project-id string   id проекта (переопределяет context)
+      --tls-skip            не проверять TLS-сертификат сервера
+  -t, --token string        токен доступа к AI (переопределяет context)
+  -u, --uri string          URI AI-сервера (переопределяет context)
+  -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
+```
+
+### `aictl get project policy-check`
+
+Галочка применения политик проекта (`checkSecurityPoliciesAccordance` /
+aiproj `UseSecurityPolicies`). На stdout — `true` или `false`.
+
+**Usage:**
+
+```
+aictl get project policy-check [flags]
+```
+
+**Пример:**
+
+```bash
+aictl get project policy-check
+aictl get project policy-check -p <project-id>
 ```
 
 **Флаги:**
@@ -2215,6 +2252,9 @@ aictl set project policies -f ./policies.json
 ### `aictl set project settings`
 
 Полностью **заменить** настройки проекта содержимым aiproj/JSON (`-f`, позиционный аргумент или stdin).
+Если в aiproj задано `UseSecurityPolicies`, после настроек обновляется
+галочка применения политик (`checkSecurityPoliciesAccordance`); правила политик не меняются.
+Если поле в aiproj отсутствует — галочка не трогается.
 
 **Usage:**
 
@@ -2254,7 +2294,9 @@ aictl set project settings -f ./aiproj.json
 API ожидает объект `SecurityPoliciesModel`
 (`checkSecurityPoliciesAccordance` + `securityPolicies` как JSON-*строка*).
 Можно передать и сам массив правил (как в aisa `--policy-settings-file`) —
-aictl обернёт его автоматически. Комментарии в файле правил сохраняются
+aictl обернёт его автоматически; текущая галочка применения политик
+при этом **сохраняется**. Явное значение `checkSecurityPoliciesAccordance`
+в объекте модели перезаписывает галочку. Комментарии в файле правил сохраняются
 внутри `securityPolicies`.
 
 **Usage:**
@@ -2274,6 +2316,42 @@ aictl set project policies -f ./policies.json
 ```
   -f, --file string   JSON файл политик или - для stdin
   -h, --help          справка
+```
+
+**Унаследованные флаги:**
+
+```
+  -l, --log-path string     путь к файлу логов
+  -p, --project-id string   id проекта (переопределяет context)
+      --tls-skip            не проверять TLS-сертификат сервера
+  -t, --token string        токен доступа к AI (переопределяет context)
+  -u, --uri string          URI AI-сервера (переопределяет context)
+  -v, --verbose             подробный вывод
+  -V, --debug             debug-вывод (цепочки ошибок)
+```
+
+### `aictl set project policy-check`
+
+Включить или выключить применение политик проекта
+(`checkSecurityPoliciesAccordance`). Правила политик сохраняются.
+
+**Usage:**
+
+```
+aictl set project policy-check <true|false> [flags]
+```
+
+**Пример:**
+
+```bash
+aictl set project policy-check true
+aictl set project policy-check false -p <project-id>
+```
+
+**Флаги:**
+
+```
+  -h, --help   справка
 ```
 
 **Унаследованные флаги:**

@@ -27,7 +27,11 @@ func (f *fakeSetExclusionsUC) Execute(_ context.Context, exclusions string) erro
 
 type noopSetPoliciesUC struct{}
 
-func (noopSetPoliciesUC) Execute(context.Context, []byte) error { return nil }
+func (noopSetPoliciesUC) Execute(context.Context, []byte, *bool) error { return nil }
+
+type noopSetPolicyCheckUC struct{}
+
+func (noopSetPolicyCheckUC) Execute(context.Context, bool) error { return nil }
 
 type noopSetSettingsUC struct{}
 
@@ -37,6 +41,7 @@ func buildSetRoot(
 	t *testing.T,
 	settings UseCaseSetProjectSettings,
 	policies UseCaseSetProjectPolicies,
+	policyCheck UseCaseSetProjectPolicyCheck,
 	exclusions UseCaseSetProjectExclusions,
 ) *CmdSet {
 	t.Helper()
@@ -46,6 +51,7 @@ func buildSetRoot(
 	proj := NewSetProjectCmd(preProj,
 		NewSetProjectSettingsCmd(settings),
 		NewSetProjectPoliciesCmd(policies),
+		NewSetProjectPolicyCheckCmd(policyCheck),
 		NewSetProjectExclusionsCmd(exclusions),
 	)
 	return NewSetCmd(preSet, proj)
@@ -58,7 +64,7 @@ func TestSetProjectExclusionsCmd(t *testing.T) {
 	t.Run("from_arg", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetExclusionsUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, uc)
+		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, uc)
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "exclusions", "*.tmp", "-p", projectID.String()))
 		require.Equal(t, "*.tmp", uc.exclusions)
 	})
@@ -68,7 +74,7 @@ func TestSetProjectExclusionsCmd(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "exclusions.txt")
 		require.NoError(t, os.WriteFile(path, []byte("node_modules/\n"), 0o644))
 		uc := &fakeSetExclusionsUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, uc)
+		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, uc)
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "exclusions", "-f", path, "-p", projectID.String()))
 		require.Equal(t, "node_modules/\n", uc.exclusions)
 	})
@@ -76,7 +82,7 @@ func TestSetProjectExclusionsCmd(t *testing.T) {
 	t.Run("stdin_arg_dash", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetExclusionsUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, uc)
+		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, uc)
 		cmdtest.WithStdin(t, "*.log\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "exclusions", "-", "-p", projectID.String()))
 		})
@@ -86,7 +92,7 @@ func TestSetProjectExclusionsCmd(t *testing.T) {
 	t.Run("stdin_file_dash", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetExclusionsUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, uc)
+		root := buildSetRoot(t, noopSetSettingsUC{}, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, uc)
 		cmdtest.WithStdin(t, "vendor/\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "exclusions", "-f", "-", "-p", projectID.String()))
 		})

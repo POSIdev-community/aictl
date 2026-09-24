@@ -2,7 +2,6 @@ package set
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,25 +13,16 @@ import (
 )
 
 type fakeSetPoliciesUC struct {
-	called  int
-	rawJSON []byte
+	called       int
+	policiesJSON []byte
+	check        *bool
 }
 
-func (f *fakeSetPoliciesUC) Execute(_ context.Context, rawJSON []byte) error {
+func (f *fakeSetPoliciesUC) Execute(_ context.Context, policiesJSON []byte, check *bool) error {
 	f.called++
-	f.rawJSON = append([]byte(nil), rawJSON...)
+	f.policiesJSON = append([]byte(nil), policiesJSON...)
+	f.check = check
 	return nil
-}
-
-func requirePoliciesPayload(t *testing.T, raw []byte, wantPolicies string, wantCheck bool) {
-	t.Helper()
-	var model struct {
-		Check    bool   `json:"checkSecurityPoliciesAccordance"`
-		Policies string `json:"securityPolicies"`
-	}
-	require.NoError(t, json.Unmarshal(raw, &model))
-	require.Equal(t, wantCheck, model.Check)
-	require.JSONEq(t, wantPolicies, model.Policies)
 }
 
 func TestSetProjectPoliciesCmd(t *testing.T) {
@@ -42,7 +32,7 @@ func TestSetProjectPoliciesCmd(t *testing.T) {
 	t.Run("invalid_json", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		require.Error(t, cmdtest.Execute(t, root.Command, "project", "policies", "not-json", "-p", projectID.String()))
 		require.Equal(t, 0, uc.called)
 	})
@@ -50,10 +40,12 @@ func TestSetProjectPoliciesCmd(t *testing.T) {
 	t.Run("from_arg_model", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "policies",
 			`{"checkSecurityPoliciesAccordance":false,"securityPolicies":"[]"}`, "-p", projectID.String()))
-		requirePoliciesPayload(t, uc.rawJSON, `[]`, false)
+		require.Equal(t, "[]", string(uc.policiesJSON))
+		require.NotNil(t, uc.check)
+		require.False(t, *uc.check)
 	})
 
 	t.Run("from_file_array", func(t *testing.T) {
@@ -61,9 +53,10 @@ func TestSetProjectPoliciesCmd(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "policies.json")
 		require.NoError(t, os.WriteFile(path, []byte(`[{"CountToActualize":1}]`), 0o644))
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "policies", "-f", path, "-p", projectID.String()))
-		requirePoliciesPayload(t, uc.rawJSON, `[{"CountToActualize":1}]`, false)
+		require.JSONEq(t, `[{"CountToActualize":1}]`, string(uc.policiesJSON))
+		require.Nil(t, uc.check)
 	})
 
 	t.Run("from_file_with_comments", func(t *testing.T) {
@@ -87,36 +80,32 @@ func TestSetProjectPoliciesCmd(t *testing.T) {
 ]`
 		require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "policies", "-f", path, "-p", projectID.String()))
-
-		var model struct {
-			Check    bool   `json:"checkSecurityPoliciesAccordance"`
-			Policies string `json:"securityPolicies"`
-		}
-		require.NoError(t, json.Unmarshal(uc.rawJSON, &model))
-		require.False(t, model.Check)
-		require.Contains(t, model.Policies, "// field name")
-		require.Contains(t, model.Policies, `"Field": "VulnerabilityLevel"`)
+		require.Nil(t, uc.check)
+		require.Contains(t, string(uc.policiesJSON), "// field name")
+		require.Contains(t, string(uc.policiesJSON), `"Field": "VulnerabilityLevel"`)
 	})
 
 	t.Run("stdin_arg_dash", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		cmdtest.WithStdin(t, `[]`+"\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "policies", "-", "-p", projectID.String()))
 		})
-		requirePoliciesPayload(t, uc.rawJSON, `[]`, false)
+		require.Equal(t, "[]", string(uc.policiesJSON))
+		require.Nil(t, uc.check)
 	})
 
 	t.Run("stdin_file_dash", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetPoliciesUC{}
-		root := buildSetRoot(t, noopSetSettingsUC{}, uc, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, noopSetSettingsUC{}, uc, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		cmdtest.WithStdin(t, `[{"CountToActualize":2}]`+"\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "policies", "-f", "-", "-p", projectID.String()))
 		})
-		requirePoliciesPayload(t, uc.rawJSON, `[{"CountToActualize":2}]`, false)
+		require.JSONEq(t, `[{"CountToActualize":2}]`, string(uc.policiesJSON))
+		require.Nil(t, uc.check)
 	})
 }

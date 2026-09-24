@@ -81,7 +81,7 @@ aictl ctx clear -y
 | `--file-exclusions` | `update sources -e` / `--exclude-from` | Синтаксис gitignore; при полном пайплайне добавьте `--update-languages` |
 | `--project-settings-file` | `set project settings -f` | `.aiproj` / JSON |
 | `--scan-off` | Не вызывать `scan branch` / `scan project` | Upload/settings без скана |
-| `--policy-settings-file` | `set project policies -f` | |
+| `--policy-settings-file` | `set project policies -f` | галочка при массиве сохраняется; отдельно: `set project policy-check` |
 | `--policies-path` | `set project policies -f` | |
 
 ### Скан

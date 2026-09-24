@@ -18,13 +18,14 @@ type CmdSetProjectPolicies struct {
 }
 
 type UseCaseSetProjectPolicies interface {
-	Execute(ctx context.Context, rawJSON []byte) error
+	Execute(ctx context.Context, policiesJSON []byte, check *bool) error
 }
 
 func NewSetProjectPoliciesCmd(uc UseCaseSetProjectPolicies) CmdSetProjectPolicies {
 	var (
-		filePath string
-		rawJSON  []byte
+		filePath     string
+		policiesJSON []byte
+		check        *bool
 	)
 
 	cmd := &cobra.Command{
@@ -34,6 +35,7 @@ func NewSetProjectPoliciesCmd(uc UseCaseSetProjectPolicies) CmdSetProjectPolicie
 
 Accepts the API SecurityPoliciesModel object, or a policies JSON array
 (as in aisa --policy-settings-file); arrays are wrapped automatically.
+When checkSecurityPoliciesAccordance is omitted, the current server value is preserved.
 Comments in the policies file are preserved inside securityPolicies.`,
 		Example: `  aictl set project policies -f policies.json -p <project-id>
   aictl set project policies -`,
@@ -49,14 +51,15 @@ Comments in the policies file are preserved inside securityPolicies.`,
 				return validation.NewMessageError("invalid policies data: " + err.Error())
 			}
 
-			rawJSON = normalized
+			policiesJSON = normalized.PoliciesJSON
+			check = normalized.Check
 
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, rawJSON); err != nil {
+			if err := uc.Execute(ctx, policiesJSON, check); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'set project policies' usecase call: %w", err)

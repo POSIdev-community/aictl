@@ -31,5 +31,6 @@ Retrieve project-level data. Project id comes from context or -p.
 * [aictl get project aiproj](aictl_get_project_aiproj.md)	 - Get project aiproj
 * [aictl get project exclusions](aictl_get_project_exclusions.md)	 - Get project file/folder exclusions
 * [aictl get project policies](aictl_get_project_policies.md)	 - Get project security policies
+* [aictl get project policy-check](aictl_get_project_policy-check.md)	 - Get project security policy check flag
 * [aictl get project settings](aictl_get_project_settings.md)	 - Get project settings
 

@@ -30,7 +30,7 @@ func TestSetProjectSettingsCmd(t *testing.T) {
 	t.Run("from_arg", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetSettingsUC{}
-		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		payload := `{"Version":"1.0"}`
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "settings", payload, "-p", projectID.String()))
 		require.JSONEq(t, payload, string(uc.rawAiproj))
@@ -41,7 +41,7 @@ func TestSetProjectSettingsCmd(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "aiproj.json")
 		require.NoError(t, os.WriteFile(path, []byte(`{"Version":"1.1"}`), 0o644))
 		uc := &fakeSetSettingsUC{}
-		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		require.NoError(t, cmdtest.Execute(t, root.Command, "project", "settings", "-f", path, "-p", projectID.String()))
 		require.JSONEq(t, `{"Version":"1.1"}`, string(uc.rawAiproj))
 	})
@@ -49,7 +49,7 @@ func TestSetProjectSettingsCmd(t *testing.T) {
 	t.Run("stdin_arg_dash", func(t *testing.T) {
 		resetSetProjectID()
 		uc := &fakeSetSettingsUC{}
-		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, &fakeSetExclusionsUC{})
+		root := buildSetRoot(t, uc, noopSetPoliciesUC{}, noopSetPolicyCheckUC{}, &fakeSetExclusionsUC{})
 		cmdtest.WithStdin(t, `{"Version":"2.0"}`+"\n", func() {
 			require.NoError(t, cmdtest.Execute(t, root.Command, "project", "settings", "-", "-p", projectID.String()))
 		})
