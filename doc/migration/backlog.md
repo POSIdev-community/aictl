@@ -36,7 +36,7 @@
 5. ~~**`set project policies`**~~ **готово**  
    JSON правил политик. Ввод: `-f <file>` | `-f -` / `-` (stdin) | позиционный аргумент (текст JSON). Как `set project settings`.
 
-6. ~~**`get report-templates [<regex>] [-q|--quite] [--localization en|ru]`**~~ **готово**  
+6. ~~**`get report-templates [<regex>] [-q|--quiet] [--localization en|ru]`**~~ **готово**  
    Вывод: **id** и **имя**; фильтр по имени (regex, как `get projects`); `-q` — только id.
 
 7. ~~**`get scan errors <scan-id>`**~~ **готово**  

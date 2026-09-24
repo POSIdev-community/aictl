@@ -15,12 +15,12 @@ type CmdGetReportTemplates struct {
 }
 
 type UseCaseGetReportTemplates interface {
-	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool, localization string) error
+	Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool, localization string) error
 }
 
 func NewGetReportTemplatesCmd(uc UseCaseGetReportTemplates) CmdGetReportTemplates {
 	var (
-		quite        bool
+		quiet        bool
 		localization string
 		regexFilter  regexfilter.RegexFilter
 	)
@@ -51,7 +51,7 @@ func NewGetReportTemplatesCmd(uc UseCaseGetReportTemplates) CmdGetReportTemplate
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, regexFilter, quite, localization); err != nil {
+			if err := uc.Execute(ctx, regexFilter, quiet, localization); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get report-templates' usecase call: %w", err)
@@ -61,7 +61,7 @@ func NewGetReportTemplatesCmd(uc UseCaseGetReportTemplates) CmdGetReportTemplate
 		},
 	}
 
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
+	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print only ids")
 	cmd.Flags().StringVar(&localization, "localization", "en", "Report localization language: 'en' or 'ru'")
 
 	return CmdGetReportTemplates{cmd}

@@ -16,13 +16,13 @@ type CmdGetScansSbomProject struct {
 }
 
 type UseCaseGetScansSbomProject interface {
-	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool, latest bool) error
+	Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool, latest bool) error
 }
 
 func NewGetScansSbomProjectCmd(cfg *config.Config, uc UseCaseGetScansSbomProject) CmdGetScansSbomProject {
 	var (
 		projectIdFlag string
-		quite         bool
+		quiet         bool
 		latest        bool
 		regexFilter   regexfilter.RegexFilter
 	)
@@ -54,7 +54,7 @@ func NewGetScansSbomProjectCmd(cfg *config.Config, uc UseCaseGetScansSbomProject
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, regexFilter, quite, latest); err != nil {
+			if err := uc.Execute(ctx, regexFilter, quiet, latest); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get scans sbom-project' usecase call: %w", err)
@@ -65,7 +65,7 @@ func NewGetScansSbomProjectCmd(cfg *config.Config, uc UseCaseGetScansSbomProject
 	}
 
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
+	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print only ids")
 	cmd.Flags().BoolVar(&latest, "latest", false, "Return only the latest scan result")
 
 	return CmdGetScansSbomProject{cmd}

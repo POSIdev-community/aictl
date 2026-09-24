@@ -21,7 +21,7 @@ aictl get agents [flags]
 
 ```
   -h, --help    help for agents
-  -q, --quite   Print only ids
+  -q, --quiet   Print only ids
 ```
 
 ### Options inherited from parent commands

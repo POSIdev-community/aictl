@@ -22,7 +22,7 @@ aictl get projects <regex> [flags]
 
 ```
   -h, --help    help for projects
-  -q, --quite   Print only ids
+  -q, --quiet   Print only ids
 ```
 
 ### Options inherited from parent commands

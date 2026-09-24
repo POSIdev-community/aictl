@@ -95,7 +95,7 @@ func TestShowProjects(t *testing.T) {
 	t.Run("quiet", func(t *testing.T) {
 		var out, errBuf bytes.Buffer
 		a := newTestAdapter(nil, nil)
-		a.ShowProjectsQuite(testCtx(&out, &errBuf), projects)
+		a.ShowProjectsQuiet(testCtx(&out, &errBuf), projects)
 		require.Contains(t, out.String(), id.String())
 		require.NotContains(t, out.String(), "NAME")
 	})
@@ -116,7 +116,7 @@ func TestShowBranches(t *testing.T) {
 	t.Run("quiet", func(t *testing.T) {
 		var out, errBuf bytes.Buffer
 		a := newTestAdapter(nil, nil)
-		a.ShowBranchesQuite(testCtx(&out, &errBuf), branches)
+		a.ShowBranchesQuiet(testCtx(&out, &errBuf), branches)
 		require.Contains(t, out.String(), id.String())
 	})
 }
@@ -139,7 +139,7 @@ func TestShowScans(t *testing.T) {
 	t.Run("quiet", func(t *testing.T) {
 		var out, errBuf bytes.Buffer
 		a := newTestAdapter(nil, nil)
-		a.ShowScansQuite(testCtx(&out, &errBuf), scans)
+		a.ShowScansQuiet(testCtx(&out, &errBuf), scans)
 		require.Contains(t, out.String(), id.String())
 	})
 }
@@ -162,7 +162,7 @@ func TestShowScanAgents(t *testing.T) {
 	t.Run("quiet", func(t *testing.T) {
 		var out, errBuf bytes.Buffer
 		a := newTestAdapter(nil, nil)
-		a.ShowScanAgentsQuite(testCtx(&out, &errBuf), agents)
+		a.ShowScanAgentsQuiet(testCtx(&out, &errBuf), agents)
 		require.Contains(t, out.String(), id.String())
 	})
 }
@@ -200,7 +200,7 @@ func TestShowReportTemplates(t *testing.T) {
 	t.Run("quiet", func(t *testing.T) {
 		var out, errBuf bytes.Buffer
 		a := newTestAdapter(nil, nil)
-		a.ShowReportTemplatesQuite(testCtx(&out, &errBuf), templates)
+		a.ShowReportTemplatesQuiet(testCtx(&out, &errBuf), templates)
 		require.Contains(t, out.String(), id.String())
 	})
 }

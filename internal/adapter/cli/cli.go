@@ -60,7 +60,7 @@ func (cli *Adapter) ShowProjects(ctx context.Context, projects []project.Project
 	}
 }
 
-func (cli *Adapter) ShowProjectsQuite(ctx context.Context, projects []project.Project) {
+func (cli *Adapter) ShowProjectsQuiet(ctx context.Context, projects []project.Project) {
 	log := logger.FromContext(ctx)
 
 	for _, p := range projects {
@@ -79,7 +79,7 @@ func (cli *Adapter) ShowBranches(ctx context.Context, branches []branch.Branch) 
 	}
 }
 
-func (cli *Adapter) ShowBranchesQuite(ctx context.Context, branches []branch.Branch) {
+func (cli *Adapter) ShowBranchesQuiet(ctx context.Context, branches []branch.Branch) {
 	log := logger.FromContext(ctx)
 
 	for _, b := range branches {
@@ -137,7 +137,7 @@ func (cli *Adapter) ShowScans(ctx context.Context, scans []scan.Scan) {
 	}
 }
 
-func (cli *Adapter) ShowScansQuite(ctx context.Context, scans []scan.Scan) {
+func (cli *Adapter) ShowScansQuiet(ctx context.Context, scans []scan.Scan) {
 	log := logger.FromContext(ctx)
 
 	for _, s := range scans {
@@ -174,7 +174,7 @@ func (cli *Adapter) ShowScanAgents(ctx context.Context, agents []scanagent.ScanA
 	}
 }
 
-func (cli *Adapter) ShowScanAgentsQuite(ctx context.Context, agents []scanagent.ScanAgent) {
+func (cli *Adapter) ShowScanAgentsQuiet(ctx context.Context, agents []scanagent.ScanAgent) {
 	log := logger.FromContext(ctx)
 
 	for _, a := range agents {
@@ -204,7 +204,7 @@ func (cli *Adapter) ShowReportTemplates(ctx context.Context, templates []report.
 	}
 }
 
-func (cli *Adapter) ShowReportTemplatesQuite(ctx context.Context, templates []report.Template) {
+func (cli *Adapter) ShowReportTemplatesQuiet(ctx context.Context, templates []report.Template) {
 	log := logger.FromContext(ctx)
 
 	for _, t := range templates {

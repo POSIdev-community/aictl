@@ -23,7 +23,7 @@ aictl get branches [<regex>] [flags]
 ```
   -h, --help                help for branches
   -p, --project-id string   Project id (overrides context)
-  -q, --quite               Print only ids
+  -q, --quiet               Print only ids
 ```
 
 ### Options inherited from parent commands

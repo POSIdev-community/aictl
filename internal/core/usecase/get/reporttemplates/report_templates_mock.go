@@ -230,25 +230,25 @@ func (_c *MockCLI_ShowReportTemplates_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
-// ShowReportTemplatesQuite provides a mock function for the type MockCLI
-func (_mock *MockCLI) ShowReportTemplatesQuite(ctx context.Context, templates []report.Template) {
+// ShowReportTemplatesQuiet provides a mock function for the type MockCLI
+func (_mock *MockCLI) ShowReportTemplatesQuiet(ctx context.Context, templates []report.Template) {
 	_mock.Called(ctx, templates)
 	return
 }
 
-// MockCLI_ShowReportTemplatesQuite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ShowReportTemplatesQuite'
-type MockCLI_ShowReportTemplatesQuite_Call struct {
+// MockCLI_ShowReportTemplatesQuiet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ShowReportTemplatesQuiet'
+type MockCLI_ShowReportTemplatesQuiet_Call struct {
 	*mock.Call
 }
 
-// ShowReportTemplatesQuite is a helper method to define mock.On call
+// ShowReportTemplatesQuiet is a helper method to define mock.On call
 //   - ctx context.Context
 //   - templates []report.Template
-func (_e *MockCLI_Expecter) ShowReportTemplatesQuite(ctx interface{}, templates interface{}) *MockCLI_ShowReportTemplatesQuite_Call {
-	return &MockCLI_ShowReportTemplatesQuite_Call{Call: _e.mock.On("ShowReportTemplatesQuite", ctx, templates)}
+func (_e *MockCLI_Expecter) ShowReportTemplatesQuiet(ctx interface{}, templates interface{}) *MockCLI_ShowReportTemplatesQuiet_Call {
+	return &MockCLI_ShowReportTemplatesQuiet_Call{Call: _e.mock.On("ShowReportTemplatesQuiet", ctx, templates)}
 }
 
-func (_c *MockCLI_ShowReportTemplatesQuite_Call) Run(run func(ctx context.Context, templates []report.Template)) *MockCLI_ShowReportTemplatesQuite_Call {
+func (_c *MockCLI_ShowReportTemplatesQuiet_Call) Run(run func(ctx context.Context, templates []report.Template)) *MockCLI_ShowReportTemplatesQuiet_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -266,12 +266,12 @@ func (_c *MockCLI_ShowReportTemplatesQuite_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockCLI_ShowReportTemplatesQuite_Call) Return() *MockCLI_ShowReportTemplatesQuite_Call {
+func (_c *MockCLI_ShowReportTemplatesQuiet_Call) Return() *MockCLI_ShowReportTemplatesQuiet_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *MockCLI_ShowReportTemplatesQuite_Call) RunAndReturn(run func(ctx context.Context, templates []report.Template)) *MockCLI_ShowReportTemplatesQuite_Call {
+func (_c *MockCLI_ShowReportTemplatesQuiet_Call) RunAndReturn(run func(ctx context.Context, templates []report.Template)) *MockCLI_ShowReportTemplatesQuiet_Call {
 	_c.Run(run)
 	return _c
 }

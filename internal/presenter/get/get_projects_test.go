@@ -13,12 +13,12 @@ import (
 type fakeProjectsUC struct {
 	called int
 	filter regexfilter.RegexFilter
-	quite  bool
+	quiet  bool
 }
 
-func (f *fakeProjectsUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quite bool) error {
+func (f *fakeProjectsUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quiet bool) error {
 	f.called++
-	f.filter, f.quite = filter, quite
+	f.filter, f.quiet = filter, quiet
 	return nil
 }
 
@@ -32,5 +32,5 @@ func TestGetProjectsCmd(t *testing.T) {
 	root := buildGetRoot(t, cfg, ucs)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "projects", "my-.*", "-q"))
 	require.Equal(t, 1, uc.called)
-	require.True(t, uc.quite)
+	require.True(t, uc.quiet)
 }

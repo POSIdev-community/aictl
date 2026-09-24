@@ -10,7 +10,7 @@ import (
 	"github.com/POSIdev-community/aictl/internal/core/domain/report"
 )
 
-func TestUseCase_Execute_FilterAndQuite(t *testing.T) {
+func TestUseCase_Execute_FilterAndQuiet(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
@@ -27,7 +27,7 @@ func TestUseCase_Execute_FilterAndQuite(t *testing.T) {
 	require.NoError(t, err)
 
 	cli := NewMockCLI(t)
-	cli.On("ShowReportTemplatesQuite", ctx, []report.Template{templates[0]}).Return().Once()
+	cli.On("ShowReportTemplatesQuiet", ctx, []report.Template{templates[0]}).Return().Once()
 
 	uc, err := NewUseCase(ai, cli)
 	require.NoError(t, err)

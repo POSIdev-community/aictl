@@ -41,7 +41,7 @@ func (s *stubAI) GetLastScan(_ context.Context, branchId uuid.UUID) (*scan.Scan,
 type stubCLI struct{ shown []scan.Scan }
 
 func (s *stubCLI) ShowScans(_ context.Context, items []scan.Scan)      { s.shown = items }
-func (s *stubCLI) ShowScansQuite(_ context.Context, items []scan.Scan) { s.shown = items }
+func (s *stubCLI) ShowScansQuiet(_ context.Context, items []scan.Scan) { s.shown = items }
 
 func emptyFilter(t *testing.T) regexfilter.RegexFilter {
 	t.Helper()

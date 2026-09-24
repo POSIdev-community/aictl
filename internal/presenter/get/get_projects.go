@@ -15,14 +15,14 @@ type CmdGetProjects struct {
 }
 
 type UseCaseGetProjects interface {
-	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error
+	Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool) error
 }
 
 func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 
 	var (
 		filter string
-		quite  bool
+		quiet  bool
 	)
 
 	var regexFilter regexfilter.RegexFilter
@@ -51,7 +51,7 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, regexFilter, quite); err != nil {
+			if err := uc.Execute(ctx, regexFilter, quiet); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get projects' usecase call: %w", err)
@@ -61,7 +61,7 @@ func NewGetProjectsCmd(uc UseCaseGetProjects) CmdGetProjects {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
+	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print only ids")
 
 	return CmdGetProjects{cmd}
 }

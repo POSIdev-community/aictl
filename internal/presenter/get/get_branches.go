@@ -16,13 +16,13 @@ type CmdGetBranches struct {
 }
 
 type UseCaseGetBranches interface {
-	Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error
+	Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool) error
 }
 
 func NewGetBranchesCmd(cfg *config.Config, uc UseCaseGetBranches) CmdGetBranches {
 	var (
 		projectIdFlag string
-		quite         bool
+		quiet         bool
 		regexFilter   regexfilter.RegexFilter
 	)
 
@@ -53,7 +53,7 @@ func NewGetBranchesCmd(cfg *config.Config, uc UseCaseGetBranches) CmdGetBranches
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, regexFilter, quite); err != nil {
+			if err := uc.Execute(ctx, regexFilter, quiet); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get branches' usecase call: %w", err)
@@ -64,7 +64,7 @@ func NewGetBranchesCmd(cfg *config.Config, uc UseCaseGetBranches) CmdGetBranches
 	}
 
 	cmd.Flags().StringVarP(&projectIdFlag, "project-id", "p", "", "Project id (overrides context)")
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
+	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print only ids")
 
 	return CmdGetBranches{cmd}
 }

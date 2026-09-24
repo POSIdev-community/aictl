@@ -16,7 +16,7 @@ type AI interface {
 
 type CLI interface {
 	ShowProjects(ctx context.Context, projects []project.Project)
-	ShowProjectsQuite(ctx context.Context, projects []project.Project)
+	ShowProjectsQuiet(ctx context.Context, projects []project.Project)
 }
 
 type UseCase struct {
@@ -36,7 +36,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error {
+func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -60,8 +60,8 @@ func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, q
 		}
 	}
 
-	if quite {
-		u.cliAdapter.ShowProjectsQuite(ctx, filteredProjects)
+	if quiet {
+		u.cliAdapter.ShowProjectsQuiet(ctx, filteredProjects)
 	} else {
 		u.cliAdapter.ShowProjects(ctx, filteredProjects)
 	}

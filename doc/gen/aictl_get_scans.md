@@ -24,7 +24,7 @@ aictl get scans [<regex>] [flags]
   -b, --branch-id string   Branch id (overrides context)
   -h, --help               help for scans
       --latest             Return only the latest scan result
-  -q, --quite              Print only ids
+  -q, --quiet              Print only ids
 ```
 
 ### Options inherited from parent commands

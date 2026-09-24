@@ -24,7 +24,7 @@ aictl get scans sbom-project [<regex>] [flags]
   -h, --help                help for sbom-project
       --latest              Return only the latest scan result
   -p, --project-id string   Project id (overrides context)
-  -q, --quite               Print only ids
+  -q, --quiet               Print only ids
 ```
 
 ### Options inherited from parent commands

@@ -12,11 +12,11 @@ type CmdGetAgents struct {
 }
 
 type UseCaseGetAgents interface {
-	Execute(ctx context.Context, quite bool) error
+	Execute(ctx context.Context, quiet bool) error
 }
 
 func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
-	var quite bool
+	var quiet bool
 
 	cmd := &cobra.Command{
 		Use:   "agents",
@@ -27,7 +27,7 @@ func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := uc.Execute(ctx, quite); err != nil {
+			if err := uc.Execute(ctx, quiet); err != nil {
 				cmd.SilenceUsage = true
 
 				return fmt.Errorf("'get agents' usecase call: %w", err)
@@ -37,7 +37,7 @@ func NewGetAgentsCmd(uc UseCaseGetAgents) CmdGetAgents {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&quite, "quite", "q", false, "Print only ids")
+	cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Print only ids")
 
 	return CmdGetAgents{cmd}
 }

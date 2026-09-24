@@ -16,7 +16,7 @@ type AI interface {
 
 type CLI interface {
 	ShowReportTemplates(ctx context.Context, templates []report.Template)
-	ShowReportTemplatesQuite(ctx context.Context, templates []report.Template)
+	ShowReportTemplatesQuiet(ctx context.Context, templates []report.Template)
 }
 
 type UseCase struct {
@@ -36,7 +36,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI) (*UseCase, error) {
 	return &UseCase{aiAdapter, cliAdapter}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool, localization string) error {
+func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool, localization string) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -58,8 +58,8 @@ func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, q
 		}
 	}
 
-	if quite {
-		u.cliAdapter.ShowReportTemplatesQuite(ctx, filtered)
+	if quiet {
+		u.cliAdapter.ShowReportTemplatesQuiet(ctx, filtered)
 	} else {
 		u.cliAdapter.ShowReportTemplates(ctx, filtered)
 	}

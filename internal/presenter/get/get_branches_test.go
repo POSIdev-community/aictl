@@ -13,13 +13,13 @@ import (
 
 type fakeBranchesUC struct {
 	called int
-	quite  bool
+	quiet  bool
 	filter regexfilter.RegexFilter
 }
 
-func (f *fakeBranchesUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quite bool) error {
+func (f *fakeBranchesUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quiet bool) error {
 	f.called++
-	f.filter, f.quite = filter, quite
+	f.filter, f.quiet = filter, quiet
 	return nil
 }
 
@@ -33,6 +33,6 @@ func TestGetBranchesCmd(t *testing.T) {
 	ucs.branches = uc
 	root := buildGetRoot(t, cfg, ucs)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "branches", "main", "-q", "-p", projectID.String()))
-	require.True(t, uc.quite)
+	require.True(t, uc.quiet)
 	require.Equal(t, projectID, cfg.ProjectId())
 }

@@ -22,7 +22,7 @@ type AI interface {
 
 type CLI interface {
 	ShowBranches(ctx context.Context, branches []branch.Branch)
-	ShowBranchesQuite(ctx context.Context, branches []branch.Branch)
+	ShowBranchesQuiet(ctx context.Context, branches []branch.Branch)
 }
 
 type UseCase struct {
@@ -43,7 +43,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quite bool) error {
+func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, quiet bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -69,8 +69,8 @@ func (u *UseCase) Execute(ctx context.Context, filter regexfilter.RegexFilter, q
 		}
 	}
 
-	if quite {
-		u.cliAdapter.ShowBranchesQuite(ctx, filteredBranches)
+	if quiet {
+		u.cliAdapter.ShowBranchesQuiet(ctx, filteredBranches)
 	} else {
 		u.cliAdapter.ShowBranches(ctx, filteredBranches)
 	}

@@ -11,12 +11,12 @@ import (
 
 type fakeAgentsUC struct {
 	called int
-	quite  bool
+	quiet  bool
 }
 
-func (f *fakeAgentsUC) Execute(_ context.Context, quite bool) error {
+func (f *fakeAgentsUC) Execute(_ context.Context, quiet bool) error {
 	f.called++
-	f.quite = quite
+	f.quiet = quiet
 	return nil
 }
 
@@ -30,7 +30,7 @@ func TestGetAgentsCmd(t *testing.T) {
 	root := buildGetRoot(t, cfg, ucs)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "agents", "-q"))
 	require.Equal(t, 1, uc.called)
-	require.True(t, uc.quite)
+	require.True(t, uc.quiet)
 
 	t.Run("default_not_quiet", func(t *testing.T) {
 		resetGetPackageFlags()
@@ -39,6 +39,6 @@ func TestGetAgentsCmd(t *testing.T) {
 		ucs2.agents = uc2
 		root2 := buildGetRoot(t, mustGetCfg(t), ucs2)
 		require.NoError(t, cmdtest.Execute(t, root2.Command, "agents"))
-		require.False(t, uc2.quite)
+		require.False(t, uc2.quiet)
 	})
 }

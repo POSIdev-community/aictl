@@ -12,14 +12,14 @@ import (
 
 type fakeReportTemplatesUC struct {
 	called       int
-	quite        bool
+	quiet        bool
 	localization string
 	filter       regexfilter.RegexFilter
 }
 
-func (f *fakeReportTemplatesUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quite bool, localization string) error {
+func (f *fakeReportTemplatesUC) Execute(_ context.Context, filter regexfilter.RegexFilter, quiet bool, localization string) error {
 	f.called++
-	f.filter, f.quite, f.localization = filter, quite, localization
+	f.filter, f.quiet, f.localization = filter, quiet, localization
 	return nil
 }
 
@@ -32,6 +32,6 @@ func TestGetReportTemplatesCmd(t *testing.T) {
 	ucs.reportTemplates = uc
 	root := buildGetRoot(t, cfg, ucs)
 	require.NoError(t, cmdtest.Execute(t, root.Command, "report-templates", "owasp", "-q", "--localization", "ru"))
-	require.True(t, uc.quite)
+	require.True(t, uc.quiet)
 	require.Equal(t, "ru", uc.localization)
 }

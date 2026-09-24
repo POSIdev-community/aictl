@@ -23,7 +23,7 @@ aictl get report-templates [<regex>] [flags]
 ```
   -h, --help                  help for report-templates
       --localization string   Report localization language: 'en' or 'ru' (default "en")
-  -q, --quite                 Print only ids
+  -q, --quiet                 Print only ids
 ```
 
 ### Options inherited from parent commands

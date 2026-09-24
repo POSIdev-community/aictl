@@ -16,7 +16,7 @@ type AI interface {
 
 type CLI interface {
 	ShowScanAgents(ctx context.Context, agents []scanagent.ScanAgent)
-	ShowScanAgentsQuite(ctx context.Context, agents []scanagent.ScanAgent)
+	ShowScanAgentsQuiet(ctx context.Context, agents []scanagent.ScanAgent)
 }
 
 type UseCase struct {
@@ -37,7 +37,7 @@ func NewUseCase(aiAdapter AI, cliAdapter CLI, cfg *config.Config) (*UseCase, err
 	return &UseCase{aiAdapter, cliAdapter, cfg}, nil
 }
 
-func (u *UseCase) Execute(ctx context.Context, quite bool) error {
+func (u *UseCase) Execute(ctx context.Context, quiet bool) error {
 	err := u.aiAdapter.InitializeWithRetry(ctx)
 	if err != nil {
 		return fmt.Errorf("initialize with retry: %w", err)
@@ -48,8 +48,8 @@ func (u *UseCase) Execute(ctx context.Context, quite bool) error {
 		return fmt.Errorf("get scan agents: %w", err)
 	}
 
-	if quite {
-		u.cliAdapter.ShowScanAgentsQuite(ctx, agents)
+	if quiet {
+		u.cliAdapter.ShowScanAgentsQuiet(ctx, agents)
 	} else {
 		u.cliAdapter.ShowScanAgents(ctx, agents)
 	}

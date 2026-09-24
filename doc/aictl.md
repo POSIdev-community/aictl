@@ -749,7 +749,7 @@ aictl get agents -q
 
 ```
   -h, --help    справка
-  -q, --quite   вывести только id
+  -q, --quiet   вывести только id
 ```
 
 **Унаследованные флаги:**
@@ -783,7 +783,7 @@ aictl get projects 'MyApp'
 
 ```
   -h, --help    справка
-  -q, --quite   вывести только id
+  -q, --quiet   вывести только id
 ```
 
 **Унаследованные флаги:**
@@ -994,7 +994,7 @@ aictl get branches -p <project-id>
 ```
   -h, --help                справка
   -p, --project-id string   id проекта (переопределяет context)
-  -q, --quite               вывести только id
+  -q, --quiet               вывести только id
 ```
 
 **Унаследованные флаги:**
@@ -1063,7 +1063,7 @@ aictl get scans --latest -q
   -b, --branch-id string   id ветки (переопределяет context)
   -h, --help               справка
       --latest             вернуть только последний результат скана
-  -q, --quite              вывести только id
+  -q, --quiet              вывести только id
 ```
 
 **Унаследованные флаги:**
@@ -1166,7 +1166,7 @@ aictl get report-templates --localization ru
 ```
   -h, --help                  справка
       --localization string   локализация отчёта: en или ru (по умолчанию en)
-  -q, --quite                 вывести только id
+  -q, --quiet                 вывести только id
 ```
 
 **Унаследованные флаги:**
