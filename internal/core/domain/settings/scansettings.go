@@ -9,10 +9,15 @@ func (s *ScanSettings) IsEmpty() bool {
 }
 
 type ScanSettings struct {
-	ProjectName             string                  `json:"projectName"`
-	Languages               []string                `json:"languages"`
-	WhiteBoxSettings        WhiteBoxSettings        `json:"whiteBoxSettings"`
-	BlackBoxEnabled         bool                    `json:"blackBoxEnabled"`
+	ProjectName      string           `json:"projectName"`
+	Languages        []string         `json:"languages"`
+	WhiteBoxSettings WhiteBoxSettings `json:"whiteBoxSettings"`
+	BlackBoxEnabled  bool             `json:"blackBoxEnabled"`
+	// BlackBoxManaged is true when these settings define the black box state as a whole
+	// (ScanModules from .aiproj, i.e. `set` with full-replacement semantics). Only then a
+	// disabled black box is explicitly turned off on the server. Settings read back from the
+	// server carry no black box state and must leave it untouched.
+	BlackBoxManaged         bool                    `json:"-"`
 	BlackBoxSettings        BlackBoxSettings        `json:"blackBoxSettings"`
 	DotNetSettings          DotNetSettings          `json:"dotNetSettings"`
 	GoSettings              GoSettings              `json:"goSettings"`

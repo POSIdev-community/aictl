@@ -88,6 +88,7 @@ func TestUpdateFromAiprojBlackBoxEnabledOnlyByScanModules(t *testing.T) {
 			s := settings.ScanSettings{BlackBoxEnabled: tt.initial}
 			fromV110(t, &s, tt.raw)
 			assert.Equal(t, tt.wantEnabled, s.BlackBoxEnabled)
+			assert.True(t, s.BlackBoxManaged, "ScanModules from aiproj define the black box state")
 			assert.Equal(t, tt.wantSite, s.BlackBoxSettings.Site)
 		})
 	}

@@ -11,11 +11,16 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
 )
 
-// syncBlackBoxSettings applies black box settings with full-replacement semantics: when black box is
-// enabled the settings are sent as is; when it is disabled, isActive=false is sent only if black box is
-// currently active on the server, so projects that never used black box get no extra request.
+// syncBlackBoxSettings sends black box settings when black box is enabled. When it is disabled and
+// the settings define the black box state (set from .aiproj, full replacement), isActive=false is sent,
+// but only if black box is currently active on the server: projects that never used black box get no
+// extra request, and settings read back from the server (update, license) never turn it off.
 func (a *ClientAI61) syncBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
 	if !scanSettings.BlackBoxEnabled {
+		if !scanSettings.BlackBoxManaged {
+			return nil
+		}
+
 		active, err := a.isBlackBoxActive(ctx, projectId)
 		if err != nil {
 			return err

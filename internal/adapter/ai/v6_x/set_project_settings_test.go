@@ -20,6 +20,7 @@ type fakeSettingsServer struct {
 	settingsBody   map[string]any
 	blackBoxBody   map[string]any
 	blackBoxPuts   int
+	blackBoxGets   int
 }
 
 func (f *fakeSettingsServer) client(t *testing.T, projectID uuid.UUID) *ClientAI6x {
@@ -34,6 +35,7 @@ func (f *fakeSettingsServer) client(t *testing.T, projectID uuid.UUID) *ClientAI
 			require.NoError(t, json.NewDecoder(r.Body).Decode(&f.settingsBody))
 		case r.Method == http.MethodPut && r.URL.Path == base+"/preferredAgentsSettings":
 		case r.Method == http.MethodGet && r.URL.Path == base+"/blackBoxSettings":
+			f.blackBoxGets++
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]any{"isActive": f.blackBoxActive})
 
@@ -124,10 +126,24 @@ func TestSetProjectSettingsDisablesActiveBlackBox(t *testing.T) {
 	t.Parallel()
 
 	f := &fakeSettingsServer{blackBoxActive: true}
-	s := settings.ScanSettings{BlackBoxEnabled: false}
+	s := settings.ScanSettings{BlackBoxEnabled: false, BlackBoxManaged: true}
 
 	require.NoError(t, f.client(t, settingsTestProjectID).SetProjectSettings(t.Context(), settingsTestProjectID, &s))
 
 	require.Equal(t, 1, f.blackBoxPuts)
 	assert.Equal(t, false, f.blackBoxBody["isActive"])
+}
+
+// Settings read back from the server (update project settings, license soft-disable) carry no
+// black box state: they must not turn off a black box that is active on the server.
+func TestSetProjectSettingsRoundTripKeepsActiveBlackBox(t *testing.T) {
+	t.Parallel()
+
+	f := &fakeSettingsServer{blackBoxActive: true}
+	s := settings.ScanSettings{SkipGitIgnoreFiles: true}
+
+	require.NoError(t, f.client(t, settingsTestProjectID).SetProjectSettings(t.Context(), settingsTestProjectID, &s))
+
+	assert.Zero(t, f.blackBoxGets)
+	assert.Zero(t, f.blackBoxPuts)
 }
