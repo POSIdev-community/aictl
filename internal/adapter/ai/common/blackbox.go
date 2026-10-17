@@ -118,7 +118,7 @@ func mapBlackBoxAuth(auth *settings.BlackBoxAuthentication) *BlackBoxAuth {
 	}
 
 	result := &BlackBoxAuth{
-		Type: Reference(auth.Type),
+		Type: Reference(authType(auth)),
 	}
 
 	if auth.Cookie != nil {
@@ -165,5 +165,25 @@ func mapBlackBoxProxy(proxy *settings.BlackBoxProxySettings) *BlackBoxProxy {
 		Password: Reference(proxy.Password),
 		Port:     Reference(proxy.Port),
 		Type:     Reference(proxy.Type),
+	}
+}
+
+// authType returns the explicit authentication type or, when it is omitted in aiproj,
+// infers it from the single credentials block provided. Without a type the server
+// silently falls back to None and black box scans without logging in.
+func authType(auth *settings.BlackBoxAuthentication) string {
+	if auth.Type != "" {
+		return auth.Type
+	}
+
+	switch {
+	case auth.Http != nil && auth.Form == nil && auth.Cookie == nil:
+		return "Http"
+	case auth.Form != nil && auth.Http == nil && auth.Cookie == nil:
+		return "Form"
+	case auth.Cookie != nil && auth.Http == nil && auth.Form == nil:
+		return "RawCookie"
+	default:
+		return ""
 	}
 }

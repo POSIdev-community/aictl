@@ -10,8 +10,6 @@ func (s *ScanSettings) applyBlackBoxFromV19(bb *v19.AIProjBlackBoxSettings) {
 		return
 	}
 
-	s.BlackBoxEnabled = true
-
 	if bb.Site != nil {
 		s.BlackBoxSettings.Site = *bb.Site
 	}
@@ -39,8 +37,6 @@ func (s *ScanSettings) applyBlackBoxFromV110(bb *v110.AIProjBlackBoxSettings) {
 	if bb == nil {
 		return
 	}
-
-	s.BlackBoxEnabled = true
 
 	if bb.Site != nil {
 		s.BlackBoxSettings.Site = *bb.Site

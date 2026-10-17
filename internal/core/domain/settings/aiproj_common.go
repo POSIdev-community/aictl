@@ -47,6 +47,7 @@ func applyScanModules(s *ScanSettings, modules []string) error {
 	s.WhiteBoxSettings.SearchForConfigurationFlawsEnabled = false
 	s.WhiteBoxSettings.SecretDetectionEnabled = false
 	s.WhiteBoxSettings.SearchForMaliciousCodeEnabled = false
+	s.BlackBoxEnabled = false
 
 	for _, module := range modules {
 		switch module {

@@ -4,10 +4,6 @@ import (
 	"reflect"
 )
 
-func (s *ScanSettings) HasBlackBoxSettings() bool {
-	return s.BlackBoxEnabled
-}
-
 func (s *ScanSettings) IsEmpty() bool {
 	return reflect.DeepEqual(s, &ScanSettings{})
 }
@@ -119,6 +115,7 @@ type DotNetSettings struct {
 type GoSettings struct {
 	LaunchParameters                      string `json:"launchParameters"`
 	UseAvailablePublicAndProtectedMethods bool   `json:"useAvailablePublicAndProtectedMethods"`
+	DownloadDependencies                  bool   `json:"downloadDependencies"`
 }
 
 type JavaScriptSettings struct {

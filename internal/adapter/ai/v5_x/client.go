@@ -200,6 +200,7 @@ func (a *ClientAI5x) GetDefaultSettings(ctx context.Context) (settings.ScanSetti
 		GoSettings: settings.GoSettings{
 			LaunchParameters:                      common.GetOrDefault(defaultSettings.GoSettings.LaunchParameters, ""),
 			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.GoSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.GoSettings.DownloadDependencies, false),
 		},
 		JavaScriptSettings: settings.JavaScriptSettings{
 			LaunchParameters:                      common.GetOrDefault(defaultSettings.JavaScriptSettings.LaunchParameters, ""),
@@ -283,6 +284,7 @@ func (a *ClientAI5x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 		GoSettings: &v5_x.GoSettingsModel{
 			LaunchParameters:                      &settings.GoSettings.LaunchParameters,
 			UseAvailablePublicAndProtectedMethods: &settings.GoSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.GoSettings.DownloadDependencies,
 		},
 		JavaScriptSettings: &v5_x.JavaScriptSettingsModel{
 			LaunchParameters:                      &settings.JavaScriptSettings.LaunchParameters,
@@ -328,6 +330,7 @@ func (a *ClientAI5x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 			LaunchParameters:       &settings.ScaSettings.LaunchParameters,
 			BuildDependenciesGraph: &settings.ScaSettings.BuildDependenciesGraph,
 		},
+		SkipGitIgnoreFiles: &settings.SkipGitIgnoreFiles,
 	}
 
 	res, err := a.PutApiProjectsProjectIdSettingsWithResponse(ctx, projectId, projectSettings, a.AddJWTToHeader)
@@ -342,10 +345,8 @@ func (a *ClientAI5x) SetProjectSettings(ctx context.Context, projectId uuid.UUID
 		return fmt.Errorf("put project settings: %w", err)
 	}
 
-	if settings.HasBlackBoxSettings() {
-		if err := a.setBlackBoxSettings(ctx, projectId, settings); err != nil {
-			return err
-		}
+	if err := a.syncBlackBoxSettings(ctx, projectId, settings); err != nil {
+		return err
 	}
 
 	return nil

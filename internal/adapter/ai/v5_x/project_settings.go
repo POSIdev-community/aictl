@@ -117,6 +117,7 @@ func mapProjectSettingsFromModel(model v5_x.ProjectSettingsModel) settings.ScanS
 		result.GoSettings = settings.GoSettings{
 			LaunchParameters:                      common.GetOrDefault(gs.LaunchParameters, ""),
 			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(gs.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(gs.DownloadDependencies, false),
 		}
 	}
 

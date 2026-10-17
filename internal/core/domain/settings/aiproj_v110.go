@@ -57,6 +57,9 @@ func (s *ScanSettings) UpdateFromV110(p *v110.AIProj) error {
 		if goSettings.UsePublicAnalysisMethod != nil {
 			s.GoSettings.UseAvailablePublicAndProtectedMethods = *goSettings.UsePublicAnalysisMethod
 		}
+		if goSettings.DownloadDependencies != nil {
+			s.GoSettings.DownloadDependencies = *goSettings.DownloadDependencies
+		}
 	}
 
 	if jsSettings := p.JavaScriptSettings; jsSettings != nil {

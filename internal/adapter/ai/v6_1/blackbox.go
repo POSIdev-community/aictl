@@ -11,6 +11,36 @@ import (
 	"github.com/POSIdev-community/aictl/pkg/clientai/v6_1"
 )
 
+// syncBlackBoxSettings applies black box settings with full-replacement semantics: when black box is
+// enabled the settings are sent as is; when it is disabled, isActive=false is sent only if black box is
+// currently active on the server, so projects that never used black box get no extra request.
+func (a *ClientAI61) syncBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
+	if !scanSettings.BlackBoxEnabled {
+		active, err := a.isBlackBoxActive(ctx, projectId)
+		if err != nil {
+			return err
+		}
+		if !active {
+			return nil
+		}
+	}
+
+	return a.setBlackBoxSettings(ctx, projectId, scanSettings)
+}
+
+func (a *ClientAI61) isBlackBoxActive(ctx context.Context, projectId uuid.UUID) (bool, error) {
+	res, err := a.GetApiProjectsProjectIdBlackBoxSettingsWithResponse(ctx, projectId, a.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("get black box settings request: %w", err)
+	}
+
+	if err = CheckResponseByModel(res.StatusCode(), string(res.Body), nil); err != nil {
+		return false, fmt.Errorf("get black box settings: %w", err)
+	}
+
+	return res.JSON200 != nil && common.GetOrDefault(res.JSON200.IsActive, false), nil
+}
+
 func (a *ClientAI61) setBlackBoxSettings(ctx context.Context, projectId uuid.UUID, scanSettings *settings.ScanSettings) error {
 	payload := common.BuildBlackBoxPayload(scanSettings.BlackBoxSettings, scanSettings.BlackBoxEnabled)
 	body := toBlackBoxSettingsModel(payload)
@@ -79,7 +109,9 @@ func toBlackBoxAuthentication(source *common.BlackBoxAuth) *v6_1.BlackBoxAuthent
 		return nil
 	}
 
-	result := &v6_1.BlackBoxAuthenticationFullModel{}
+	result := &v6_1.BlackBoxAuthenticationFullModel{
+		Type: toAuthType(source.Type),
+	}
 	if source.Cookie != nil {
 		result.Cookie = &v6_1.BlackBoxRawCookieAuthenticationModel{
 			Cookie:             source.Cookie.Cookie,
@@ -179,4 +211,14 @@ func toProxyType(value *string) *v6_1.ProxyType {
 	proxyType := v6_1.ProxyType(*value)
 
 	return &proxyType
+}
+
+func toAuthType(value *string) *v6_1.AuthType {
+	if value == nil || *value == "" {
+		return nil
+	}
+
+	authType := v6_1.AuthType(*value)
+
+	return &authType
 }
