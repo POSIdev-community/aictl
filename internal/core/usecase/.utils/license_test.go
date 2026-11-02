@@ -54,7 +54,7 @@ func TestApplyLicenseToProjectSettings_DisablesAndPersists(t *testing.T) {
 	projectID := uuid.New()
 	ai := &stubLicenseAI{
 		lic: &domainlicense.License{
-			Languages: []string{"Go"},
+			Languages: []settings.Language{settings.LanguageGo},
 			LicensedModules: []domainlicense.LicensedModule{
 				{Enabled: false, ScanModuleTypes: []string{domainlicense.ScanModuleSoftwareCompositionAnalysis}},
 			},
@@ -82,7 +82,7 @@ func TestApplyLicenseToProjectSettings_UnlicensedLanguage(t *testing.T) {
 
 	ctx := t.Context()
 	ai := &stubLicenseAI{
-		lic: &domainlicense.License{Languages: []string{"Java"}},
+		lic: &domainlicense.License{Languages: []settings.Language{settings.LanguageJava}},
 		settings: settings.ScanSettings{
 			Languages: []string{"Go"},
 			WhiteBoxSettings: settings.WhiteBoxSettings{
@@ -105,7 +105,7 @@ func TestApplyLicenseToProjectSettings_SbomSkipsLanguages(t *testing.T) {
 
 	ctx := t.Context()
 	ai := &stubLicenseAI{
-		lic: &domainlicense.License{Languages: []string{"Java"}},
+		lic: &domainlicense.License{Languages: []settings.Language{settings.LanguageJava}},
 		settings: settings.ScanSettings{
 			Languages: []string{"Go"},
 			WhiteBoxSettings: settings.WhiteBoxSettings{
@@ -151,7 +151,7 @@ func TestApplyLicenseToProjectSettings_NoChanges(t *testing.T) {
 
 	ctx := t.Context()
 	ai := &stubLicenseAI{
-		lic: &domainlicense.License{Languages: []string{"Go"}}, // legacy modules
+		lic: &domainlicense.License{Languages: []settings.Language{settings.LanguageGo}}, // legacy modules
 		settings: settings.ScanSettings{
 			Languages: []string{"Go"},
 			WhiteBoxSettings: settings.WhiteBoxSettings{

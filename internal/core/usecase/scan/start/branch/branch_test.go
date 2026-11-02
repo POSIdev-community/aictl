@@ -85,7 +85,7 @@ func TestUseCase_Execute_DisablesModuleThenStarts(t *testing.T) {
 
 	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
 	ai.On("GetLicense", ctx).Return(&domainlicense.License{
-		Languages: []string{"Go"},
+		Languages: []settings.Language{settings.LanguageGo},
 		LicensedModules: []domainlicense.LicensedModule{
 			{Enabled: false, ScanModuleTypes: []string{domainlicense.ScanModuleSoftwareCompositionAnalysis}},
 		},
@@ -129,7 +129,7 @@ func TestUseCase_Execute_UnlicensedLanguageDoesNotStart(t *testing.T) {
 	})
 
 	ai.On("InitializeWithRetry", ctx).Return(nil).Once()
-	ai.On("GetLicense", ctx).Return(&domainlicense.License{Languages: []string{"Java"}}, nil).Once()
+	ai.On("GetLicense", ctx).Return(&domainlicense.License{Languages: []settings.Language{settings.LanguageJava}}, nil).Once()
 	ai.On("GetProjectSettings", ctx, projectID).Return(settings.ScanSettings{
 		Languages: []string{"Go"},
 		WhiteBoxSettings: settings.WhiteBoxSettings{

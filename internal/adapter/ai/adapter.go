@@ -99,8 +99,8 @@ func (a *Adapter) CreateBranch(ctx context.Context, projectId uuid.UUID, branchN
 	return a.activeClient.CreateBranch(ctx, projectId, branchName, scanTargetPath, exclusions, tempDir)
 }
 
-func (a *Adapter) CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
-	return a.activeClient.CreateProject(ctx, projectName)
+func (a *Adapter) CreateProject(ctx context.Context, projectName string, language settings.Language) (*uuid.UUID, error) {
+	return a.activeClient.CreateProject(ctx, projectName, language)
 }
 
 func (a *Adapter) CreateSbomProject(ctx context.Context, projectName string) (*uuid.UUID, error) {

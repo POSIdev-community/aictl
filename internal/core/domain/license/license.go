@@ -18,6 +18,7 @@ const (
 const (
 	errTextLanguagesPrefix = "the following programming languages are not included in the license: "
 	errNoModulesRemain     = "license: no licensed scan modules remain after filtering"
+	errNoProjectLanguage   = "license: no licensed programming language to create a project with"
 )
 
 // LicensedModule describes one licensed scan capability and the ScanModule values it covers.
@@ -29,8 +30,28 @@ type LicensedModule struct {
 
 // License is the CLI view of GET /api/license (without IsValid — that is checked at Initialize).
 type License struct {
-	Languages       []string
+	Languages       []settings.Language
 	LicensedModules []LicensedModule // nil means legacy format (SCA and MOLOT enabled).
+}
+
+// ProjectLanguage is the language a new project is created with: Go when licensed (the historical default),
+// otherwise the first licensed language. Real languages come later from set project settings or the scan.
+func (l *License) ProjectLanguage() (settings.Language, error) {
+	if l == nil {
+		return "", validation.NewMessageError(errNoProjectLanguage)
+	}
+
+	if slices.Contains(l.Languages, settings.LanguageGo) {
+		return settings.LanguageGo, nil
+	}
+
+	for _, lang := range l.Languages {
+		if lang != settings.LanguageNone {
+			return lang, nil
+		}
+	}
+
+	return "", validation.NewMessageError(errNoProjectLanguage)
 }
 
 // LicensedScanModuleTypes returns scan modules subject to license filtering.
@@ -91,14 +112,14 @@ func CheckLanguages(lic *License, settingsLanguages []string) error {
 		return nil
 	}
 
-	var allowedList []string
+	var allowedList []settings.Language
 	if lic != nil {
 		allowedList = lic.Languages
 	}
 
 	allowed := make(map[string]struct{}, len(allowedList))
 	for _, lg := range allowedList {
-		allowed[lg] = struct{}{}
+		allowed[string(lg)] = struct{}{}
 	}
 
 	seen := make(map[string]struct{})
