@@ -6,14 +6,17 @@ import (
 
 	"github.com/google/uuid"
 
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
 	domainproject "github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
 )
 
 type AI interface {
 	InitializeWithRetry(ctx context.Context) error
 	GetProjectByName(ctx context.Context, projectName string) (*domainproject.Project, error)
-	CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error)
+	GetLicense(ctx context.Context) (*domainlicense.License, error)
+	CreateProject(ctx context.Context, projectName string, language settings.Language) (*uuid.UUID, error)
 }
 
 type CLI interface {
@@ -66,7 +69,17 @@ func (u *UseCase) Execute(ctx context.Context, projectName string, safe bool) er
 		return nil
 	}
 
-	projectId, err := u.aiAdapter.CreateProject(ctx, projectName)
+	lic, err := u.aiAdapter.GetLicense(ctx)
+	if err != nil {
+		return fmt.Errorf("get license: %w", err)
+	}
+
+	language, err := lic.ProjectLanguage()
+	if err != nil {
+		return err
+	}
+
+	projectId, err := u.aiAdapter.CreateProject(ctx, projectName, language)
 	if err != nil {
 		return fmt.Errorf("create project: %w", err)
 	}

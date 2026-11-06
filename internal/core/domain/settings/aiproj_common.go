@@ -83,9 +83,9 @@ func applyLanguages(s *ScanSettings, languages []string) {
 	for i, lang := range languages {
 		switch lang {
 		case string(domainaiproj.ProgrammingLanguageCSharpWindowsLinux):
-			s.Languages[i] = "CSharp"
+			s.Languages[i] = string(LanguageCSharp)
 		case string(domainaiproj.ProgrammingLanguageCSharpWindows):
-			s.Languages[i] = "CSharpWinOnly"
+			s.Languages[i] = string(LanguageCSharpWinOnly)
 		default:
 			s.Languages[i] = lang
 		}

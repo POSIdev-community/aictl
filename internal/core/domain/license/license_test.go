@@ -84,7 +84,7 @@ func TestFilterLicensedScanModules(t *testing.T) {
 func TestCheckLanguages(t *testing.T) {
 	t.Parallel()
 
-	lic := &license.License{Languages: []string{"Java", "Python"}}
+	lic := &license.License{Languages: []settings.Language{settings.LanguageJava, settings.LanguagePython}}
 
 	require.NoError(t, license.CheckLanguages(lic, nil))
 	require.NoError(t, license.CheckLanguages(lic, []string{"Python"}))
@@ -105,7 +105,7 @@ func TestPrepareSettings_DisablesModules(t *testing.T) {
 	t.Parallel()
 
 	lic := &license.License{
-		Languages: []string{"Go"},
+		Languages: []settings.Language{settings.LanguageGo},
 		LicensedModules: []license.LicensedModule{
 			{Enabled: false, ScanModuleTypes: []string{license.ScanModuleSoftwareCompositionAnalysis}},
 			{Enabled: true, ScanModuleTypes: []string{license.ScanModuleMaliciousCodeDetection}},
@@ -160,7 +160,7 @@ func TestPrepareSettings_NoModulesRemain(t *testing.T) {
 func TestPrepareSettings_SkipLanguageCheck(t *testing.T) {
 	t.Parallel()
 
-	lic := &license.License{Languages: []string{"Java"}}
+	lic := &license.License{Languages: []settings.Language{settings.LanguageJava}}
 	in := settings.ScanSettings{
 		Languages: []string{"Go"},
 		WhiteBoxSettings: settings.WhiteBoxSettings{
@@ -201,4 +201,46 @@ func TestHasAnyWhiteBoxModule(t *testing.T) {
 
 	require.False(t, license.HasAnyWhiteBoxModule(settings.WhiteBoxSettings{}))
 	require.True(t, license.HasAnyWhiteBoxModule(settings.WhiteBoxSettings{PatternMatchingEnabled: true}))
+}
+
+func TestProjectLanguage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		lic     *license.License
+		want    settings.Language
+		wantErr bool
+	}{
+		{
+			name: "Go licensed keeps the historical default",
+			lic:  &license.License{Languages: []settings.Language{settings.LanguageJava, settings.LanguageGo}},
+			want: settings.LanguageGo,
+		},
+		{
+			name: "no Go takes the first licensed language",
+			lic:  &license.License{Languages: []settings.Language{settings.LanguageNone, settings.LanguageJava, settings.LanguagePython}},
+			want: settings.LanguageJava,
+		},
+		{name: "only None", lic: &license.License{Languages: []settings.Language{settings.LanguageNone}}, wantErr: true},
+		{name: "no languages", lic: &license.License{}, wantErr: true},
+		{name: "nil license", lic: nil, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := tt.lic.ProjectLanguage()
+			if tt.wantErr {
+				var msg *validation.MessageError
+				require.ErrorAs(t, err, &msg)
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }

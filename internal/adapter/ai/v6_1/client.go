@@ -400,7 +400,7 @@ func (a *ClientAI61) CreateBranch(ctx context.Context, projectId uuid.UUID, bran
 	return &branchId, nil
 }
 
-func (a *ClientAI61) CreateProject(ctx context.Context, projectName string) (*uuid.UUID, error) {
+func (a *ClientAI61) CreateProject(ctx context.Context, projectName string, language settings.Language) (*uuid.UUID, error) {
 	projectUrl := "http://localhost"
 
 	patternMatchingEnabled := true
@@ -424,7 +424,7 @@ func (a *ClientAI61) CreateProject(ctx context.Context, projectName string) (*uu
 		},
 		Id: &uuid.UUID{},
 		Languages: &[]v6_1.LegacyProgrammingLanguageGroup{
-			v6_1.LegacyProgrammingLanguageGroupGo,
+			v6_1.LegacyProgrammingLanguageGroup(language),
 		},
 		PreferredAgentsSettings: &v6_1.PreferredAgentsSettings{
 			PreferredAgents:     &preferredAgents,

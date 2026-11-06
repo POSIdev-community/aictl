@@ -2,21 +2,22 @@ package common
 
 import (
 	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
 )
 
 // LicenseFromLanguages builds a License with legacy LicensedModules (nil).
-func LicenseFromLanguages(languages []string) *domainlicense.License {
+func LicenseFromLanguages(languages []settings.Language) *domainlicense.License {
 	return &domainlicense.License{Languages: languages}
 }
 
-// MapLanguageGroups converts API language group enums to strings.
-func MapLanguageGroups[T ~string](langs *[]T) []string {
+// MapLanguageGroups converts API language group enums to domain languages.
+func MapLanguageGroups[T ~string](langs *[]T) []settings.Language {
 	if langs == nil {
 		return nil
 	}
-	out := make([]string, len(*langs))
+	out := make([]settings.Language, len(*langs))
 	for i := range *langs {
-		out[i] = string((*langs)[i])
+		out[i] = settings.Language((*langs)[i])
 	}
 
 	return out
@@ -30,7 +31,7 @@ type LicensedModuleInput struct {
 }
 
 // LicenseFromAPI builds a domain License. modulesPresent distinguishes nil (legacy) from empty slice (new format).
-func LicenseFromAPI(languages []string, modules []LicensedModuleInput, modulesPresent bool) *domainlicense.License {
+func LicenseFromAPI(languages []settings.Language, modules []LicensedModuleInput, modulesPresent bool) *domainlicense.License {
 	lic := &domainlicense.License{Languages: languages}
 	if !modulesPresent {
 		return lic
