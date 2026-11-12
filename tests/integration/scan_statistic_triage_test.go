@@ -14,7 +14,8 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_x"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_0"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_1"
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_x"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_3"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_4"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
 )
@@ -60,9 +61,14 @@ func TestGetScanStatistic_WithTriage(t *testing.T) {
 			newClient: func(base *common.BaseClient) scanStatisticClient { return v6_1.NewAiClient(base) },
 		},
 		{
-			name:      "v6_x",
+			name:      "v6_3",
 			statBody:  `{"filesTotal":10,"filesScanned":8,"urlsTotal":1,"urlsScanned":1,"scanDuration":"PT00H01M00S","securityPolicyStatus":{"policyState":"None"},"high":99,"total":99}`,
-			newClient: func(base *common.BaseClient) scanStatisticClient { return v6_x.NewAiClient(base) },
+			newClient: func(base *common.BaseClient) scanStatisticClient { return v6_3.NewAiClient(base) },
+		},
+		{
+			name:      "v6_4",
+			statBody:  `{"filesTotal":10,"filesScanned":8,"urlsTotal":1,"urlsScanned":1,"scanDuration":"PT00H01M00S","securityPolicyStatus":{"policyState":"None"},"high":99,"total":99}`,
+			newClient: func(base *common.BaseClient) scanStatisticClient { return v6_4.NewAiClient(base) },
 		},
 	}
 

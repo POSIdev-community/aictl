@@ -7,7 +7,8 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_x"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_0"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_1"
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_x"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_3"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_4"
 	"github.com/POSIdev-community/aictl/internal/core/domain/version"
 )
 
@@ -15,7 +16,8 @@ var (
 	_ ClientAi = (*v5_x.ClientAI5x)(nil)
 	_ ClientAi = (*v6_0.ClientAI60)(nil)
 	_ ClientAi = (*v6_1.ClientAI61)(nil)
-	_ ClientAi = (*v6_x.ClientAI6x)(nil)
+	_ ClientAi = (*v6_3.ClientAI63)(nil)
+	_ ClientAi = (*v6_4.ClientAI64)(nil)
 )
 
 func TestVersionRangeInitializerBounds(t *testing.T) {
@@ -34,9 +36,11 @@ func TestVersionRangeInitializerBounds(t *testing.T) {
 		{name: "6.0 matches v6_0", version: "6.0.0", min: "6.0.0", max: "6.1.0", expected: true},
 		{name: "6.1 matches v6_1", version: "6.1.0", min: "6.1.0", max: "6.3.0", expected: true},
 		{name: "6.2 matches v6_1", version: "6.2.0", min: "6.1.0", max: "6.3.0", expected: true},
-		{name: "6.3 matches v6_x", version: "6.3.0", min: "6.3.0", max: "7.0.0", expected: true},
-		{name: "6.9 matches v6_x", version: "6.9.0", min: "6.3.0", max: "7.0.0", expected: true},
-		{name: "7.0 above v6_x", version: "7.0.0", min: "6.3.0", max: "7.0.0", expected: false},
+		{name: "6.3 matches v6_3", version: "6.3.0", min: "6.3.0", max: "6.4.0", expected: true},
+		{name: "6.4 below v6_3 max", version: "6.4.0", min: "6.3.0", max: "6.4.0", expected: false},
+		{name: "6.4 matches v6_4", version: "6.4.0", min: "6.4.0", max: "7.0.0", expected: true},
+		{name: "6.9 matches v6_4", version: "6.9.0", min: "6.4.0", max: "7.0.0", expected: true},
+		{name: "7.0 above v6_4", version: "7.0.0", min: "6.4.0", max: "7.0.0", expected: false},
 	}
 
 	for _, tt := range tests {

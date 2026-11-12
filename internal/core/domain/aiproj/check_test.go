@@ -98,14 +98,51 @@ func TestCheck_VersionMismatch(t *testing.T) {
 func TestCheck_UnsupportedSchemaVersion(t *testing.T) {
 	t.Parallel()
 
-	report, err := Check([]byte(`{"Version":"1.11"}`), "1.12")
+	report, err := Check([]byte(`{"Version":"1.11"}`), "1.13")
 	require.NoError(t, err)
 	require.False(t, report.OK)
 	require.Equal(t, FailureUnsupportedSchemaVersion, report.Kind)
-	require.Contains(t, report.HumanMessage(), `unsupported schema version "1.12"`)
+	require.Contains(t, report.HumanMessage(), `unsupported schema version "1.13"`)
 	require.Nil(t, report.ProjectName)
 	require.Nil(t, report.Languages)
 	require.Contains(t, issueMessages(report), errLanguagesRequired)
+}
+
+func TestCheck_SchemaVersion112(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`{
+		"Version": "1.12",
+		"ProjectName": "demo",
+		"ProgrammingLanguages": ["Go"],
+		"ScanModules": ["StaticCodeAnalysis", "RaceConditionDetection", "Asint"],
+		"AutomatedAiTriage": true,
+		"AutomatedAiTriageMinSeverity": "High"
+	}`)
+	report, err := Check(data, "1.12")
+	require.NoError(t, err)
+	require.True(t, report.OK)
+	require.Equal(t, "1.12", report.Version)
+}
+
+func TestCheck_SchemaVersion112_InvalidTriageSeverity(t *testing.T) {
+	t.Parallel()
+
+	data := []byte(`{
+		"Version": "1.12",
+		"ProjectName": "demo",
+		"ProgrammingLanguages": ["Go"],
+		"ScanModules": ["StaticCodeAnalysis"],
+		"AutomatedAiTriage": true,
+		"AutomatedAiTriageMinSeverity": "Critical"
+	}`)
+	report, err := Check(data, "1.12")
+	require.NoError(t, err)
+	require.False(t, report.OK)
+	require.Equal(t, FailureSchemaInvalid, report.Kind)
+	require.Equal(t, "1.12", report.Version)
+	require.NotEmpty(t, report.Errors)
+	require.Contains(t, report.HumanMessage(), "aiproj schema 1.12 is invalid:")
 }
 
 func TestCheck_EmptyProjectNameAndLanguages(t *testing.T) {

@@ -1,5 +1,5 @@
-github.com/POSIdev-community/aiproj v0.1.0 h1:r32RN70U7UdnfVeBdDRElcvFvhQdfqeO9bZcTU4FTII=
-github.com/POSIdev-community/aiproj v0.1.0/go.mod h1:SVN5GRTvVx3RHkJTG9wnFLYNBLkKgQr4IteoC5fhZzQ=
+github.com/POSIdev-community/aiproj v0.2.1 h1:jZb7+wFQV0wzTu2XSK1Gv3orNPifOlSKEXSKYKyEbX4=
+github.com/POSIdev-community/aiproj v0.2.1/go.mod h1:SVN5GRTvVx3RHkJTG9wnFLYNBLkKgQr4IteoC5fhZzQ=
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0/go.mod h1:lvDnEdqiQrp0O42VQGgmlKpxL1AP2+08jFMw88y4klk=

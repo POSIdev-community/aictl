@@ -162,7 +162,7 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 			}
 
 			// SCA feeds packages API exists only on AIE 6.3+
-			if standName == standOrder63 {
+			if standName == standOrder63 || standName == standOrder64 {
 				commands = append(commands,
 					struct {
 						name string
@@ -180,10 +180,11 @@ func TestLeafCommandsOutsideSmoke(t *testing.T) {
 				"nist", "oud4", "owasp", "owaspm", "pcidss", "plain", "sans", "sarif", "xml",
 			}
 			// json-v2 is supported on AIE 6.1+ only
-			if standName == standOrder61 || standName == standOrder62 || standName == standOrder63 {
+			if standName == standOrder61 || standName == standOrder62 || standName == standOrder63 || standName == standOrder64 {
 				reportTypes = append(reportTypes, "json-v2")
 			}
-			xmlExpectError := standName == standOrder61 || standName == standOrder62 || standName == standOrder63
+			// XML template removed on AIE 6.1+ (including 6.4)
+			xmlExpectError := standName == standOrder61 || standName == standOrder62 || standName == standOrder63 || standName == standOrder64
 			for _, rt := range reportTypes {
 				out := filepath.Join(reportsDir, rt+".out")
 				commands = append(commands, struct {
@@ -377,6 +378,13 @@ func uiLikeReportFilterFlags(standName string) []string {
 		flags = append(flags,
 			"--scan-module", "MaliciousCodeDetection",
 			"--scan-module", "SecretDetection",
+		)
+	}
+	// RaceConditionDetection / Asint exist on AIE ≥ 6.4 (aiproj 1.12)
+	if standName == standOrder64 {
+		flags = append(flags,
+			"--scan-module", "RaceConditionDetection",
+			"--scan-module", "Asint",
 		)
 	}
 	return flags

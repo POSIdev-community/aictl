@@ -21,6 +21,8 @@ func TestValidateReportFiltersForVersion(t *testing.T) {
 	require.NoError(t, err)
 	v63, err := version.NewVersion("6.3.0")
 	require.NoError(t, err)
+	v64, err := version.NewVersion("6.4.0")
+	require.NoError(t, err)
 
 	cases := []struct {
 		name    string
@@ -69,9 +71,26 @@ func TestValidateReportFiltersForVersion(t *testing.T) {
 			filters: report.Filters{Apply: true, Languages: []string{"Dart"}, ScanModules: []string{"SecretDetection"}},
 		},
 		{
-			name:    "v63 accepts all",
+			name:    "v63 accepts all except 6.4 modules",
 			ver:     v63,
 			filters: report.Filters{Apply: true, Languages: []string{"Dart", "OneC"}, ScanModules: []string{"SecretDetection", "MaliciousCodeDetection"}},
+		},
+		{
+			name:    "v63 rejects RaceConditionDetection",
+			ver:     v63,
+			filters: report.Filters{Apply: true, ScanModules: []string{"RaceConditionDetection"}},
+			wantErr: ">= 6.4.0",
+		},
+		{
+			name:    "v63 rejects Asint",
+			ver:     v63,
+			filters: report.Filters{Apply: true, ScanModules: []string{"Asint"}},
+			wantErr: ">= 6.4.0",
+		},
+		{
+			name:    "v64 accepts RaceConditionDetection and Asint",
+			ver:     v64,
+			filters: report.Filters{Apply: true, ScanModules: []string{"RaceConditionDetection", "Asint"}},
 		},
 		{
 			name:    "empty filters skip checks",

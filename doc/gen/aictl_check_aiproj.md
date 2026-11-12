@@ -25,7 +25,7 @@ aictl check aiproj [flags]
   -f, --file string             Path to aiproj.json file
   -h, --help                    help for aiproj
       --json                    Print result as pretty JSON on stdout
-      --schema-version string   Schema version to validate against (1.8, 1.9, 1.10, 1.11); default: auto-detect
+      --schema-version string   Schema version to validate against (1.8, 1.9, 1.10, 1.11, 1.12); default: auto-detect
 ```
 
 ### Options inherited from parent commands

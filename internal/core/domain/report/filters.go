@@ -56,6 +56,8 @@ var AllowedScanModules = []string{
 	"MaliciousCodeDetection",
 	"SecretDetection",
 	"BlackBox",
+	"RaceConditionDetection",
+	"Asint",
 }
 
 // AllowedLanguages is the CLI whitelist for --language (exact API case, without None).

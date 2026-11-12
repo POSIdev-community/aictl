@@ -6,6 +6,7 @@ import (
 	"github.com/POSIdev-community/aiproj/model"
 	"github.com/POSIdev-community/aiproj/model/v1_10"
 	"github.com/POSIdev-community/aiproj/model/v1_11"
+	"github.com/POSIdev-community/aiproj/model/v1_12"
 	"github.com/POSIdev-community/aiproj/model/v1_9"
 	"github.com/POSIdev-community/aiproj/versioning"
 	"github.com/POSIdev-community/aiproj/versions"
@@ -48,6 +49,13 @@ func ParseAndMigrateForServer(data []byte, serverVersion version.Version) (*Resu
 		}
 
 		return &Result{Version: target, V111: &proj}, nil
+	case versions.V1_12:
+		proj, err := v1_12.ReadFromBytes(migrated)
+		if err != nil {
+			return nil, fmt.Errorf("parse and migrate aiproj to %s: %w", target, err)
+		}
+
+		return &Result{Version: target, V112: &proj}, nil
 	default:
 		return nil, fmt.Errorf("unsupported aiproj version: %s", target)
 	}

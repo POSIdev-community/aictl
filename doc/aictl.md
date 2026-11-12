@@ -12,7 +12,7 @@ aictl работает с серверами Application Inspector в диапа
 
 **5.0.0 ≤ версия < 7.0.0**
 
-Клиент сам выбирает API-слой под версию сервера (5.x, 6.0.x, 6.1–6.2 или 6.3+).
+Клиент сам выбирает API-слой под версию сервера (5.x, 6.0.x, 6.1–6.2, 6.3.x или 6.4+).
 
 ## Установка
 
@@ -530,7 +530,7 @@ aictl check aiproj -f ./aiproj.json -v
   -f, --file string              путь к aiproj.json
   -h, --help                     справка
       --json                     pretty JSON результат в stdout
-      --schema-version string    версия схемы (1.8, 1.9, 1.10, 1.11); по умолчанию auto-detect
+      --schema-version string    версия схемы (1.8, 1.9, 1.10, 1.11, 1.12); по умолчанию auto-detect
 ```
 
 ### `aictl create`
@@ -1597,7 +1597,7 @@ aictl get scan report sarif <scan-id> -o ./out.sarif
 
 То же, что `get scan report`, но с фильтрами уязвимостей (`useFilters=true`). Нужен **хотя бы один** filter-флаг.
 Булевы флаги при наличии отправляют `true`, иначе поле omit; `--type` / `--language` / `--scan-module` без передачи уходят как пустые массивы `[]`.
-`SecretDetection` / `MaliciousCodeDetection` / `OneC` требуют AIE ≥ 6.0; `Dart` — ≥ 6.1.
+`SecretDetection` / `MaliciousCodeDetection` / `OneC` требуют AIE ≥ 6.0; `Dart` — ≥ 6.1; `RaceConditionDetection` / `Asint` — ≥ 6.4.
 
 **Usage:**
 

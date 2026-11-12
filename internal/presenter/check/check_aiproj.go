@@ -58,7 +58,7 @@ func NewCheckAiprojCmd(uc UseCaseCheckAiproj) CmdCheckAiproj {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to aiproj.json file")
-	cmd.Flags().StringVar(&schemaVersion, "schema-version", "", "Schema version to validate against (1.8, 1.9, 1.10, 1.11); default: auto-detect")
+	cmd.Flags().StringVar(&schemaVersion, "schema-version", "", "Schema version to validate against (1.8, 1.9, 1.10, 1.11, 1.12); default: auto-detect")
 	cmd.Flags().BoolVar(&jsonOut, "json", false, "Print result as pretty JSON on stdout")
 
 	return CmdCheckAiproj{cmd}

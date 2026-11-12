@@ -13,26 +13,34 @@ func (s *ScanSettings) IsEmpty() bool {
 }
 
 type ScanSettings struct {
-	ProjectName             string                  `json:"projectName"`
-	Languages               []string                `json:"languages"`
-	WhiteBoxSettings        WhiteBoxSettings        `json:"whiteBoxSettings"`
-	BlackBoxEnabled         bool                    `json:"blackBoxEnabled"`
-	BlackBoxSettings        BlackBoxSettings        `json:"blackBoxSettings"`
-	DotNetSettings          DotNetSettings          `json:"dotNetSettings"`
-	GoSettings              GoSettings              `json:"goSettings"`
-	JavaScriptSettings      JavaScriptSettings      `json:"javaScriptSettings"`
-	JavaSettings            JavaSettings            `json:"javaSettings"`
-	PhpSettings             PhpSettings             `json:"phpSettings"`
-	PmTaintSettings         PmTaintSettings         `json:"pmTaintSettings"`
-	PythonSettings          PythonSettings          `json:"pythonSettings"`
-	RubySettings            RubySettings            `json:"rubySettings"`
-	PygrepSettings          PygrepSettings          `json:"pygrepSettings"`
-	ScaSettings             ScaSettings             `json:"scaSettings"`
-	ReportAfterScan         ReportAfterScan         `json:"reportAfterScan"`
-	SkipGitIgnoreFiles      bool                    `json:"skipGitIgnoreFiles"`
-	VcsConnectionSettings   VcsConnectionSettings   `json:"vcsConnectionSettings"`
-	Priority                Priority                `json:"priority"`
-	PreferredAgentsSettings PreferredAgentsSettings `json:"preferredAgentsSettings"`
+	ProjectName                  string                  `json:"projectName"`
+	Languages                    []string                `json:"languages"`
+	WhiteBoxSettings             WhiteBoxSettings        `json:"whiteBoxSettings"`
+	BlackBoxEnabled              bool                    `json:"blackBoxEnabled"`
+	BlackBoxSettings             BlackBoxSettings        `json:"blackBoxSettings"`
+	DotNetSettings               DotNetSettings          `json:"dotNetSettings"`
+	GoSettings                   GoSettings              `json:"goSettings"`
+	JavaScriptSettings           JavaScriptSettings      `json:"javaScriptSettings"`
+	JavaSettings                 JavaSettings            `json:"javaSettings"`
+	PhpSettings                  PhpSettings             `json:"phpSettings"`
+	PmTaintSettings              PmTaintSettings         `json:"pmTaintSettings"`
+	PythonSettings               PythonSettings          `json:"pythonSettings"`
+	RubySettings                 RubySettings            `json:"rubySettings"`
+	PygrepSettings               PygrepSettings          `json:"pygrepSettings"`
+	ScaSettings                  ScaSettings             `json:"scaSettings"`
+	AsintSettings                AsintSettings           `json:"asintSettings"`
+	ReportAfterScan              ReportAfterScan         `json:"reportAfterScan"`
+	SkipGitIgnoreFiles           bool                    `json:"skipGitIgnoreFiles"`
+	VcsConnectionSettings        VcsConnectionSettings   `json:"vcsConnectionSettings"`
+	Priority                     Priority                `json:"priority"`
+	PreferredAgentsSettings      PreferredAgentsSettings `json:"preferredAgentsSettings"`
+	AutomatedAiTriageEnabled     bool                    `json:"automatedAiTriageEnabled"`
+	AutomatedAiTriageMinSeverity string                  `json:"automatedAiTriageMinSeverity"`
+}
+
+// AsintSettings is AIE ≥ 6.4 ASINT project settings (Naira integration flag).
+type AsintSettings struct {
+	UseNaira bool `json:"useNaira"`
 }
 
 type WhiteBoxSettings struct {
@@ -43,6 +51,8 @@ type WhiteBoxSettings struct {
 	SearchWithScaEnabled                 bool `json:"searchWithScaEnabled"`
 	SecretDetectionEnabled               bool `json:"secretDetectionEnabled"`
 	SearchForMaliciousCodeEnabled        bool `json:"searchForMaliciousCodeEnabled"`
+	SearchForRaceConditionsEnabled       bool `json:"searchForRaceConditionsEnabled"`
+	AsintEnabled                         bool `json:"asintEnabled"`
 }
 
 type BlackBoxSettings struct {

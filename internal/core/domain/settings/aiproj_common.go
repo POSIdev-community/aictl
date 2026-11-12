@@ -30,6 +30,12 @@ func (s *ScanSettings) UpdateFromParsed(parsed *domainaiproj.Result) error {
 		}
 
 		return s.UpdateFromV111(parsed.V111)
+	case "1.12":
+		if parsed.V112 == nil {
+			return fmt.Errorf("aiproj 1.12 payload is nil")
+		}
+
+		return s.UpdateFromV112(parsed.V112)
 	default:
 		return fmt.Errorf("unsupported aiproj version: %s", parsed.Version)
 	}
@@ -47,6 +53,8 @@ func applyScanModules(s *ScanSettings, modules []string) error {
 	s.WhiteBoxSettings.SearchForConfigurationFlawsEnabled = false
 	s.WhiteBoxSettings.SecretDetectionEnabled = false
 	s.WhiteBoxSettings.SearchForMaliciousCodeEnabled = false
+	s.WhiteBoxSettings.SearchForRaceConditionsEnabled = false
+	s.WhiteBoxSettings.AsintEnabled = false
 
 	for _, module := range modules {
 		switch module {
@@ -64,6 +72,10 @@ func applyScanModules(s *ScanSettings, modules []string) error {
 			s.WhiteBoxSettings.SecretDetectionEnabled = true
 		case string(domainaiproj.ScanModuleMaliciousCodeDetection):
 			s.WhiteBoxSettings.SearchForMaliciousCodeEnabled = true
+		case string(domainaiproj.ScanModuleRaceConditionDetection):
+			s.WhiteBoxSettings.SearchForRaceConditionsEnabled = true
+		case string(domainaiproj.ScanModuleAsint):
+			s.WhiteBoxSettings.AsintEnabled = true
 		case string(domainaiproj.ScanModuleBlackBox):
 			s.BlackBoxEnabled = true
 		default:

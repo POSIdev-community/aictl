@@ -3,7 +3,7 @@ module github.com/POSIdev-community/aictl
 go 1.25.8
 
 require (
-	github.com/POSIdev-community/aiproj v0.1.0
+	github.com/POSIdev-community/aiproj v0.2.1
 	github.com/coder/websocket v1.8.14
 	github.com/denormal/go-gitignore v0.0.0-20180930084346-ae8ad1d07817
 	github.com/getkin/kin-openapi v0.140.0

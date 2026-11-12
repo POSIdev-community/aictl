@@ -1,0 +1,1452 @@
+package v6_3
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/common"
+	"github.com/POSIdev-community/aictl/internal/core/apperror"
+	"github.com/POSIdev-community/aictl/internal/core/domain/branch"
+	"github.com/POSIdev-community/aictl/internal/core/domain/config"
+	domainlicense "github.com/POSIdev-community/aictl/internal/core/domain/license"
+	"github.com/POSIdev-community/aictl/internal/core/domain/policystate"
+	"github.com/POSIdev-community/aictl/internal/core/domain/project"
+	"github.com/POSIdev-community/aictl/internal/core/domain/queue"
+	"github.com/POSIdev-community/aictl/internal/core/domain/report"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scan"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scanstage"
+	"github.com/POSIdev-community/aictl/internal/core/domain/scantype"
+	"github.com/POSIdev-community/aictl/internal/core/domain/settings"
+	"github.com/POSIdev-community/aictl/internal/core/domain/statistic"
+	"github.com/POSIdev-community/aictl/internal/core/domain/validation"
+	"github.com/POSIdev-community/aictl/internal/core/domain/version"
+	"github.com/POSIdev-community/aictl/pkg/clientai/v6_3"
+	"github.com/POSIdev-community/aictl/pkg/gitignore"
+	"github.com/POSIdev-community/aictl/pkg/logger"
+)
+
+type ClientAI63 struct {
+	*v6_3.ClientWithResponses
+	jwtClient *v6_3.ClientWithResponses
+
+	*common.BaseClient
+}
+
+func NewAiClient(base *common.BaseClient) *ClientAI63 {
+	return &ClientAI63{
+		BaseClient: base,
+	}
+}
+
+func (a *ClientAI63) Initialize(ctx context.Context, cfg *config.Config) error {
+	client, err := v6_3.NewClientWithResponses(cfg.UriString(), v6_3.WithHTTPClient(a.HttpClient))
+	if err != nil {
+		return fmt.Errorf("new client: %w", err)
+	}
+	a.ClientWithResponses = client
+
+	a.jwtClient, err = v6_3.NewClientWithResponses(cfg.UriString(), v6_3.WithHTTPClient(a.JwtHttpClient))
+	if err != nil {
+		return fmt.Errorf("new jwt client: %w", err)
+	}
+
+	transport, err := common.NewHTTPTransport(cfg.TLSSkip(), cfg.CACertPath())
+	if err != nil {
+		return fmt.Errorf("configure tls: %w", err)
+	}
+
+	a.HttpClient.Transport = transport.Clone()
+	a.JwtHttpClient.Transport = transport.Clone()
+
+	a.SetAPIToken(cfg.Token())
+	if err := a.getJWT(ctx); err != nil {
+		return fmt.Errorf("update jwt: %w", err)
+	}
+
+	a.Initialized = true
+
+	return nil
+}
+
+func (a *ClientAI63) AddJwtRetry() {
+	a.HttpClient.Transport = common.NewRetryRoundTripper(a.HttpClient.Transport, http.StatusUnauthorized, a.refreshJWT)
+
+	a.WithRetry = true
+}
+
+func (a *ClientAI63) getJWT(ctx context.Context) error {
+	if a.Initialized {
+		return nil
+	}
+
+	return a.signin(ctx)
+}
+
+func (a *ClientAI63) signin(ctx context.Context) error {
+	response, err := a.jwtClient.GetApiAuthSigninWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
+		req.Header.Add("Access-Token", a.GetAPIToken())
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("get api auth signin: %w", err)
+	}
+
+	if err = CheckResponseByModel(response.StatusCode(), string(response.Body), response.JSON400); err != nil {
+		return err
+	}
+
+	a.SetAuthTokens(*response.JSON200.AccessToken, *response.JSON200.RefreshToken)
+
+	return nil
+}
+
+func (a *ClientAI63) refreshJWT(ctx context.Context, req *http.Request) error {
+	if err := a.RefreshAccessToken(ctx); err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+a.GetAccessToken())
+
+	return nil
+}
+
+func (a *ClientAI63) RefreshAccessToken(ctx context.Context) error {
+	return a.DoJWTRefresh(func() error {
+		return common.RefreshOrReauth(ctx, a.doRefresh, a.signin)
+	})
+}
+
+func (a *ClientAI63) doRefresh(ctx context.Context) error {
+	log := logger.FromContext(ctx)
+
+	response, err := a.jwtClient.GetApiAuthRefreshTokenWithResponse(ctx, func(ctx context.Context, req *http.Request) error {
+		req.Header.Set("Authorization", "Bearer "+a.GetRefreshToken())
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("get api auth refresh token: %w", err)
+	}
+
+	if err = CheckResponse(response.HTTPResponse, "jwt refresh"); err != nil {
+		return err
+	}
+
+	if response.JSON200 == nil || response.JSON200.AccessToken == nil {
+		log.StdErrf("Got empty access token")
+
+		return fmt.Errorf("no access token")
+	}
+
+	a.SetAccessToken(*response.JSON200.AccessToken)
+
+	return nil
+}
+
+func (a *ClientAI63) GetDefaultSettings(ctx context.Context) (settings.ScanSettings, error) {
+	res, err := a.GetApiProjectsDefaultSettingsProjectTargetBasedTypeWithResponse(ctx, v6_3.SourceBased, a.AddJWTToHeader)
+	if err != nil {
+		return settings.ScanSettings{}, fmt.Errorf("get projects default settings request: %w", err)
+	}
+
+	statusCode := res.StatusCode()
+	responseBody := string(res.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return settings.ScanSettings{}, fmt.Errorf("get projects default settings: %w", err)
+	}
+
+	defaultSettings := *res.JSON200
+
+	return settings.ScanSettings{
+		ProjectName: common.GetOrDefault(defaultSettings.Name, ""),
+		Languages: func() []string {
+			if defaultSettings.Languages == nil {
+				return nil
+			}
+
+			res := make([]string, len(*defaultSettings.Languages))
+			for i := range *defaultSettings.Languages {
+				res[i] = string((*defaultSettings.Languages)[i])
+			}
+
+			return res
+		}(),
+		WhiteBoxSettings: settings.WhiteBoxSettings{
+			StaticCodeAnalysisEnabled:            common.GetOrDefault(defaultSettings.WhiteBox.StaticCodeAnalysisEnabled, false),
+			PatternMatchingEnabled:               common.GetOrDefault(defaultSettings.WhiteBox.PatternMatchingEnabled, false),
+			SearchForVulnerableComponentsEnabled: common.GetOrDefault(defaultSettings.WhiteBox.SearchForVulnerableComponentsEnabled, false),
+			SearchForConfigurationFlawsEnabled:   common.GetOrDefault(defaultSettings.WhiteBox.SearchForConfigurationFlawsEnabled, false),
+			SearchWithScaEnabled:                 common.GetOrDefault(defaultSettings.WhiteBox.SearchWithScaEnabled, false),
+		},
+		DotNetSettings: settings.DotNetSettings{
+			ProjectType:                           string(common.GetOrDefault(defaultSettings.DotNetSettings.ProjectType, "")),
+			SolutionFile:                          common.GetOrDefault(defaultSettings.DotNetSettings.SolutionFile, ""),
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.DotNetSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.DotNetSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.DotNetSettings.DownloadDependencies, false),
+		},
+		GoSettings: settings.GoSettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.GoSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.GoSettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		JavaScriptSettings: settings.JavaScriptSettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.JavaScriptSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.JavaScriptSettings.DownloadDependencies, false),
+			UseTaintAnalysis:                      common.GetOrDefault(defaultSettings.JavaScriptSettings.UseTaintAnalysis, false),
+			UseJsaAnalysis:                        common.GetOrDefault(defaultSettings.JavaScriptSettings.UseJsaAnalysis, false),
+		},
+		JavaSettings: settings.JavaSettings{
+			Parameters:                            common.GetOrDefault(defaultSettings.JavaSettings.Parameters, ""),
+			UnpackUserPackages:                    common.GetOrDefault(defaultSettings.JavaSettings.UnpackUserPackages, false),
+			UserPackagePrefixes:                   common.GetOrDefault(defaultSettings.JavaSettings.UserPackagePrefixes, ""),
+			Version:                               string(common.GetOrDefault(defaultSettings.JavaSettings.Version, "")),
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.JavaSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.JavaSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.JavaSettings.DownloadDependencies, false),
+			DependenciesPath:                      common.GetOrDefault(defaultSettings.JavaSettings.DependenciesPath, ""),
+		},
+		PhpSettings: settings.PhpSettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.PhpSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.PhpSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.PhpSettings.DownloadDependencies, false),
+		},
+		PmTaintSettings: settings.PmTaintSettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.PmTaintSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.PmTaintSettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		PythonSettings: settings.PythonSettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.PythonSettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.PythonSettings.UseAvailablePublicAndProtectedMethods, false),
+			DownloadDependencies:                  common.GetOrDefault(defaultSettings.PythonSettings.DownloadDependencies, false),
+			DependenciesPath:                      common.GetOrDefault(defaultSettings.PythonSettings.DependenciesPath, ""),
+		},
+		RubySettings: settings.RubySettings{
+			LaunchParameters:                      common.GetOrDefault(defaultSettings.RubySettings.LaunchParameters, ""),
+			UseAvailablePublicAndProtectedMethods: common.GetOrDefault(defaultSettings.RubySettings.UseAvailablePublicAndProtectedMethods, false),
+		},
+		ScaSettings: settings.ScaSettings{
+			LaunchParameters:       common.GetOrDefault(defaultSettings.ScaSettings.LaunchParameters, ""),
+			BuildDependenciesGraph: common.GetOrDefault(defaultSettings.ScaSettings.BuildDependenciesGraph, false),
+		},
+	}, err
+}
+
+func (a *ClientAI63) SetProjectSettings(ctx context.Context, projectId uuid.UUID, settings *settings.ScanSettings) error {
+	if settings == nil {
+		return nil
+	}
+
+	priority := priorityFromSettings(settings)
+	projectSettings := v6_3.PutApiProjectsProjectIdSettingsJSONRequestBody{
+		ProjectName: &settings.ProjectName,
+		Priority:    &priority,
+		Languages: func() *[]v6_3.LegacyProgrammingLanguageGroup {
+			if settings.Languages == nil {
+				return nil
+			}
+			res := make([]v6_3.LegacyProgrammingLanguageGroup, len(settings.Languages))
+			for i := range settings.Languages {
+				res[i] = v6_3.LegacyProgrammingLanguageGroup(settings.Languages[i])
+			}
+			return &res
+		}(),
+		WhiteBoxSettings: &v6_3.WhiteBoxSettingsModel{
+			StaticCodeAnalysisEnabled:            &settings.WhiteBoxSettings.StaticCodeAnalysisEnabled,
+			PatternMatchingEnabled:               &settings.WhiteBoxSettings.PatternMatchingEnabled,
+			SearchForVulnerableComponentsEnabled: &settings.WhiteBoxSettings.SearchForVulnerableComponentsEnabled,
+			SearchForConfigurationFlawsEnabled:   &settings.WhiteBoxSettings.SearchForConfigurationFlawsEnabled,
+			SearchWithScaEnabled:                 &settings.WhiteBoxSettings.SearchWithScaEnabled,
+			SecretDetectionEnabled:               &settings.WhiteBoxSettings.SecretDetectionEnabled,
+			SearchForMaliciousCodeEnabled:        &settings.WhiteBoxSettings.SearchForMaliciousCodeEnabled,
+		},
+		DotNetSettings: &v6_3.DotNetSettingsModel{
+			ProjectType:                           common.Reference(v6_3.DotNetProjectType(settings.DotNetSettings.ProjectType)),
+			SolutionFile:                          &settings.DotNetSettings.SolutionFile,
+			LaunchParameters:                      &settings.DotNetSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.DotNetSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.DotNetSettings.DownloadDependencies,
+		},
+		GoSettings: &v6_3.GoSettingsModel{
+			LaunchParameters:                      &settings.GoSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.GoSettings.UseAvailablePublicAndProtectedMethods,
+		},
+		JavaScriptSettings: &v6_3.JavaScriptSettingsModel{
+			LaunchParameters:                      &settings.JavaScriptSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.JavaScriptSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.JavaScriptSettings.DownloadDependencies,
+			UseTaintAnalysis:                      &settings.JavaScriptSettings.UseTaintAnalysis,
+			UseJsaAnalysis:                        &settings.JavaScriptSettings.UseJsaAnalysis,
+		},
+		JavaSettings: &v6_3.JavaSettingsModel{
+			Parameters:                            &settings.JavaSettings.Parameters,
+			UnpackUserPackages:                    &settings.JavaSettings.UnpackUserPackages,
+			UserPackagePrefixes:                   &settings.JavaSettings.UserPackagePrefixes,
+			Version:                               common.Reference(v6_3.JavaVersions(settings.JavaSettings.Version)),
+			LaunchParameters:                      &settings.JavaSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.JavaSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.JavaSettings.DownloadDependencies,
+			DependenciesPath:                      &settings.JavaSettings.DependenciesPath,
+		},
+		PhpSettings: &v6_3.PhpSettingsModel{
+			LaunchParameters:                      &settings.PhpSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PhpSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.PhpSettings.DownloadDependencies,
+		},
+		PmTaintSettings: &v6_3.PmTaintBaseSettingsModel{
+			LaunchParameters:                      &settings.PmTaintSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PmTaintSettings.UseAvailablePublicAndProtectedMethods,
+		},
+		PythonSettings: &v6_3.PythonSettingsModel{
+			LaunchParameters:                      &settings.PythonSettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.PythonSettings.UseAvailablePublicAndProtectedMethods,
+			DownloadDependencies:                  &settings.PythonSettings.DownloadDependencies,
+			DependenciesPath:                      &settings.PythonSettings.DependenciesPath,
+		},
+		RubySettings: &v6_3.RubySettingsModel{
+			LaunchParameters:                      &settings.RubySettings.LaunchParameters,
+			UseAvailablePublicAndProtectedMethods: &settings.RubySettings.UseAvailablePublicAndProtectedMethods,
+		},
+		ScaSettings: &v6_3.ScaSettingsModel{
+			LaunchParameters:       &settings.ScaSettings.LaunchParameters,
+			BuildDependenciesGraph: &settings.ScaSettings.BuildDependenciesGraph,
+		},
+	}
+
+	res, err := a.PutApiProjectsProjectIdSettingsWithResponse(ctx, projectId, projectSettings, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("put project settings request: %w", err)
+	}
+
+	statusCode := res.StatusCode()
+	responseBody := string(res.Body)
+	errorModel := res.JSON400
+	if err = CheckResponseByModel(statusCode, responseBody, errorModel); err != nil {
+		return fmt.Errorf("put project settings: %w", err)
+	}
+
+	if err := a.putPreferredAgentsSettings(ctx, projectId, settings); err != nil {
+		return err
+	}
+
+	if settings.HasBlackBoxSettings() {
+		if err := a.setBlackBoxSettings(ctx, projectId, settings); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *ClientAI63) CreateBranch(ctx context.Context, projectId uuid.UUID, branchName, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) (*uuid.UUID, error) {
+	useStubSources := scanTargetPath == ""
+	if useStubSources {
+		var err error
+		scanTargetPath, err = common.CreateStubScanTarget()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions, tempDir)
+	if archivePath != scanTargetPath {
+		defer func() {
+			_ = os.Remove(archivePath)
+		}()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	body, contentType, err := common.PrepareMultipartBody(ctx, archivePath, !useStubSources, common.MultipartField{Key: "Name", Value: branchName})
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		_ = body.Close()
+	}()
+
+	response, err := a.PostApiStoreProjectProjectIdBranchesArchiveWithBodyWithResponse(ctx, projectId, contentType, body, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("create upload session response error: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, responseBody, errorModel); err != nil {
+		return nil, err
+	}
+
+	id := string(response.Body)
+	branchId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &branchId, nil
+}
+
+func (a *ClientAI63) CreateProject(ctx context.Context, projectName string, language settings.Language) (*uuid.UUID, error) {
+	projectUrl := "http://localhost"
+
+	patternMatchingEnabled := true
+	searchForConfigurationFlawsEnabled := true
+	searchForVulnerableComponentsEnabled := true
+	searchWithScaEnabled := false
+	staticCodeAnalysisEnabled := true
+	preferredAgentsOnly := false
+	preferredAgents := []uuid.UUID{}
+	priority := v6_3.PriorityMedium
+
+	projectBaseModel := v6_3.PostApiProjectsBaseJSONRequestBody{
+		Name:       &projectName,
+		ProjectUrl: &projectUrl,
+		WhiteBox: &v6_3.WhiteBoxSettingsModel{
+			PatternMatchingEnabled:               &patternMatchingEnabled,
+			SearchForConfigurationFlawsEnabled:   &searchForConfigurationFlawsEnabled,
+			SearchForVulnerableComponentsEnabled: &searchForVulnerableComponentsEnabled,
+			SearchWithScaEnabled:                 &searchWithScaEnabled,
+			StaticCodeAnalysisEnabled:            &staticCodeAnalysisEnabled,
+		},
+		Id: &uuid.UUID{},
+		Languages: &[]v6_3.LegacyProgrammingLanguageGroup{
+			v6_3.LegacyProgrammingLanguageGroup(language),
+		},
+		PreferredAgentsSettings: &v6_3.PreferredAgentsSettings{
+			PreferredAgents:     &preferredAgents,
+			PreferredAgentsOnly: preferredAgentsOnly,
+		},
+		Priority: &priority,
+	}
+
+	createProjectResponse, err := a.PostApiProjectsBaseWithResponse(ctx, projectBaseModel, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("create project request error: %w", err)
+	}
+
+	statusCode := createProjectResponse.StatusCode()
+	body := string(createProjectResponse.Body)
+	errorModel := createProjectResponse.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, err
+	}
+
+	projectId, err := uuid.Parse(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &projectId, nil
+}
+
+func (a *ClientAI63) DeleteProject(ctx context.Context, projectId uuid.UUID) error {
+	response, err := a.DeleteApiProjectsProjectIdWithResponse(ctx, projectId, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai adapter delete project request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v6_3.ApiErrorTypePROJECTNOTFOUND {
+		return apperror.NewNotFoundByIdError("project", projectId.String())
+	}
+
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return fmt.Errorf("ai adapter delete project: %w", err)
+	}
+
+	return nil
+}
+
+func (a *ClientAI63) ExistsProject(ctx context.Context, projectName string) (bool, error) {
+	response, err := a.GetApiProjectsNameExistsWithResponse(ctx, projectName, a.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai adapter get project name exists request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return false, err
+	}
+
+	boolValueTrue, err := strconv.ParseBool(body)
+	if err != nil {
+		return false, err
+	}
+
+	return boolValueTrue, nil
+}
+
+func (a *ClientAI63) GetProjectId(ctx context.Context, projectName string) (*uuid.UUID, error) {
+	response, err := a.GetApiProjectsNameNameWithResponse(ctx, projectName, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get project name exists request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+
+	if statusCode == http.StatusBadRequest && errorModel != nil && *errorModel.ErrorCode == v6_3.ApiErrorTypePROJECTNOTFOUND {
+		return nil, nil
+	}
+
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, err
+	}
+	if statusCode != http.StatusOK {
+		return nil, fmt.Errorf("ai adapter get project name exists: %w", err)
+	}
+
+	proj := *response.JSON200
+
+	return proj.Id, nil
+}
+
+func (a *ClientAI63) GetProjects(ctx context.Context) ([]project.Project, error) {
+	log := logger.FromContext(ctx)
+
+	log.StdErrf("Send get projects request")
+
+	response, err := a.GetApiProjectsWithResponse(ctx, nil, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get projects request request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, nil); err != nil {
+		return nil, fmt.Errorf("ai adapter get projects response: %w", err)
+	}
+
+	models := *response.JSON200
+	projects := make([]project.Project, 0, len(models))
+
+	for _, model := range models {
+		if *model.ProjectType != v6_3.Permanent {
+			continue
+		}
+
+		p := projectFromModel(*model.Id, *model.Name, model.ProjectTargetBasedType)
+		projects = append(projects, p)
+	}
+
+	return projects, nil
+}
+
+func (a *ClientAI63) GetProject(ctx context.Context, projectId uuid.UUID) (*project.Project, error) {
+	response, err := a.GetApiProjectsProjectIdWithResponse(ctx, projectId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get projects request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get project: %w", err)
+	}
+
+	model := response.JSON200
+	p := projectFromModel(*model.Id, *model.Name, model.ProjectTargetBasedType)
+	if model.VirtualBranchId != nil {
+		p.VirtualBranchId = *model.VirtualBranchId
+	}
+
+	return &p, nil
+}
+
+func (a *ClientAI63) GetDefaultTemplateId(ctx context.Context, reportType report.ReportType) (uuid.UUID, error) {
+	localeId := "ru-Ru"
+	params := v6_3.GetApiReportsTemplatesTypeParams{
+		LocaleId: &localeId,
+	}
+
+	var aiReportType v6_3.ReportType
+	switch reportType {
+	case report.AutoCheck:
+		aiReportType = v6_3.ReportTypeAutoCheck
+	case report.Custom:
+		aiReportType = v6_3.ReportTypeCustom
+	case report.Gitlab:
+		aiReportType = v6_3.ReportTypeGitlab
+	case report.Json:
+		aiReportType = v6_3.ReportTypeJson
+	case report.JsonV2:
+		aiReportType = v6_3.ReportTypeJsonV2
+	case report.Markdown:
+		aiReportType = v6_3.ReportTypeMd
+	case report.Nist:
+		aiReportType = v6_3.ReportTypeNist
+	case report.Oud4:
+		aiReportType = v6_3.ReportTypeOud4
+	case report.Owasp:
+		aiReportType = v6_3.ReportTypeOwasp
+	case report.Owaspm:
+		aiReportType = v6_3.ReportTypeOwaspm
+	case report.Pcidss:
+		aiReportType = v6_3.ReportTypePcidss
+	case report.PlainReport:
+		aiReportType = v6_3.ReportTypePlainReport
+	case report.Sans:
+		aiReportType = v6_3.ReportTypeSans
+	case report.Sarif:
+		aiReportType = v6_3.ReportTypeSarif
+	case report.Xml:
+		return uuid.UUID{}, fmt.Errorf("xml report is not supported on Application Inspector 6.x")
+	default:
+		return uuid.UUID{}, fmt.Errorf("invalid reportType: %s", reportType)
+	}
+
+	response, err := a.GetApiReportsTemplatesType(ctx, aiReportType, &params, a.AddJWTToHeader)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get default template id request: %w", err)
+	}
+
+	if err = CheckResponse(response, "template"); err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get template id: %w", err)
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	defer func() { _ = response.Body.Close() }()
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	if !strings.Contains(response.Header.Get("Content-Type"), "json") && response.StatusCode == 200 {
+		return uuid.UUID{}, fmt.Errorf("ai adapter response not 200 and json")
+	}
+
+	type ReportTemplateSimpleModel struct {
+		Id *uuid.UUID `json:"id,omitempty"`
+	}
+
+	var dest ReportTemplateSimpleModel
+	if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return *dest.Id, nil
+}
+
+func (a *ClientAI63) GetCustomTemplateId(ctx context.Context, reportName string) (uuid.UUID, error) {
+	localeId := "ru-RU"
+	params := v6_3.GetApiReportsUserTemplatesNameParams{
+		LocaleId: &localeId,
+	}
+
+	response, err := a.GetApiReportsUserTemplatesName(ctx, reportName, &params, a.AddJWTToHeader)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get custom template id request: %w", err)
+	}
+
+	if err = CheckResponse(response, "template"); err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter get template id: %w", err)
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	defer func() { _ = response.Body.Close() }()
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	if !strings.Contains(response.Header.Get("Content-Type"), "json") && response.StatusCode == 200 {
+		return uuid.UUID{}, fmt.Errorf("ai adapter response not 200 and json")
+	}
+
+	type ReportTemplateSimpleModel struct {
+		Id *uuid.UUID `json:"id,omitempty"`
+	}
+
+	var model ReportTemplateSimpleModel
+	if err := json.Unmarshal(bodyBytes, &model); err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return *model.Id, nil
+}
+
+func (a *ClientAI63) GetReport(ctx context.Context, projectId, scanResultId, templateId uuid.UUID, includeComments, includeDFD, includeGlossary bool, l10n string, filters report.Filters) (io.ReadCloser, error) {
+	useFilters := filters.Apply
+	sessionId := uuid.New()
+
+	model := v6_3.ReportGenerateModel{
+		LocaleId: &l10n,
+		Parameters: &v6_3.UserReportParametersModel{
+			IncludeComments:  &includeComments,
+			IncludeDFD:       &includeDFD,
+			IncludeGlossary:  &includeGlossary,
+			ReportTemplateId: &templateId,
+			UseFilters:       &useFilters,
+		},
+		ProjectId:    &projectId,
+		ScanResultId: &scanResultId,
+		SessionId:    &sessionId,
+	}
+
+	if filters.Apply {
+		apiFilters, err := toUserReportFiltersModel6x(filters)
+		if err != nil {
+			return nil, err
+		}
+		model.Filters = &apiFilters
+	}
+
+	response, err := a.PostApiReportsGenerate(ctx, model, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter generate report request: %w", err)
+	}
+
+	if err = CheckResponse(response, "report"); err != nil {
+		return nil, fmt.Errorf("ai adapter generate report: %w", err)
+	}
+
+	return response.Body, nil
+}
+
+func toUserReportFiltersModel6x(filters report.Filters) (v6_3.UserReportFiltersModel, error) {
+	types := filters.Types
+	if types == nil {
+		types = []string{}
+	}
+	languages, err := mapProgrammingLanguages6x(filters.Languages)
+	if err != nil {
+		return v6_3.UserReportFiltersModel{}, err
+	}
+	modules, err := mapScanModules6x(filters.ScanModules)
+	if err != nil {
+		return v6_3.UserReportFiltersModel{}, err
+	}
+
+	return v6_3.UserReportFiltersModel{
+		LevelHigh:           filters.LevelHigh,
+		LevelMedium:         filters.LevelMedium,
+		LevelLow:            filters.LevelLow,
+		LevelPotential:      filters.LevelPotential,
+		StatusUndefined:     filters.StatusUndefined,
+		StatusConfirmed:     filters.StatusConfirmed,
+		StatusConfirmedAuto: filters.StatusConfirmedAuto,
+		StatusRejected:      filters.StatusRejected,
+		ModeEntryPoint:      filters.ModeEntryPoint,
+		ModePublicMethods:   filters.ModePublicMethods,
+		ModeRootFunction:    filters.ModeRootFunction,
+		ModeOthers:          filters.ModeOthers,
+		FoundThisScan:       filters.FoundThisScan,
+		FoundPrevScan:       filters.FoundPrevScan,
+		Conditional:         filters.Conditional,
+		NonConditional:      filters.NonConditional,
+		Suppressed:          filters.Suppressed,
+		NonSuppressed:       filters.NonSuppressed,
+		Suspected:           filters.Suspected,
+		SecondLevel:         filters.SecondLevel,
+		OnlyFavorite:        filters.OnlyFavorite,
+		Types:               &types,
+		Languages:           &languages,
+		ScanModules:         &modules,
+	}, nil
+}
+
+func mapProgrammingLanguages6x(langs []string) ([]v6_3.ProgrammingLanguageGroup, error) {
+	out := make([]v6_3.ProgrammingLanguageGroup, 0, len(langs))
+	for _, lang := range langs {
+		pl := v6_3.ProgrammingLanguageGroup(lang)
+		if !pl.Valid() {
+			return nil, validation.NewFieldError("language", fmt.Sprintf("unsupported value %q", lang))
+		}
+		out = append(out, pl)
+	}
+	return out, nil
+}
+
+func mapScanModules6x(modules []string) ([]v6_3.ScanModuleType, error) {
+	out := make([]v6_3.ScanModuleType, 0, len(modules))
+	for _, m := range modules {
+		sm := v6_3.ScanModuleType(m)
+		if !sm.Valid() {
+			return nil, validation.NewFieldError("scan-module", fmt.Sprintf("unsupported value %q", m))
+		}
+		out = append(out, sm)
+	}
+	return out, nil
+}
+
+func (a *ClientAI63) GetSbom(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.GetApiStoreProjectIdSbomsScanResultId(ctx, projectId, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get sbom: %w", err)
+	}
+
+	if err = CheckResponse(response, "sbom"); err != nil {
+		return nil, fmt.Errorf("ai adapter get sbom: %w", err)
+	}
+
+	return response.Body, nil
+}
+
+func (a *ClientAI63) GetScanLogs(ctx context.Context, projectId, scanResultId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.GetApiStoreProjectIdLogsScanResultId(ctx, projectId, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get scan logs request: %w", err)
+	}
+
+	if err = CheckResponse(response, "logs"); err != nil {
+		return nil, fmt.Errorf("ai adapter get scan logs: %w", err)
+	}
+
+	return response.Body, nil
+}
+
+func (a *ClientAI63) GetBranches(ctx context.Context, projectId uuid.UUID) ([]branch.Branch, error) {
+	getBranchesResponse, err := a.GetApiProjectsProjectIdBranchesWithResponse(ctx, projectId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
+	}
+
+	statusCode := getBranchesResponse.StatusCode()
+	body := string(getBranchesResponse.Body)
+	errorModel := getBranchesResponse.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get branches: %w", err)
+	}
+
+	branchModels := *getBranchesResponse.JSON200
+
+	branches := make([]branch.Branch, len(branchModels))
+	for i, model := range branchModels {
+		if model.Description == nil {
+			description := ""
+			model.Description = &description
+		}
+		branches[i] = branch.NewBranch(*model.Id, *model.Name, *model.Description, *model.IsWorking)
+	}
+
+	return branches, nil
+}
+
+func (a *ClientAI63) GetBranch(ctx context.Context, branchId uuid.UUID) (*branch.Branch, error) {
+	response, err := a.GetApiBranchesBranchIdWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get branch request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get branch: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.Name == nil || model.IsWorking == nil {
+		return nil, apperror.NewEmptyResponseError("branch")
+	}
+
+	description := ""
+	if model.Description != nil {
+		description = *model.Description
+	}
+
+	b := branch.NewBranch(*model.Id, *model.Name, description, *model.IsWorking)
+
+	return &b, nil
+}
+
+func (a *ClientAI63) GetScans(ctx context.Context, branchId uuid.UUID) ([]scan.Scan, error) {
+	response, err := a.GetApiBranchesBranchIdScanResultsWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get scan results request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get scans: %w", err)
+	}
+
+	models := *response.JSON200
+	scans := make([]scan.Scan, 0, len(models))
+	for _, model := range models {
+		if model.Id == nil || model.SettingsId == nil {
+			continue
+		}
+
+		scans = append(scans, scan.NewScan(uuid.UUID(*model.Id), uuid.UUID(*model.SettingsId), model.ScanDate, model.ScanLabel))
+	}
+
+	return scans, nil
+}
+
+func (a *ClientAI63) GetLastScan(ctx context.Context, branchId uuid.UUID) (*scan.Scan, error) {
+	response, err := a.GetApiBranchesBranchIdScanResultsLastWithResponse(ctx, branchId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get last scan result request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get last scan result: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.SettingsId == nil {
+		return nil, apperror.NewEmptyResponseError("last scan result")
+	}
+
+	scanResult := scan.NewScan(uuid.UUID(*model.Id), uuid.UUID(*model.SettingsId), model.ScanDate, model.ScanLabel)
+
+	return &scanResult, nil
+}
+
+func (a *ClientAI63) GetScan(ctx context.Context, projectId, scanId uuid.UUID) (*scan.Scan, error) {
+	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdWithResponse(ctx, projectId, scanId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get scan request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return nil, fmt.Errorf("ai adapter get scan aiproj: %w", err)
+	}
+
+	model := response.JSON200
+	if model.Id == nil || model.SettingsId == nil {
+		return nil, apperror.NewEmptyResponseError("scan")
+	}
+
+	scanResult := scan.NewScan(uuid.UUID(*model.Id), uuid.UUID(*model.SettingsId), model.ScanDate, model.ScanLabel)
+
+	return &scanResult, nil
+}
+
+func (a *ClientAI63) GetProjectAiproj(ctx context.Context, projectId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.GetApiProjectsProjectIdAiproj(ctx, projectId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get project aiproj request: %w", err)
+	}
+
+	if err = CheckResponse(response, "aiproj"); err != nil {
+		return nil, fmt.Errorf("ai adapter get project aiproj: %w", err)
+	}
+
+	return response.Body, nil
+}
+
+func (a *ClientAI63) GetScanAiproj(ctx context.Context, projectId, scanSettingsId uuid.UUID) (io.ReadCloser, error) {
+	response, err := a.GetApiProjectsProjectIdScanSettingsScanSettingsIdAiproj(ctx, projectId, scanSettingsId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai adapter get aiproj request: %w", err)
+	}
+
+	if err = CheckResponse(response, "aiproj"); err != nil {
+		return nil, fmt.Errorf("ai adapter get aiproj: %w", err)
+	}
+
+	return response.Body, nil
+}
+
+func scanProgressFromModel(model *v6_3.ScanProgressModel) (scanstage.ScanStage, bool) {
+	if model == nil || model.Stage == nil {
+		return scanstage.ScanStage{}, false
+	}
+
+	stage := scanstage.ScanStage{
+		Stage: string(*model.Stage),
+	}
+	if model.Value != nil {
+		stage.Value = *model.Value
+	}
+	if model.SubStage != nil {
+		stage.SubStage = *model.SubStage
+	}
+
+	return stage, true
+}
+
+func (a *ClientAI63) GetScanStage(ctx context.Context, projectId, scanId uuid.UUID) (scanstage.ScanStage, error) {
+	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdProgressWithResponse(ctx, projectId, scanId, a.AddJWTToHeader)
+	if err == nil {
+		statusCode := response.StatusCode()
+		body := string(response.Body)
+		errorModel := response.JSON400
+		if err = CheckResponseByModel(statusCode, body, errorModel); err == nil {
+			if stage, ok := scanProgressFromModel(response.JSON200); ok {
+				return stage, nil
+			}
+		}
+	}
+
+	scanResponse, err := a.GetApiProjectsProjectIdScanResultsScanResultIdWithResponse(ctx, projectId, scanId, a.AddJWTToHeader)
+	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return scanstage.ScanStage{}, err
+		}
+
+		return scanstage.ScanStage{}, fmt.Errorf("ai adapter get scan result request: %w", err)
+	}
+
+	statusCode := scanResponse.StatusCode()
+	body := string(scanResponse.Body)
+	errorModel := scanResponse.JSON400
+	if err = CheckResponseByModel(statusCode, body, errorModel); err != nil {
+		return scanstage.ScanStage{}, fmt.Errorf("ai adapter get scan result: %w", err)
+	}
+
+	if stage, ok := scanProgressFromModel(scanResponse.JSON200.Progress); ok {
+		return stage, nil
+	}
+
+	return scanstage.ScanStage{}, apperror.NewEmptyResponseError("scan progress")
+}
+
+func (a *ClientAI63) GetScanItem(ctx context.Context, id uuid.UUID) (queue.Item, error) {
+	if item, found, err := a.findScanQueueItem(ctx, id); err != nil {
+		return queue.Item{}, err
+	} else if found {
+		return item, nil
+	}
+
+	return a.getScanQueueItemByID(ctx, id)
+}
+
+func (a *ClientAI63) getScanQueueItemByID(ctx context.Context, id uuid.UUID) (queue.Item, error) {
+	response, err := a.GetItemWithResponse(ctx, id, a.AddJWTToHeader)
+	if err != nil {
+		return queue.Item{}, fmt.Errorf("ai adapter get scan queue item request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
+		if apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeEMPTYSCANRESULT)) {
+			time.Sleep(1 * time.Second)
+			return a.getScanQueueItemByID(ctx, id)
+		}
+		if apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+			apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) {
+			return queue.Item{ScanId: id}, nil
+		}
+
+		return queue.Item{}, fmt.Errorf("ai adapter get scan queue item: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return queue.Item{}, apperror.NewEmptyResponseError("scan queue item")
+	}
+
+	dto := response.JSON200
+
+	return queue.Item{
+		Place:  int(dto.Position),
+		ScanId: dto.ScanResultId,
+	}, nil
+}
+
+func (a *ClientAI63) findScanQueueItem(ctx context.Context, id uuid.UUID) (queue.Item, bool, error) {
+	response, err := a.GetAllItemsWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return queue.Item{}, false, fmt.Errorf("ai adapter get scan queue items request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	body := string(response.Body)
+	if err = CheckResponseByModel(statusCode, body, response.JSON400); err != nil {
+		return queue.Item{}, false, fmt.Errorf("ai adapter get scan queue items: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return queue.Item{}, false, apperror.NewEmptyResponseError("scan queue items")
+	}
+
+	models := *response.JSON200
+	sort.Slice(models, func(i, j int) bool {
+		return models[i].QueueDateTime < models[j].QueueDateTime
+	})
+
+	for i, model := range models {
+		if id == model.Id || id == model.ScanResultId {
+			return queue.Item{
+				Place:  i + 1,
+				OutOf:  len(models),
+				ScanId: model.ScanResultId,
+			}, true, nil
+		}
+	}
+
+	return queue.Item{}, false, nil
+}
+
+func (a *ClientAI63) createScanQueueItem(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+	scope, err := toScope(scanType)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	params := v6_3.CreateQueueItem{
+		BranchId:  branchId,
+		Scope:     scope,
+		ScanLabel: &scanLabel,
+	}
+
+	response, err := a.CreateItemWithResponse(ctx, params, a.AddJWTToHeader)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("create scan queue item request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err := CheckResponseByModel(statusCode, responseBody, response.JSON400); err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter start scan: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return uuid.UUID{}, apperror.NewEmptyResponseError("scan result id")
+	}
+
+	return *response.JSON200, nil
+}
+
+func (a *ClientAI63) StartScanBranch(ctx context.Context, branchId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+	taskId, err := a.createScanQueueItem(ctx, branchId, scanLabel, scanType)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("ai adapter start scan: %w", err)
+	}
+
+	item, err := a.GetScanItem(ctx, taskId)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	if item.ScanId != uuid.Nil && item.ScanId != taskId {
+		return item.ScanId, nil
+	}
+	if item.OutOf > 0 {
+		return item.ScanId, nil
+	}
+
+	lastScan, lastErr := a.GetLastScan(ctx, branchId)
+	if lastErr != nil {
+		return uuid.UUID{}, fmt.Errorf("scan queue item unavailable, get last scan: %w", lastErr)
+	}
+
+	return lastScan.Id, nil
+}
+
+func (a *ClientAI63) StartScanProject(ctx context.Context, projectId uuid.UUID, scanLabel string, scanType scantype.Type) (uuid.UUID, error) {
+	branches, err := a.GetBranches(ctx, projectId)
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("get branches for project scan: %w", err)
+	}
+	if len(branches) == 0 {
+		return uuid.UUID{}, fmt.Errorf("no branches found for project")
+	}
+
+	branchId := branches[0].Id
+	for _, b := range branches {
+		if b.IsWorking {
+			branchId = b.Id
+			break
+		}
+	}
+
+	// Resolve queue task id → scan result id (same as StartScanBranch).
+	return a.StartScanBranch(ctx, branchId, scanLabel, scanType)
+}
+
+func toScope(scanType scantype.Type) (v6_3.Scope, error) {
+	switch scanType {
+	case scantype.Incremental:
+		return v6_3.ScopeIncremental, nil
+	case scantype.Full:
+		return v6_3.ScopeFull, nil
+	default:
+		return "", fmt.Errorf("invalid scan type: %d", scanType)
+	}
+}
+
+func (a *ClientAI63) StopScan(ctx context.Context, scanResultId uuid.UUID) error {
+	if err := a.stopScanOnce(ctx, scanResultId); err != nil {
+		if !isScanStopFallbackError(err) {
+			return err
+		}
+
+		// Queue task id may differ from scan result id — resolve and retry.
+		if resolved, ok := a.resolveScanResultId(ctx, scanResultId); ok && resolved != scanResultId {
+			if err := a.stopScanOnce(ctx, resolved); err == nil {
+				return nil
+			} else if !isScanStopFallbackError(err) {
+				return err
+			}
+			scanResultId = resolved
+		}
+
+		cancelled, cancelErr := a.cancelActiveScan(ctx, scanResultId)
+		if cancelErr != nil {
+			return cancelErr
+		}
+		if cancelled {
+			return nil
+		}
+
+		// Left the queue and not running — already stopped.
+		if apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+			apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (a *ClientAI63) stopScanOnce(ctx context.Context, scanResultId uuid.UUID) error {
+	response, err := a.StopScanWithResponse(ctx, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai adapter stop scan request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, response.JSON400); err != nil {
+		return fmt.Errorf("ai adapter stop scan: %w", err)
+	}
+
+	return nil
+}
+
+func isScanStopFallbackError(err error) bool {
+	return apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMNOTFOUND)) ||
+		apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeQUEUEITEMALREADYASSIGNEDTOAGENT)) ||
+		apperror.IsApiErrorCode(err, string(v6_3.ApiErrorTypeSCANNOTFOUND))
+}
+
+// resolveScanResultId maps a queue task id to scan result id when still available.
+func (a *ClientAI63) resolveScanResultId(ctx context.Context, id uuid.UUID) (uuid.UUID, bool) {
+	if item, found, err := a.findScanQueueItem(ctx, id); err == nil && found && item.ScanId != uuid.Nil {
+		return item.ScanId, true
+	}
+
+	active, err := a.GetActiveScans(ctx)
+	if err != nil {
+		return uuid.Nil, false
+	}
+	for _, e := range active {
+		if e.ScanId == id {
+			return id, true
+		}
+	}
+
+	return uuid.Nil, false
+}
+
+func (a *ClientAI63) UpdateSources(ctx context.Context, projectId, branchId uuid.UUID, scanTargetPath string, exclusions gitignore.Exclusions, tempDir string) error {
+	log := logger.FromContext(ctx)
+
+	archivePath, err := common.PrepareArchive(ctx, scanTargetPath, exclusions, tempDir)
+	if archivePath != scanTargetPath {
+		defer func() {
+			_ = os.Remove(archivePath)
+		}()
+	}
+	if err != nil {
+		return err
+	}
+
+	if fi, err := os.Stat(archivePath); err == nil {
+		log.StdErrf("archive prepared, size: %.1f MB", float64(fi.Size())/(1024*1024))
+	}
+
+	body, contentType, err := common.PrepareMultipartBody(ctx, archivePath, true)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	archived := true
+	params := v6_3.PostApiStoreProjectIdBranchesBranchIdSourcesParams{Archived: &archived}
+
+	response, err := a.PostApiStoreProjectIdBranchesBranchIdSourcesWithBodyWithResponse(ctx, projectId, branchId, &params, contentType, body, a.AddJWTToHeader)
+	if err != nil {
+		return fmt.Errorf("ai update sources request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	errorModel := response.JSON400
+	if err = CheckResponseByModel(statusCode, responseBody, errorModel); err != nil {
+		return fmt.Errorf("ai update sources post sources: %w", err)
+	}
+
+	return nil
+}
+
+func (a *ClientAI63) GetVersion(ctx context.Context) (version.Version, error) {
+	response, err := a.GetApiVersionsPackageCurrentWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return version.Version{}, fmt.Errorf("ai get version request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return version.Version{}, fmt.Errorf("ai get version: %w", err)
+	}
+
+	v, err := version.NewVersion(responseBody)
+	if err != nil {
+		return version.Version{}, fmt.Errorf("new version: %w", err)
+	}
+
+	return v, nil
+}
+
+func (a *ClientAI63) GetHealthcheck(ctx context.Context) (bool, error) {
+	response, err := a.GetHealthSummaryWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return false, fmt.Errorf("ai get version request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return false, fmt.Errorf("ai get version: %w", err)
+	}
+
+	health := true
+	for _, service := range *response.JSON200.Services {
+		health = health && *service.Status == "Healthy"
+	}
+
+	return health, nil
+}
+
+func (a *ClientAI63) CheckLicense(ctx context.Context) (*domainlicense.License, error) {
+	response, err := a.GetApiLicenseWithResponse(ctx, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai check license request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return nil, fmt.Errorf("ai check license: %w", err)
+	}
+
+	if response.JSON200 == nil || response.JSON200.IsValid == nil || !*response.JSON200.IsValid {
+		return nil, fmt.Errorf("license is invalid")
+	}
+
+	model := response.JSON200
+	languages := common.MapLanguageGroups(model.Languages)
+
+	var modules []common.LicensedModuleInput
+	modulesPresent := model.LicensedModules != nil
+	if modulesPresent {
+		for _, m := range *model.LicensedModules {
+			entry := common.LicensedModuleInput{}
+			if m.Id != nil {
+				entry.ID = string(*m.Id)
+			}
+			if m.Enabled != nil {
+				entry.Enabled = *m.Enabled
+			}
+			if m.ScanModuleTypes != nil {
+				entry.ScanModuleTypes = make([]string, len(*m.ScanModuleTypes))
+				for i, t := range *m.ScanModuleTypes {
+					entry.ScanModuleTypes[i] = string(t)
+				}
+			}
+			modules = append(modules, entry)
+		}
+	}
+
+	return common.LicenseFromAPI(languages, modules, modulesPresent), nil
+}
+
+func (a *ClientAI63) GetScanStatistic(ctx context.Context, projectId, scanResultId uuid.UUID) (*statistic.Statistic, error) {
+	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdStatisticWithResponse(ctx, projectId, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai get scan statistic request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return nil, fmt.Errorf("ai get scan statistic: %w", err)
+	}
+
+	model := response.JSON200
+	if model == nil {
+		return nil, apperror.NewEmptyResponseError("scan statistic")
+	}
+
+	policyState := string(policystate.None)
+	if model.SecurityPolicyStatus != nil && model.SecurityPolicyStatus.PolicyState != nil {
+		policyState = string(*model.SecurityPolicyStatus.PolicyState)
+	}
+
+	return &statistic.Statistic{
+		FilesTotal:   common.GetOrDefault(model.FilesTotal, 0),
+		FilesScanned: common.GetOrDefault(model.FilesScanned, 0),
+		UrlsTotal:    common.GetOrDefault(model.UrlsTotal, 0),
+		UrlsScanned:  common.GetOrDefault(model.UrlsScanned, 0),
+		ScanDuration: common.GetOrDefault(model.ScanDuration, ""),
+		PolicyState:  policyState,
+	}, nil
+}
+
+func (a *ClientAI63) GetScanIssues(ctx context.Context, projectId, scanResultId uuid.UUID) ([]statistic.Issue, error) {
+	response, err := a.GetApiProjectsProjectIdScanResultsScanResultIdIssuesWithResponse(ctx, projectId, scanResultId, a.AddJWTToHeader)
+	if err != nil {
+		return nil, fmt.Errorf("ai get scan issues request: %w", err)
+	}
+
+	statusCode := response.StatusCode()
+	responseBody := string(response.Body)
+	if err = CheckResponseByModel(statusCode, responseBody, nil); err != nil {
+		return nil, fmt.Errorf("ai get scan issues: %w", err)
+	}
+
+	if response.JSON200 == nil {
+		return nil, nil
+	}
+
+	return mapScanIssues6x(*response.JSON200), nil
+}
+
+func mapScanIssues6x(issues []v6_3.VulnerabilityModel) []statistic.Issue {
+	out := make([]statistic.Issue, 0, len(issues))
+	for i := range issues {
+		issue := &issues[i]
+		approval := ""
+		if issue.ApprovalState != nil {
+			approval = string(*issue.ApprovalState)
+		}
+		out = append(out, common.NewScanIssue(string(*issue.Level), approval))
+	}
+	return out
+}

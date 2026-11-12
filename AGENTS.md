@@ -4,6 +4,20 @@
 
 План устранения известного долга: [`doc/adr/0003-architecture-and-cli-refactoring.md`](doc/adr/0003-architecture-and-cli-refactoring.md).
 
+## Обязательно перед имплементацией
+
+Агенты **должны задать уточняющие вопросы и дождаться ответа**, прежде чем писать или менять код, если выполняется хотя бы одно из условий:
+
+- scope задачи неоднозначен (что именно делать / чего не делать);
+- есть несколько разумных вариантов реализации;
+- затрагиваются API-контракты, version gates, store/upload, exit codes или поведение CLI;
+- пользователь перечислил несколько gaps — нужно подтвердить приоритет и исключения;
+- предыдущий ответ пользователя ограничил scope («не нужно X») — не расширять работу без явного согласия.
+
+Исключение: пользователь явно и однозначно сказал «сделай X» по уже согласованному узкому изменению (например, точечный багфикс с очевидным патчем). Даже тогда не трогать соседние области без спроса.
+
+Сначала: коротко перечислить план и открытые вопросы → дождаться ответа → только потом код.
+
 ## Слои и поток данных
 
 ```mermaid
@@ -50,11 +64,11 @@ Presenter **не** импортирует adapter напрямую — толь�
 | `internal/core/apperror/` | Типизированные API/сеть/fail ошибки (не domain) |
 | `internal/adapter/ai/` | Фасад AI + выбор клиента по версии сервера |
 | `internal/adapter/ai/common/` | Shared: `BaseClient`, TLS/HTTP transport, JWT retry, `ClientAi`, init helpers, upload/filters/license |
-| `internal/adapter/ai/{v5_x,v6_0,v6_1,v6_x}/` | Маппинг domain ↔ OpenAPI types (значительное дублирование) |
+| `internal/adapter/ai/{v5_x,v6_0,v6_1,v6_3,v6_4}/` | Маппинг domain ↔ OpenAPI types (значительное дублирование) |
 | `internal/adapter/ai/client/` | **Leftover** (не shared-слой); не класть новый код сюда — в `common/` |
 | `internal/adapter/cli/` | Вывод в терминал, подтверждения |
 | `internal/adapter/config/` | Чтение/запись `context.yaml` |
-| `pkg/clientai/{v5_x,v6_0,v6_1,v6_x}/` | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`) |
+| `pkg/clientai/{v5_x,v6_0,v6_1,v6_3,v6_4}/` | **Только** OpenAPI codegen (`backend.gen.go`, `swagger.yaml`) |
 | `pkg/logger/`, `pkg/fshelper/`, `pkg/gitignore/`, `pkg/version/`, `pkg/metric/` | Утилиты без зависимостей от `internal/` |
 | `tests/e2e/`, `tests/integration/` | Внешние/интеграционные тесты (e2e — build tag `e2e`) |
 
@@ -107,38 +121,41 @@ type CLI interface {
 
 | Метод | Поведение |
 |-------|-----------|
-| `Initialize` | Table-driven выбор клиента `v6_x` → `v6_1` → `v6_0` → `v5_x`, проверка версии и лицензии (`init.go` + `common.Initializer`) |
+| `Initialize` | Table-driven выбор клиента `v6_4` → `v6_3` → `v6_1` → `v6_0` → `v5_x`, проверка версии и лицензии (`init.go` + `common.Initializer`) |
 | `InitializeWithRetry` | `Initialize` + `AddJwtRetry()` на активном клиенте |
 
 **Несогласованность (техдолг, ADR-0003):** большинство use cases вызывают `InitializeWithRetry`; `create/branch` и `update/sources` — только `Initialize`. В `create/branch` wrap ошибочно говорит `"initialize with retry"`. При добавлении команд — **предпочитать `InitializeWithRetry`**, пока исключения не унифицированы.
 
-## AI adapter: версионирование 5.x / 6.0 / 6.1–6.2 / 6.3+
+## AI adapter: версионирование 5.x / 6.0 / 6.1–6.2 / 6.3 / 6.4+
 
 ```mermaid
 flowchart LR
     init["Adapter.Initialize"] --> loop["for clientInitializers"]
-    loop -->|"v6_x match 6.3..7"| active6x["activeClient = v6_x"]
+    loop -->|"v6_4 match 6.4..7"| active64["activeClient = v6_4"]
     loop -->|"no match"| reset0["BaseClient.Reset()"]
     reset0 --> loop
+    loop -->|"v6_3 match 6.3..6.4"| active63["activeClient = v6_3"]
     loop -->|"v6_1 match 6.1..6.3"| active61["activeClient = v6_1"]
     loop -->|"v6_0 match 6.0..6.1"| active60["activeClient = v6_0"]
     loop -->|"v5_x match 5.x"| active5["activeClient = v5_x"]
 ```
 
 - Поддерживаемый диапазон: **5.0.0 ≤ ver < 7.0.0**.
-- Порядок попыток: **6.3+** (`v6_x`) → **6.1–6.2** (`v6_1`) → **6.0.x** (`v6_0`) → **5.x** (`v5_x`). При несовпадении — `BaseClient.Reset()` и следующий initializer.
-- Границы: `v6_0` → `[6.0.0, 6.1.0)`, `v6_1` → `[6.1.0, 6.3.0)`, `v6_x` → `[6.3.0, 7.0.0)`.
+- Порядок попыток: **6.4+** (`v6_4`) → **6.3.x** (`v6_3`) → **6.1–6.2** (`v6_1`) → **6.0.x** (`v6_0`) → **5.x** (`v5_x`). При несовпадении — `BaseClient.Reset()` и следующий initializer.
+- Границы: `v6_0` → `[6.0.0, 6.1.0)`, `v6_1` → `[6.1.0, 6.3.0)`, `v6_3` → `[6.3.0, 6.4.0)`, `v6_4` → `[6.4.0, 7.0.0)`.
 - Все клиенты делят один `common.BaseClient` (JWT, HTTP). **Параллельное использование двух клиентов невозможно** — shared mutable state.
 - Ручной маппинг: `internal/adapter/ai/v*/client.go` (~1250–1400 строк каждый, сильное дублирование).
 - Codegen: `pkg/clientai/v*/` — `go generate` в `gen.go`.
+- **Store (AIE ≥ 6.4, `v6_4`):** aictl использует sync/deprecated ручки (`StoreCreateBranchFromArchive`, `StoreUploadBranchSources`), как в 6.3. Async `start*` из `doc/store.md` **намеренно не подключать**, пока не будет отдельной задачи.
+- **Project settings (AIE ≥ 6.4, `v6_4`):** whitebox `searchForRaceConditionsEnabled` / `asintEnabled`; `asintSettings.useNaira`; `automatedAiTriageEnabled` / `automatedAiTriageMinSeverity`. aiproj **1.12** (target для AIE ≥ 6.4): модули `RaceConditionDetection` / `Asint`, поля `AutomatedAiTriage` / `AutomatedAiTriageMinSeverity` → API `automatedAiTriageEnabled` / `automatedAiTriageMinSeverity`. `asintSettings.useNaira` в aiproj нет — из default/get settings.
 
-При правках scan/settings/report — проверять **все четыре** адаптера или выносить shared helpers в **`internal/adapter/ai/common/`** (не в `client/`).
+При правках scan/settings/report — проверять **все пять** адаптеров или выносить shared helpers в **`internal/adapter/ai/common/`** (не в `client/`).
 
 **TLS:** `common/tls.go` — clone `http.DefaultTransport` (сохраняет HTTP/2), `--cacert` vs `--tls-skip` mutually exclusive; CA PEM **дописывается** к system roots.
 
-**SBOM (AIE ≥ 6.3, только `v6_x`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete, ещё в CLI для совместимости).
+**SBOM (AIE ≥ 6.3, `v6_3`/`v6_4`):** `create sbom-project --file`, `update sbom`, `scan sbom`; type guards на source-only командах; `get projects` колонка `TYPE` (`source`/`sbom`). Канонический старт source-скана: `scan branch` / `scan project` (`scan start *` obsolete, ещё в CLI для совместимости).
 
-**SCA feeds (AIE ≥ 6.3, только `v6_x`):** `get sca-feeds` (list / download by version), `update sca-feeds <zip> --version <ver>` (upload), `update sca-feeds rollback` (confirm / `-y`; stdout = новая version). Upload: `POST /api/packages/sca_feeds` (multipart + MD5). На младших версиях — `SCA feeds is supported starting from AIE 6.3`.
+**SCA feeds (AIE ≥ 6.3, `v6_3`/`v6_4`):** `get sca-feeds` (list / download by version), `update sca-feeds <zip> --version <ver>` (upload), `update sca-feeds rollback` (confirm / `-y`; stdout = новая version). Upload: `POST /api/packages/sca_feeds` (multipart + MD5). На младших версиях — `SCA feeds is supported starting from AIE 6.3`.
 
 **License on scan start:** после `IsValid` на Initialize лицензия кэшируется; перед `scan branch` / `scan project` / `scan sbom` сверяются project settings — нелицензированные языки hard-fail (кроме sbom), SCA/Components/MOLOT soft-disable с persist + warn на stderr.
 
@@ -219,12 +236,12 @@ Validation types: `Error`, `FieldError`, `RequiredError`, `InvalidError`, `Messa
 - use case / presenter tests по критичным командам;
 - e2e: `tests/e2e` (build tag `e2e`, внешние стенды).
 
-При добавлении тестов — приоритет: init 6.3→6.1→6.0→5x, exit codes, scan/license, новые version gates.
+При добавлении тестов — приоритет: init 6.4→6.3→6.1→6.0→5x, exit codes, scan/license, новые version gates.
 
 ## Рекомендации при изменениях
 
 1. **Новая команда:** domain (если нужны типы) → use case с локальными ports → presenter cobra → wiring в `internal/di/*.go` (+ `check.go` для offline).
-2. **Новый AI-метод:** `common.ClientAi` + `Adapter` delegate → реализовать в **четырёх** `v5_x` / `v6_0` / `v6_1` / `v6_x` (или stub с typed unsupported) → port use case.
+2. **Новый AI-метод:** `common.ClientAi` + `Adapter` delegate → реализовать в **пяти** `v5_x` / `v6_0` / `v6_1` / `v6_3` / `v6_4` (или stub с typed unsupported) → port use case.
 3. **OpenAPI изменился:** обновить `swagger.yaml`, `go generate` в `pkg/clientai/v*/`, затем adapter mapping.
 4. **Не нарушать arch-lint:** use case не импортирует adapter или `pkg/clientai`.
 5. **Shared logic 5x/6.0/6.1/6.x:** выносить в **`internal/adapter/ai/common/`** — главный источник регрессий при дублировании.

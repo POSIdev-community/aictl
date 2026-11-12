@@ -40,7 +40,23 @@ func PrepareMultipartBody(
 	ctx context.Context,
 	archivePath string,
 	reportProgress bool,
-	fields ...MultipartField) (io.ReadCloser, string, error) {
+	fields ...MultipartField,
+) (io.ReadCloser, string, error) {
+	return PrepareMultipartBodyWithFileField(ctx, archivePath, "file", reportProgress, fields...)
+}
+
+// PrepareMultipartBodyWithFileField is like PrepareMultipartBody but uses the given multipart file field name.
+// AIE 6.4+ store upload APIs expect "files"; older APIs use "file".
+func PrepareMultipartBodyWithFileField(
+	ctx context.Context,
+	archivePath string,
+	fileField string,
+	reportProgress bool,
+	fields ...MultipartField,
+) (io.ReadCloser, string, error) {
+	if fileField == "" {
+		fileField = "file"
+	}
 
 	log := logger.FromContext(ctx)
 	progress := createProgressReporter(log, reportProgress, "updating sources")
@@ -72,7 +88,7 @@ func PrepareMultipartBody(
 		}()
 
 		filename := filepath.Base(archivePath)
-		part, err := writer.CreateFormFile("file", filename)
+		part, err := writer.CreateFormFile(fileField, filename)
 		if err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("create form file: %w", err))
 			return

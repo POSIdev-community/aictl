@@ -34,6 +34,7 @@ func TestStandVersion(t *testing.T) {
 		{name: "61", stand: "6.1", want: "6.1"},
 		{name: "62", stand: "6.2", want: "6.2"},
 		{name: "63", stand: "6.3", want: "6.3"},
+		{name: "64", stand: "6.4", want: "6.4"},
 		{name: "invalid", stand: "prod", wantErr: true},
 		{name: "major only", stand: "6", wantErr: true},
 	}
