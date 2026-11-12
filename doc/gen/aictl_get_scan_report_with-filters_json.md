@@ -51,7 +51,7 @@ aictl get scan report with-filters json <scan-id> [flags]
       --only-favorite             Include only favorite issues
   -o, --output string             Output file path
   -p, --project-id string         Project id (overrides context)
-      --scan-module stringArray   Scan module filter (repeatable): StaticCodeAnalysis, PatternMatching, Components, SoftwareCompositionAnalysis, Configuration, MaliciousCodeDetection, SecretDetection, BlackBox
+      --scan-module stringArray   Scan module filter (repeatable): StaticCodeAnalysis, PatternMatching, Components, SoftwareCompositionAnalysis, Configuration, MaliciousCodeDetection, SecretDetection, BlackBox, RaceConditionDetection, Asint
       --second-level              Include second-level issues
       --status-confirmed          Include confirmed issues
       --status-confirmed-auto     Include auto-confirmed issues

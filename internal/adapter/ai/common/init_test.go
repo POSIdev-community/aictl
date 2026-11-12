@@ -65,15 +65,29 @@ func TestMatchesVersionRange(t *testing.T) {
 			},
 		},
 		{
-			name: "v6_x",
+			name: "v6_3",
 			min:  "6.3.0",
-			max:  "7.0.0",
+			max:  "6.4.0",
 			cases: []struct {
 				version string
 				want    bool
 			}{
 				{version: "6.2.9", want: false},
 				{version: "6.3.0", want: true},
+				{version: "6.3.9", want: true},
+				{version: "6.4.0", want: false},
+			},
+		},
+		{
+			name: "v6_4",
+			min:  "6.4.0",
+			max:  "7.0.0",
+			cases: []struct {
+				version string
+				want    bool
+			}{
+				{version: "6.3.9", want: false},
+				{version: "6.4.0", want: true},
 				{version: "6.9.0", want: true},
 				{version: "7.0.0", want: false},
 			},

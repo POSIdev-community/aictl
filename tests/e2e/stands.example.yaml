@@ -22,5 +22,9 @@ stands:
   "6.3":
     url: https://aie-63.example.com
     token: "<token>"
+    aiproj_version: "1.11"
+  "6.4":
+    url: https://aie-64.example.com
+    token: "<token>"
     aiproj_version: "1.12"
 tls_skip: true

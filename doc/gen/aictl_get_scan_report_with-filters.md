@@ -39,7 +39,7 @@ aictl get scan report with-filters <report-name> <scan-id> [flags]
       --non-conditional           Include non-conditional issues
       --non-suppressed            Include non-suppressed issues
       --only-favorite             Include only favorite issues
-      --scan-module stringArray   Scan module filter (repeatable): StaticCodeAnalysis, PatternMatching, Components, SoftwareCompositionAnalysis, Configuration, MaliciousCodeDetection, SecretDetection, BlackBox
+      --scan-module stringArray   Scan module filter (repeatable): StaticCodeAnalysis, PatternMatching, Components, SoftwareCompositionAnalysis, Configuration, MaliciousCodeDetection, SecretDetection, BlackBox, RaceConditionDetection, Asint
       --second-level              Include second-level issues
       --status-confirmed          Include confirmed issues
       --status-confirmed-auto     Include auto-confirmed issues
