@@ -12,7 +12,8 @@ import (
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v5_x"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_0"
 	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_1"
-	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_x"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_3"
+	"github.com/POSIdev-community/aictl/internal/adapter/ai/v6_4"
 	"github.com/POSIdev-community/aictl/internal/core/apperror"
 	"github.com/POSIdev-community/aictl/internal/core/domain/config"
 )
@@ -45,10 +46,17 @@ func TestTokenRecovery_V61(t *testing.T) {
 	})
 }
 
-func TestTokenRecovery_V6x(t *testing.T) {
+func TestTokenRecovery_V63(t *testing.T) {
 	t.Parallel()
 	runTokenRecoveryTests(t, func(base *common.BaseClient) tokenClient {
-		return v6_x.NewAiClient(base)
+		return v6_3.NewAiClient(base)
+	})
+}
+
+func TestTokenRecovery_V64(t *testing.T) {
+	t.Parallel()
+	runTokenRecoveryTests(t, func(base *common.BaseClient) tokenClient {
+		return v6_4.NewAiClient(base)
 	})
 }
 

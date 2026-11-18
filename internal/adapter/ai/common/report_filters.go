@@ -11,6 +11,7 @@ import (
 var (
 	minVersion60, _ = version.NewVersion("6.0.0")
 	minVersion61, _ = version.NewVersion("6.1.0")
+	minVersion64, _ = version.NewVersion("6.4.0")
 )
 
 // ValidateReportFiltersForVersion rejects filter values that require a newer AI server.
@@ -26,6 +27,12 @@ func ValidateReportFiltersForVersion(f report.Filters, serverVer version.Version
 			if serverVer.Less(minVersion60) {
 				return validation.NewError(fmt.Sprintf(
 					"scan module %q requires AI server version >= 6.0.0 (current %s)",
+					m, serverVer.String()))
+			}
+		case "RaceConditionDetection", "Asint":
+			if serverVer.Less(minVersion64) {
+				return validation.NewError(fmt.Sprintf(
+					"scan module %q requires AI server version >= 6.4.0 (current %s)",
 					m, serverVer.String()))
 			}
 		}

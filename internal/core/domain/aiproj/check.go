@@ -10,6 +10,7 @@ import (
 	"github.com/POSIdev-community/aiproj/versions"
 	"github.com/POSIdev-community/aiproj/versions/v1_10"
 	"github.com/POSIdev-community/aiproj/versions/v1_11"
+	"github.com/POSIdev-community/aiproj/versions/v1_12"
 	"github.com/POSIdev-community/aiproj/versions/v1_8"
 	"github.com/POSIdev-community/aiproj/versions/v1_9"
 )
@@ -45,7 +46,7 @@ const (
 )
 
 func SupportedSchemaVersions() []string {
-	return []string{versions.V1_8, versions.V1_9, versions.V1_10, versions.V1_11}
+	return []string{versions.V1_8, versions.V1_9, versions.V1_10, versions.V1_11, versions.V1_12}
 }
 
 func (k FailureKind) ShortMessage() string {
@@ -298,6 +299,8 @@ func validateAs(data []byte, ver string) error {
 		return v1_10.Validate(data)
 	case versions.V1_11:
 		return v1_11.Validate(data)
+	case versions.V1_12:
+		return v1_12.Validate(data)
 	default:
 		return fmt.Errorf("unsupported schema version: %s", ver)
 	}

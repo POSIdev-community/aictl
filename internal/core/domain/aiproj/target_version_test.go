@@ -20,7 +20,9 @@ func TestTargetForServer(t *testing.T) {
 		{name: "5.9", server: "5.9.9", want: "1.9"},
 		{name: "6.0", server: "6.0.0", want: "1.10"},
 		{name: "6.1", server: "6.1.0", want: "1.11"},
-		{name: "6.5", server: "6.5.0", want: "1.11"},
+		{name: "6.3", server: "6.3.0", want: "1.11"},
+		{name: "6.4", server: "6.4.0", want: "1.12"},
+		{name: "6.5", server: "6.5.0", want: "1.12"},
 	}
 
 	for _, tt := range tests {
@@ -60,4 +62,16 @@ func TestParseAndMigrateForServer(t *testing.T) {
 	require.NotNil(t, parsed.V111.GoSettings)
 	require.NotNil(t, parsed.V111.GoSettings.CustomParameters)
 	require.Equal(t, "+v", *parsed.V111.GoSettings.CustomParameters)
+
+	server64, err := version.NewVersion("6.4.0")
+	require.NoError(t, err)
+
+	parsed112, err := ParseAndMigrateForServer(input, server64)
+	require.NoError(t, err)
+	require.Equal(t, "1.12", parsed112.AiprojVersion())
+	require.NotNil(t, parsed112.V112)
+	require.Equal(t, "demo", parsed112.V112.ProjectName)
+	require.NotNil(t, parsed112.V112.GoSettings)
+	require.NotNil(t, parsed112.V112.GoSettings.CustomParameters)
+	require.Equal(t, "+v", *parsed112.V112.GoSettings.CustomParameters)
 }

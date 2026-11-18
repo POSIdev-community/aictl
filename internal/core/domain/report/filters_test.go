@@ -45,6 +45,6 @@ func TestFilters_ValidateArrays(t *testing.T) {
 	require.NoError(t, report.Filters{
 		Types:       []string{"XSS"},
 		Languages:   []string{"Java", "Dart"},
-		ScanModules: []string{"StaticCodeAnalysis", "SecretDetection"},
+		ScanModules: []string{"StaticCodeAnalysis", "SecretDetection", "RaceConditionDetection", "Asint"},
 	}.ValidateArrays())
 }

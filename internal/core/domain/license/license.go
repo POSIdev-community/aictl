@@ -184,7 +184,9 @@ func HasAnyWhiteBoxModule(wb settings.WhiteBoxSettings) bool {
 		wb.SecretDetectionEnabled ||
 		wb.SearchWithScaEnabled ||
 		wb.SearchForVulnerableComponentsEnabled ||
-		wb.SearchForMaliciousCodeEnabled
+		wb.SearchForMaliciousCodeEnabled ||
+		wb.SearchForRaceConditionsEnabled ||
+		wb.AsintEnabled
 }
 
 // PrepareSettings checks languages (unless skipLanguageCheck) and plans module disables.

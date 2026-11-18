@@ -25,6 +25,12 @@ func (r *Result) UseSecurityPolicies() *bool {
 		}
 
 		return r.V111.UseSecurityPolicies
+	case "1.12":
+		if r.V112 == nil {
+			return nil
+		}
+
+		return r.V112.UseSecurityPolicies
 	default:
 		return nil
 	}
